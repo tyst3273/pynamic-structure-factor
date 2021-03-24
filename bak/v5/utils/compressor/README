@@ -1,0 +1,30 @@
+instructions:
+
+
+If numpy and h5py are installed, you can just run compress_data.py (in the directory containing ALL of the *.dat files) as: 
+
+python compress_data.py
+
+
+
+This will loop over nanoseconds and for each nanosecond, it will combine 20 posvel_*.dat files together into 
+an output file named pos_*_ns.hdf5. It will take for, e.g the 2nd ns, posvel_11.dat, posvel_12.dat, ... posvel_20.dat 
+and combine them into pos_2_ns.hdf5
+
+You shouldn't have to do anything else and can just leave it running for quite a few hours and it *should* be fine. 
+
+
+
+If you just want to test that it will run without crashing, you can set debug = True in the compress_data.py file and run it.
+This will run pretty fast, probably less than 5 minutes. It will read the timesteps ONLY from the 1st 20 files (1st ns) and then 
+save an hdf5 file named debug.hdf5. It will then exit. Everything should be fine if it doesnt crash before exiting but you can 
+check that it works properly by opening debug.hdf5 using e.g. nexpy and just looking at the data in the time_steps array. 
+These should be the same timesteps in the files.
+
+
+Thanks a lot!
+
+Ty
+
+
+
