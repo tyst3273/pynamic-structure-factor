@@ -12,7 +12,9 @@ python code to calculate inelastic-neutron-scattering dynamic structure factor, 
   - some example input scripts for scans along an automatically generated BZ path
   - or on an abritrary list of Q points read from a file
 - utils
-  some python scripts for plotting, making input Q lists, or compresses txt file MD outputs into hdf5 databases to be read by the code. 
+  - some python scripts for plotting
+  - making input Q lists
+  - compressing txt MD outputs into hdf5 databases to be read by the code. 
 
 ## intstructions
 - to be done in detail eventually... until then, if you really want to use, please email me:
