@@ -8,7 +8,7 @@ class params:
             total_steps=2**21,num_atoms=512,num_types=2,b={'1':4.1491e-5},supercell=[8,8,8],
             lattice_vectors=[[5.431,0,0],[0,5.431,0],[0,0,5.431]],file_format='hdf5',
             log_file='log',Qpoints_file=False,Qmin=[0,0,0],Qmax=[2,0,0],Qsteps=10,blocks=10,
-            debug=False,recalculate_box_lengths=False):
+            debug=False,recalculate_cell_lengths=False):
 
         """
         initialize input options here. everything has a 'default' 
@@ -31,7 +31,7 @@ class params:
         self.stride = stride                                    # trajectory printing interval in steps
         self.total_steps = total_steps                          # length of MD simulation (in the file!) in steps
         self.unwrap_pos = unwrap_pos                            # unimpose minimum-image convention
-        self.recalculate_box_lengths = recalculate_box_lengths  # compute box lengths if e.g. NPT calc
+        self.recalculate_cell_lengths = recalculate_cell_lengths  # compute cell lengths if e.g. NPT calc
 
         self.num_atoms = num_atoms      # total number of atoms
         self.num_types = num_types      # total numer of distinct types
@@ -55,27 +55,51 @@ class params:
         self.debug = debug                  # if True, only calculate 1st block. can do short debugging calcs this way 
 
         # =============================================================
-        # need Q in 1/A (not rlu) to compute space FT. if using box 
-        # lengths from input, do it once and for all. if getting box 
-        # lengths from traj file (done for each block), wait to convert 
-        # Q to 1/A once box lenghts read from file.
+        # need Q in 1/A (not rlu) to compute space FT. if using cell 
+        # lengths from input, do it once and for all. if getting cell 
+        # lengths from traj file (done for each block)... wait to c
+        # convert Q to 1/A once cell lenghts read from file.
         # =============================================================
 
-        if self.recalculate_box_lengths != True: 
-            if self.Qpoints_file == False:
-                self.Qpoints_from_2d_scan() # gen 2d scan from inputs, convert Q to 1/A
-            else:
-                self.Qpoints_from_list()    # gen from input file, convert Q to 1/A
+        if self.recalculate_cell_lengths != True: 
+            self.gen_Qpoints()
 
         self._make_frequency_grid() # compute frequencies corresponding to time FFT
+
 
 
 
     # =============================================================
     # ****************    public methods    ***********************
     # =============================================================
+    
+    def gen_Qpoints(self):
 
-    def Qpoints_from_2d_scan(self): 
+        """ 
+        generate Q points, either a 2d scan or read list from file.
+        """
+
+        if self.Qpoints_file == False:
+            self._Qpoints_from_2d_scan() # gen 2d scan from inputs, convert Q to 1/A
+        else:
+            self._Qpoints_from_list()    # gen from input file, convert Q to 1/A
+
+
+    def clean_up(self):
+
+        """
+        best practice to close files when done with them, especially hdf5
+        """
+
+        self.traj_handle.close()
+        self.log_handle.close()
+    
+
+    # =============================================================
+    # ****************    private methods    **********************
+    # =============================================================
+
+    def _Qpoints_from_2d_scan(self): 
 
         """
         generate Q-points between Qmin and Qmax for 2d BZ scan. 
@@ -97,7 +121,7 @@ class params:
         self._convert_Q_to_1_over_A()
 
     
-    def Qpoints_from_list(self):
+    def _Qpoints_from_list(self):
 
         """
         generate Qpoint in 1/A. read from file Qpoints_file,  
@@ -120,37 +144,6 @@ class params:
         self._compute_reciprocal_latt() # compute reciprocal lattice vectors
         self._convert_Q_to_1_over_A()   # convert from rlu to 1/A
 
-#        lattice_vectors = np.array(self.lattice_vectors)
-#        self.r_lattice_vectors = np.zeros((3,3))
-#        self.cell_vol = self.lattice_vectors[0,:].dot(np.cross(self.lattice_vectors[1,:],
-#            self.lattice_vectors[2,:]))
-#        self.r_lattice_vectors[0,:] = 2*np.pi*np.cross(self.lattice_vectors[1,:],
-#                self.lattice_vectors[2,:])/self.cell_vol
-#        self.r_lattice_vectors[1,:] = 2*np.pi*np.cross(self.lattice_vectors[2,:],
-#                self.lattice_vectors[0,:])/self.cell_vol
-#        self.r_lattice_vectors[2,:] = 2*np.pi*np.cross(self.lattice_vectors[0,:],
-#                self.lattice_vectors[1,:])/self.cell_vol
-
-#        # populate BZ slice
-#        self.Qsteps = self.reduced_Q.shape[0]
-#        self.Qpoints = np.zeros((self.Qsteps,3))
-#        self.log_handle.write('\n** Brillouin zone path **\n'
-#                f' Qpoints: {self.Qsteps}:\n')
-#        self.log_handle.flush()
-#        for Q in range(self.Qsteps):
-#            self.Qpoints[Q,:] = (self.r_lattice_vectors[0,:]*self.reduced_Q[Q,0]+
-#                    self.r_lattice_vectors[1,:]*self.reduced_Q[Q,1]+
-#                    self.r_lattice_vectors[2,:]*self.reduced_Q[Q,2])
-#            self.log_handle.write(f' {Q+1}\t{self.Qpoints[Q,0]:2.3f} '
-#                    f'{self.Qpoints[Q,1]:2.3f} {self.Qpoints[Q,2]:2.3f} 1/Angst\t'
-#                    f'({self.reduced_Q[Q,0]:2.3f} {self.reduced_Q[Q,1]:2.3f} '
-#                    f'{self.reduced_Q[Q,2]:2.3f} r.l.u.) \n')
-#            self.log_handle.flush()
-
-
-    # =============================================================
-    # ****************    private methods    **********************
-    # =============================================================
 
     def _compute_reciprocal_latt(self):
 
@@ -180,13 +173,13 @@ class params:
         self.log_handle.flush()
 
         for Q in range(self.Qsteps):
-            self.Qpoints[Q,:] = (self.r_lattice_vectors[0,:]*reduced_Q[Q,0]+    
-                    self.r_lattice_vectors[1,:]*reduced_Q[Q,1]+
-                    self.r_lattice_vectors[2,:]*reduced_Q[Q,2])
+            self.Qpoints[Q,:] = (self.r_lattice_vectors[0,:]*self.reduced_Q[Q,0]+    
+                    self.r_lattice_vectors[1,:]*self.reduced_Q[Q,1]+
+                    self.r_lattice_vectors[2,:]*self.reduced_Q[Q,2])
             self.log_handle.write(f' {Q+1}\t{self.Qpoints[Q,0]:2.3f} '          
                     f'{self.Qpoints[Q,1]:2.3f} {self.Qpoints[Q,2]:2.3f} 1/Angst\t'
-                    f'({reduced_Q[Q,0]:2.3f} {reduced_Q[Q,1]:2.3f} '
-                    f'{reduced_Q[Q,2]:2.3f} r.l.u.) \n')
+                    f'({self.reduced_Q[Q,0]:2.3f} {self.reduced_Q[Q,1]:2.3f} '
+                    f'{self.reduced_Q[Q,2]:2.3f} r.l.u.) \n')
             self.log_handle.flush()
 
 

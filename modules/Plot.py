@@ -8,6 +8,10 @@ class plot_from_txt:
     def __init__(self,sqw,Qmin,Qmax,fig_name=False,vmin=False,
             vmax=False,cmap='jet',interp='gaussian'):
 
+        """
+        read a 2d scan from a *.csv file and generate a colormap.
+        """
+
         max_freq = sqw[:,0].max()
         min_freq = sqw[:,0].min()
         num_freq = sqw.shape[0]
@@ -52,6 +56,10 @@ class plot_from_txt:
 class plot_single_from_txt:
 
     def __init__(self,sqw,Qpoint,sigma=False,fig_name=False,log_scale=False):
+
+        """
+        read a constant-Q scan from a *.csv file and generate a plot.
+        """
 
         max_freq = sqw[:,0].max()
         min_freq = sqw[:,0].min()
