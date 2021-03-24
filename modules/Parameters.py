@@ -141,6 +141,9 @@ class params:
             print('\n\tERROR: Qpoint list seems wrong\n')
             exit()
 
+        self.Qsteps = self.reduced_Q.shape[0]
+        self.Qpoints = np.zeros((self.Qsteps,3)) # in this case, just total number of Q points
+
         self._compute_reciprocal_latt() # compute reciprocal lattice vectors
         self._convert_Q_to_1_over_A()   # convert from rlu to 1/A
 
