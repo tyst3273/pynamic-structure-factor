@@ -59,10 +59,14 @@ class params:
         # lengths from input, do it once and for all. if getting cell 
         # lengths from traj file (done for each block)... wait to c
         # convert Q to 1/A once cell lenghts read from file.
+        # but we need Qsteps from the file before then, so get it now
         # =============================================================
 
         if self.recalculate_cell_lengths != True: 
             self.gen_Qpoints()
+        else:
+            self._get_Qsteps()
+            
 
         self._make_frequency_grid() # compute frequencies corresponding to time FFT
 
@@ -184,6 +188,15 @@ class params:
                     f'({self.reduced_Q[Q,0]:2.3f} {self.reduced_Q[Q,1]:2.3f} '
                     f'{self.reduced_Q[Q,2]:2.3f} r.l.u.) \n')
             self.log_handle.flush()
+
+
+    def _get_Qsteps(self):
+
+        """
+        open the file and get the number of Qsteps in it. we need it to set up arrays
+        """
+
+        self.Qsteps = np.loadtxt(self.Qpoints_file).shape[0]
 
 
     def _make_frequency_grid(self):
