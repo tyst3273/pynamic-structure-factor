@@ -65,7 +65,8 @@ class params:
         if self.recalculate_cell_lengths != True: 
             self.gen_Qpoints()
         else:
-            self._get_Qsteps()
+            if self.Qpoints_file != False: # if not using Qpoints file, Qsteps is from input
+                self._get_Qsteps()
             
 
         self._make_frequency_grid() # compute frequencies corresponding to time FFT

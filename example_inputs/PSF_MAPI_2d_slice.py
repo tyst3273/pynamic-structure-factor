@@ -11,8 +11,9 @@ import Plot
 import FileIO
 
 
-temp = '300'
-steps = [10]
+temp = '10'
+steps = [8,10]
+out_dir = f'sqe_2d_{temp}K'
 
 
 # ===========    MD input parameters from calc   ==========
@@ -44,21 +45,36 @@ md_args = {'traj_file':pos_dir+f'pos_5_{temp}K.hdf5', # this gets over written f
 sqw_args = {'Qmin':[0,0,0],
             'Qmax':[1,1,0],
             'Qsteps':21,
-            'blocks':40,
+            'blocks':400,
             'debug':True}
 
 
 # ======  check if output dir exists, make it if not  ======= 
 
-if not os.path.exists(f'sqe_2d_{temp}K'):
-    os.mkdir(f'sqe_2d_{temp}K')        
+if not os.path.exists(out_dir):
+    os.mkdir(out_dir)        
 
 
 # ================    run the calculation   =================
 
 for step in steps:
 
+
+    # ================   pick the right traj file     ===============
+    
     md_args['traj_file'] = pos_dir+f'pos_{step}_{temp}K.hdf5'   # which file to use
+
+
+    
+    # ================        all  atoms   ===========================
+    
+    md_args['b'] = {'1':6.646e-5,      # C
+                    '2':9.360e-5,      # N
+                    '3':6.671e-5,      # H2
+                    '4':6.671e-5,      # H2
+                    '5':9.405e-5,      # Pb
+                    '6':5.280e-5}     # I
+
     params = Parameters.params(**md_args,**sqw_args)            # initialize parameters
     calc = Calculator.calc(params)                              # initialize calculator
 
@@ -66,8 +82,48 @@ for step in steps:
     params.clean_up()                                           # close files, probably not necessary
 
     f_name = (f"MAPI_{temp}_2d_all_{step}.dat")                 # output file name
-    io = FileIO.io(params,calc,f_name=f'sqe_2d_{temp}K/'+f_name)   # save SQE array as csv file
+    io = FileIO.io(params,calc,f_name=os.path.join(out_dir,f_name))   # save SQE array as csv file
 
+
+    # ===================   cage atoms   =====================
+
+    md_args['b'] = {'1':0,               # C
+                    '2':0,               # N
+                    '3':0,               # H2
+                    '4':0,               # H2
+                    '5':9.405e-5,        # Pb
+                    '6':5.280e-5}        # I
+
+
+    params = Parameters.params(**md_args,**sqw_args) # initialize Qpoints, freq, etc.
+    calc = Calculator.calc(params) # run the calculator. It is called within __init__()
+
+    calc.run(params)
+    params.clean_up()
+
+    f_name = (f"MAPI_{temp}_2d_cage_{step}.dat")
+    io = FileIO.io(params,calc,f_name=os.path.join(out_dir,f_name)) # save SQE array as csv file
+
+
+    # ===================   MA atoms  =====================
+
+    md_args['b'] = {'1':6.646e-5,      # C  
+                    '2':9.360e-5,      # N
+                    '3':6.671e-5,      # H2 
+                    '4':6.671e-5,      # H2
+                    '5':0,             # Pb
+                    '6':0}             # I
+
+
+    md_args['traj_file'] = pos_dir+f'pos_{step}_{temp}K.hdf5'
+    params = Parameters.params(**md_args,**sqw_args) # initialize Qpoints, freq, etc.
+    calc = Calculator.calc(params) # run the calculator. It is called within __init__()
+
+    calc.run(params)
+    params.clean_up()
+
+    f_name = (f"MAPI_{temp}_2d_ma_{step}.dat")
+    io = FileIO.io(params,calc,f_name=os.path.join(out_dir,f_name)) # save SQE array as csv file
 
 
 
