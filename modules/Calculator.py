@@ -18,6 +18,7 @@ class calc:
         self.b_array = np.zeros((params.block_steps,params.num_atoms))  # scattering lengths
         self.box_lengths = [-1,0,0]                                     # used if calculating cell lengths from file
         self.num_blocks = len(params.blocks)
+        self.counter = 1
 
     # =============================================================
     # ****************    public methods    ***********************
@@ -147,6 +148,8 @@ class calc:
                                     f'{elapsed_time*60/params.Qsteps:2.3f} seconds\n')
             params.log_handle.flush()
 
+            self.counter = self.counter+1
+
 
 
     def _loop_over_Q(self,params):
@@ -208,8 +211,7 @@ class calc:
                         (self.block_index+1)*params.block_steps]
 
         params.log_handle.write(f'\n** Reading Velocities ({params.file_format}) **\n')
-        params.log_handle.write(f' Now on block {self.block_index+1} '
-                        f'out of {self.num_blocks}\n')
+        params.log_handle.write(f' Now on block {self.counter} out of {self.num_blocks}\n')
         params.log_handle.write('\n Now reading:\n')
         params.log_handle.flush()
 
