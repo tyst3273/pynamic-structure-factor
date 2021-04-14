@@ -7,8 +7,8 @@ class params:
     def __init__(self,traj_file='lammps/pos.hdf5',unwrap_pos=False,dt=1e-15,stride=32,
             total_steps=2**21,num_atoms=512,num_types=2,b={'1':4.1491e-5},supercell=[8,8,8],
             lattice_vectors=[[5.431,0,0],[0,5.431,0],[0,0,5.431]],file_format='hdf5',
-            log_file='log',Qpoints_file=False,Qmin=[0,0,0],Qmax=[2,0,0],Qsteps=10,blocks=10,
-            debug=False,recalculate_cell_lengths=False):
+            log_file='log',Qpoints_file=False,Qmin=[0,0,0],Qmax=[2,0,0],Qsteps=10,
+            num_blocks=1,blocks=[0],debug=False,recalculate_cell_lengths=False):
 
         """
         initialize input options here. everything has a 'default' 
@@ -51,8 +51,8 @@ class params:
         self.Qsteps = Qsteps                # number of steps in 2d Q scan
 
         # ================ other calculation options ================
-        self.blocks = blocks                # number of 'blocks' to split data in file, average all blocks at the end
-        self.debug = debug                  # if True, only calculate 1st block. can do short debugging calcs this way 
+        self.num_blocks = num_blocks    # number of 'blocks' to split data in file, average all blocks at the end
+        self.blocks = blocks            # list containing indicies of which block to include 
 
         # =============================================================
         # need Q in 1/A (not rlu) to compute space FT. if using cell 
@@ -208,7 +208,7 @@ class params:
         convert to 1/s in THz and convert that to meV
         """
 
-        self.block_steps = (self.total_steps//self.stride)//self.blocks # dt in array
+        self.block_steps = (self.total_steps//self.stride)//self.num_blocks # dt in array
         self.max_freq = 1e-12/self.dt/self.stride/2*4.13567             # FFT of real fn
         self.meV = np.linspace(0,self.max_freq*2,self.block_steps*2)    # convert to meV
         self.num_freq = self.meV.shape[0]                               # same as block_steps

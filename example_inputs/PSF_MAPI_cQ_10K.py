@@ -56,8 +56,8 @@ if not os.path.exists(out_dir):
 for Q in Qinds:
 
     sqw_args = {'Qpoints_file':f'Qi_{Q}', # if != False, overwrites Qmin, Qmax, Qsteps
-                'blocks':200,
-                'debug':True}
+                'num_blocks':20,
+                'blocks':list(range(20))}
 
 
     # ===================    all modes  =====================

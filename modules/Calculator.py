@@ -17,13 +17,7 @@ class calc:
         self.atom_ids = np.zeros((params.block_steps,params.num_atoms)) # used to map to scattering lenghts
         self.b_array = np.zeros((params.block_steps,params.num_atoms))  # scattering lengths
         self.box_lengths = [-1,0,0]                                     # used if calculating cell lengths from file
-
-        if params.debug == True: # if debug == True, we only do 1 'block,' then write output and exit
-            self.blocks = 1
-        else:
-            self.blocks = params.blocks
-
-
+        self.num_blocks = len(params.blocks)
 
     # =============================================================
     # ****************    public methods    ***********************
@@ -85,7 +79,7 @@ class calc:
 
         self._loop_over_blocks(params)
 
-        self.sqw = self.sqw/self.blocks   # average over the blocks
+        self.sqw = self.sqw/self.num_blocks   # average over the blocks
 
 
 
@@ -100,7 +94,7 @@ class calc:
         contains outer loop over blocks
         """
 
-        for block_index in range(self.blocks):      
+        for block_index in params.blocks:      
             start_time = timer()                # start a timer to print wall time to log file
             self.block_index = block_index      
             
@@ -215,7 +209,7 @@ class calc:
 
         params.log_handle.write(f'\n** Reading Velocities ({params.file_format}) **\n')
         params.log_handle.write(f' Now on block {self.block_index+1} '
-                        f'out of {params.blocks}\n')
+                        f'out of {self.num_blocks}\n')
         params.log_handle.write('\n Now reading:\n')
         params.log_handle.flush()
 

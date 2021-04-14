@@ -45,8 +45,8 @@ md_args = {'traj_file':pos_dir+f'pos_5_{temp}K.hdf5', # this gets over written f
 sqw_args = {'Qmin':[0,0,0],
             'Qmax':[1,1,0],
             'Qsteps':21,
-            'blocks':400,
-            'debug':True}
+            'num_blocks':20,
+            'blocks':list(range(20))}
 
 
 # ======  check if output dir exists, make it if not  ======= 
