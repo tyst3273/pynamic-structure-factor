@@ -4,11 +4,11 @@ import h5py
 
 class params:
 
-    def __init__(self,traj_file='lammps/pos.hdf5',unwrap_pos=False,dt=1e-15,stride=32,
+    def __init__(self,traj_file='lammps/pos.hdf5',unwrap_pos=True,dt=1e-15,stride=32,
             total_steps=2**21,num_atoms=512,num_types=2,b={'1':4.1491e-5},supercell=[8,8,8],
             lattice_vectors=[[5.431,0,0],[0,5.431,0],[0,0,5.431]],file_format='hdf5',
             log_file='log',Qpoints_file=False,Qmin=[0,0,0],Qmax=[2,0,0],Qsteps=10,
-            num_blocks=1,blocks=[0],debug=False,recalculate_cell_lengths=False):
+            num_blocks=1,blocks=[0],recalculate_cell_lengths=True):
 
         """
         initialize input options here. everything has a 'default' 
