@@ -2,7 +2,7 @@ import sys
 import numpy as np
 from timeit import default_timer as timer
 
-sys.path.append('modules')
+sys.path.append('/home/ty/custom_modules/pynamic-structure-factor/')
 
 import Parser
 import Parameters 

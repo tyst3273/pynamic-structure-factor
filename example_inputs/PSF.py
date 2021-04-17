@@ -3,7 +3,7 @@ import numpy as np
 from timeit import default_timer as timer
 from mpi4py import MPI
 
-sys.path.append('modules')
+sys.path.append('/home/ty/custom_modules/pynamic-structure-factor/')
 
 import Parser
 import Parameters 
@@ -25,6 +25,8 @@ if rank == 0:
 
     # print the herald 
     FileIO.print_herald(n_ranks)
+
+    exit()
 
     # get input opts from file
     parser = Parser.parser()
