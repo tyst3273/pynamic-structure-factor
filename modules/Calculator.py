@@ -105,6 +105,8 @@ class calc:
 
             if params.my_rank == 0:
                 start_time = timer()        
+                message = f'now on block {self.counter} out of {self.num_blocks}'
+                print_stdout(message,msg_type='NOTE')
 
             self.block_index = block_index      
             
