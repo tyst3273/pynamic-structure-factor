@@ -34,7 +34,7 @@ class parser:
         self.Qpoints_file = False
         self.Qmin = [0,0,0]
         self.Qmax = [2,0,0]
-        self.total_Qsteps = 17
+        self.Qsteps = 17
         self.num_blocks = 1
         self.blocks = list(range(self.num_blocks)) 
 
@@ -89,7 +89,7 @@ class parser:
         self.Qpoints_file = self._parse_str('Qpoints_file',self.Qpoints_file)
         self.Qmin = self._parse_float_vec('Qmin',self.Qmin)
         self.Qmax = self._parse_float_vec('Qmax',self.Qmax)
-        self.total_Qsteps = self._parse_int('total_Qsteps',self.total_Qsteps)
+        self.Qsteps = self._parse_int('Qsteps',self.Qsteps)
         self.num_blocks = self._parse_int('num_blocks',self.num_blocks)
         self.blocks = list(range(self.num_blocks)) # update default
         self.blocks = self._parse_int_vec('blocks',self.blocks) # overwrite default IF in the file.

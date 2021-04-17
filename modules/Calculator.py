@@ -1,9 +1,10 @@
 
 import numpy as np
 from timeit import default_timer as timer
-from FileIO import save_sqe, print_log
+from FileIO import save_sqw, print_stdout
 
 class calc:
+
 
     def __init__(self,params):
 
@@ -17,11 +18,13 @@ class calc:
         self.b_array = np.zeros((params.block_steps,params.num_atoms))  # scattering lengths
         self.box_lengths = [0,0,0]                                      # read from traj file
         self.num_blocks = len(params.blocks)
+        self.counter = 1
+
 
     # =============================================================
     # ****************    public methods    ***********************
     # =============================================================
- 
+
     def run(self,params):
 
         """
@@ -80,8 +83,11 @@ class calc:
 
         self.sqw = self.sqw/self.num_blocks # average over the blocks
 
-        f_name = params.outfile_prefix+f'_BX.dat'
-        save_sqe(params,self.sqw,f_name=f_name)
+        f_name = params.outfile_prefix+f'_P{params.my_rank}_BX.dat' # final file
+        save_sqw(params,self.sqw,f_name=f_name)
+
+        self._clean_up()
+        params.clean_up()
 
 
 
@@ -97,7 +103,8 @@ class calc:
 
         for block_index in params.blocks:      
 
-            start_time = timer()                # start a timer to print wall time to log file
+            if params.my_rank == 0:
+                start_time = timer()        
 
             self.block_index = block_index      
             
@@ -115,9 +122,10 @@ class calc:
             c = self.box_lengths[2]/params.supercell[2]
 
             # ==========   compute cell lengths and compare to input   ===============
-
-            message = f'cell lengths from hdf5 file: {a:2.3f} {b:2.3f} {c:2.3f} Angstrom\n'
-            print_log(params.log_handle,message,msg_type='NOTE')
+            
+            if params.my_rank == 0:
+                message = f'cell lengths from hdf5 file: {a:2.3f} {b:2.3f} {c:2.3f} Angstrom'
+                print_stdout(message,msg_type='NOTE')
 
             if params.recalculate_cell_lengths == True: # optionally recalculates from avg in MD file
                 params.lattice_vectors = [[a,0,0],[0,b,0],[0,0,c]]
@@ -131,16 +139,26 @@ class calc:
 
             # ==============    print timing to the log file     =============
 
-            end_time = timer()  # stop the timer
-            elapsed_time = (end_time-start_time)/60 # minutes
+            if params.my_rank == 0:
+                end_time = timer()  
+                elapsed_time = (end_time-start_time)/60 # minutes
+                message = f' elapsed time for this block: {elapsed_time:2.3f} minutes'
+                print_stdout(message,msg_type='TIMING')
+                message = f' time per Q-point: {elapsed_time*60/params.Qsteps:2.3f} seconds'
+                print_stdout(message)
 
-            message = f' elapsed time for this block: {elapsed_time:2.3f} minutes'
-            print_log(params.log_handle,message,msg_type='TIMING')
-            message = f' time per Q-point: {elapsed_time*60/params.Qsteps:2.3f} seconds\n'
-            print_log(params.log_handle,message)
+            # =================================================================
+            # sqw is added to each block. save each block, but divide by count  
+            # when saving to average the current data
+            # =================================================================
 
-            f_name = params.outfile_prefix+f'_B{block_index}.dat'
-            save_sqe(params,self.sqw,f_name=f_name)
+            if self.counter != self.num_blocks:
+
+                f_name = params.outfile_prefix+f'_P{params.my_rank}_B{block_index}.dat'
+                save_sqw(params,self.sqw/self.counter,f_name=f_name)
+
+            self.counter = self.counter+1 # update the counter
+
 
 
 
@@ -150,19 +168,23 @@ class calc:
         contains inner loop over Q points
         """
 
-        message = 'entering loop over Q\n'
-        print_log(params.log_handle,message,msg_type='NOTE')
+        if params.my_rank == 0:
+            message = ('printing progess for rank 0, which has >= the number of Q on other procs.\n'
+                        ' -- now entering loop over Q -- ')
+            print_stdout(message,msg_type='NOTE')
 
         for q in range(params.Qsteps):  # do the loop over Q points. 
             self.q = q
             self.Q = params.Qpoints[q,:]
 
-            message = f' now on Q-point {q+1} out of {params.Qsteps}'
-            print_log(params.log_handle,message)
+            if params.my_rank == 0:
+                message = f' now on Q-point {q+1} out of {params.Qsteps}'
+                print_stdout(message)
 
             # ======   compute the neutron weighted density and correlation functions   ========
 
             self._compute_rho(params)
+
 
 
 
@@ -187,9 +209,16 @@ class calc:
 
 
 
+
     # ====================================================================
     # ************  auxilliary private methods used above   **************
     # ====================================================================
+
+    def _clean_up(self):
+
+        del self.pos, self.b_array, self.atom_ids, 
+
+
 
     def _parse_traj_file(self,params):
 
@@ -204,8 +233,9 @@ class calc:
         inds = [self.block_index*params.block_steps,    # list of the indicies in the block
                         (self.block_index+1)*params.block_steps]
 
-        message = 'now reading positions:\n'
-        print_log(params.log_handle,message,msg_type='NOTE')
+        if params.my_rank == 0:
+            message = 'now reading positions:'
+            print_stdout(message,msg_type='NOTE')
 
         self.box_lengths = [0,0,0]      # get the box lengths
         self.box_lengths[0] = np.mean(params.traj_handle['box_bounds'][inds[0]:inds[1],1]-
@@ -222,10 +252,13 @@ class calc:
         # ======   (optionally) unimpose minimum image convention  =======
 
         if params.unwrap_pos == True:   
-            message = 'unwrapping positions'
-            print_log(params.log_handle,message,msg_type='NOTE')
+
+            if params.my_rank == 0:
+                message = 'unwrapping positions'
+                print_stdout(message,msg_type='NOTE')
             
             self._unwrap_positions(params)
+
 
 
 
@@ -240,6 +273,7 @@ class calc:
             self.b_array[0,a] = params.b[f'{self.atom_ids[0,a]:g}']
         self.b_array = np.tile(self.b_array[0,:].reshape(1,params.num_atoms),
                 reps=[params.block_steps,1])
+
 
 
 
@@ -267,28 +301,38 @@ class calc:
         lz = self.box_lengths[2]
 
         # ======   build an array to be added to the positions to shift them  =======
-        self.shift = self.pos-np.tile(self.pos[0,:,:].reshape((1,params.num_atoms,3)),
+        shift = self.pos-np.tile(self.pos[0,:,:].reshape((1,params.num_atoms,3)),
                 reps=[params.block_steps,1,1])
 
         # ==========   check whether to shift atoms in the x direction     ==========
-        dr = -lx*(self.shift[:,:,0] > lx/2).astype(int)
-        dr = dr+lx*(self.shift[:,:,0] <= -lx/2).astype(int)
-        self.shift[:,:,0] = np.copy(dr)
+        dr = -lx*(shift[:,:,0] > lx/2).astype(int)
+        dr = dr+lx*(shift[:,:,0] <= -lx/2).astype(int)
+        shift[:,:,0] = np.copy(dr)
 
         # ==========   check whether to shift atoms in the y direction     ==========
-        dr = -ly*(self.shift[:,:,1] > ly/2).astype(int)
-        dr = dr+ly*(self.shift[:,:,1] <= -ly/2).astype(int)
-        self.shift[:,:,1] = np.copy(dr)
+        dr = -ly*(shift[:,:,1] > ly/2).astype(int)
+        dr = dr+ly*(shift[:,:,1] <= -ly/2).astype(int)
+        shift[:,:,1] = np.copy(dr)
 
         # ==========   check whether to shift atoms in the z direction     ==========
-        dr = -lz*(self.shift[:,:,2] > lz/2).astype(int)
-        dr = dr+lz*(self.shift[:,:,2] <= -lz/2).astype(int)
-        self.shift[:,:,2] = np.copy(dr)
+        dr = -lz*(shift[:,:,2] > lz/2).astype(int)
+        dr = dr+lz*(shift[:,:,2] <= -lz/2).astype(int)
+        shift[:,:,2] = np.copy(dr)
         
         # =====================     apply the shift    ==============================
-        self.pos = self.pos+self.shift
+        self.pos = self.pos+shift
         
-        del self.shift # its a fairly large array; free up the memory.   
+
+
+
+
+
+
+
+
+
+
+
 
 
 

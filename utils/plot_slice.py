@@ -6,7 +6,10 @@ from matplotlib.image import imread
 import sys
 
 vlims = [None,None]
-vlims = [-10,1]
+vlims = [0,1]
+
+interp = 'none'
+cmap = 'hot'
 
 ############ load data #######################
 if len(sys.argv) != 2:
@@ -28,8 +31,8 @@ sqe = sqe[:num_e,1:]
 
 ######### create plots ###########
 fig,ax=plt.subplots(figsize=(4,6))
-im = ax.imshow(np.log(sqe),aspect='auto',cmap='hot',origin='lower',extent=[0,4,0,e_max],
-        interpolation='gaussian',vmin=vlims[0],vmax=vlims[1])
+im = ax.imshow(sqe,aspect='auto',cmap=cmap,origin='lower',extent=[0,4,0,e_max],
+        interpolation=interp,vmin=vlims[0],vmax=vlims[1])
 fig.colorbar(im,ax=ax,extend='both')
 
 ######## format plots #########

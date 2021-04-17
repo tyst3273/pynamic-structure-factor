@@ -1,77 +1,92 @@
 
 import numpy as np
 import h5py 
+from FileIO import print_log, print_herald
 
 class params:
 
-    def __init__(self,traj_file='lammps/pos.hdf5',unwrap_pos=True,dt=1e-15,stride=32,
-            total_steps=2**21,num_atoms=512,num_types=2,b={'1':4.1491e-5},supercell=[8,8,8],
-            lattice_vectors=[[5.431,0,0],[0,5.431,0],[0,0,5.431]],file_format='hdf5',
-            log_file='log',Qpoints_file=False,Qmin=[0,0,0],Qmax=[2,0,0],Qsteps=10,
-            num_blocks=1,blocks=[0],recalculate_cell_lengths=True):
+    def __init__(self,parser):
 
         """
-        initialize input options here. everything has a 'default' 
-        but is probably not sensible in most cases. the options are
-        breifly explained here. will do it better in a *.pdf 
-        instruction file in the future.
+        i probably should be inhereting from Parser, but i havent mastered 
+        this without side-effects yet and just want this to work for now. 
+
+        for now, this is for serial execution. later, i will prob. refine this 
+        to be initialized on each rank and only pass the Q points and blocks I want this rank
+        to work on. this is why i dont want to use inheritance. i only want to copy the attributes
+        that each rank should have.
+
+        note on logging: i dont want each rank writing to the log file. I am going to put a new 
+        method in FileIO that will accept a message and file handle as as an argument and only 
+        write to the file if rank == 0.
+
         """
 
-        # ============== logging info during calc  =================
-        self.log_file = log_file                    # file to write status and other info
-        self.log_handle = open(self.log_file,'w')   # open the file
+        # ============ copy attributes from parser ==============
 
-        # ================== input trajectory ======================
-        self.traj_file = traj_file                          # trajectory file
-        self.traj_handle = h5py.File(self.traj_file,'r')    # open the database
-        self.file_format = 'hdf5'                           # only hdf5 is implemented now
+        # I/O
+        self.pos_dir = parser.pos_dir
+        self.traj_file = parser.traj_file
+        self.output_dir = parser.output_dir
+        self.outfile_prefix = parser.outfile_prefix
 
-        # ================= MD simulation params ===================
-        self.dt = dt                                            # MD step in seconds
-        self.stride = stride                                    # trajectory printing interval in steps
-        self.total_steps = total_steps                          # length of MD simulation (in the file!) in steps
-        self.unwrap_pos = unwrap_pos                            # unimpose minimum-image convention
-        self.recalculate_cell_lengths = recalculate_cell_lengths  # compute cell lengths if e.g. NPT calc
+        # MD params
+        self.dt = parser.dt
+        self.stride = parser.stride
+        self.total_steps = parser.total_steps
+        self.num_atoms = parser.num_atoms
+        self.supercell = parser.supercell
+        self.lattice_vectors = parser.lattice_vectors
 
-        self.num_atoms = num_atoms      # total number of atoms
-        self.num_types = num_types      # total numer of distinct types
-        self.b = b                      # INS coherent scattering lengths in Angstrom
+        # calc options
+        self.unwrap_pos = parser.unwrap_pos
+        self.recalculate_cell_lengths = parser.recalculate_cell_lengths
+        self.b = parser.b
+        self.log_file = parser.log_file
+        self.Qpoints_file = parser.Qpoints_file
+        self.Qmin = parser.Qmin
+        self.Qmax = parser.Qmax
+        self.Qsteps = parser.Qsteps
+        self.num_blocks = parser.num_blocks
+        self.blocks = parser.blocks
 
-        self.lattice_vectors = lattice_vectors  # angstroms, orthogonal only for now
-        self.supercell = supercell              # [nx,ny,nz] integers specifying supercell size
 
-        self.log_handle.write('\n** WARNING **\n')  # print some info to log file
-        self.log_handle.write(' This might not work for non-orthogonal lattice vectors\n')
-        self.log_handle.flush()
+        # ==========================================================
+        # ------ initialize the rest of the stuff we need ----------
+        # ==========================================================
+    
+        # open files
+        self.traj_handle = h5py.File(self.traj_file,'r')
+        self.log_handle = open(self.log_file,'w')
 
-        # ============ Q points on which to calc S(Q,w) =============
-        self.Qpoints_file = Qpoints_file    # optional Q-points file. overrides 2d scan if given
-        self.Qmin = Qmin                    # [h,k,l] in rlu, 2d scan
-        self.Qmax = Qmax                    # [h,k,l] in rlu, 2d scan 
-        self.Qsteps = Qsteps                # number of steps in 2d Q scan
+        print_herald(self.log_handle)
 
-        # ================ other calculation options ================
-        self.num_blocks = num_blocks    # number of 'blocks' to split data in file, average all blocks at the end
-        self.blocks = blocks            # list containing indicies of which block to include 
+        message = 'this wont work for non-orthogonal lattice vectors (yet)\n'
+        print_log(self.log_handle,message,msg_type='WARNING')
 
-        # =============================================================
-        # need Q in 1/A (not rlu) to compute space FT. if using cell 
-        # lengths from input, do it once and for all. if getting cell 
-        # lengths from traj file (done for each block)... wait to c
-        # convert Q to 1/A once cell lenghts read from file.
-        # but we need Qsteps from the file before then, so get it now
-        # =============================================================
-
-        if self.recalculate_cell_lengths != True: 
-            self.gen_Qpoints()
-        else:
-            if self.Qpoints_file != False: # if not using Qpoints file, Qsteps is from input
-                self._get_Qsteps()
-            
-
+        # build arrays
+        self.gen_Qpoints() # read Q points from file or build slice from input
         self._make_frequency_grid() # compute frequencies corresponding to time FFT
 
+        # print input cell lengths
+        message = (f'cell lengths from input: {self.lattice_vectors[0][0]} '
+                   f'{self.lattice_vectors[1][1]} '
+                   f'{self.lattice_vectors[2][2]} Angstrom\n')
+        print_log(self.log_handle,message,msg_type='NOTE')
 
+        # do once and for all if not recalculating
+        if not self.recalculate_cell_lengths:
+            message = 'using cell lenghts from input\n'
+            print_log(self.log_handle,message,msg_type='NOTE')
+
+            self.convert_Q_to_1_over_A()
+
+        # other wise, print that will be done later
+        else:
+            message = 'using cell lenghts from hdf5 trajectory file\n'
+            print_log(self.log_handle,message,msg_type='NOTE')
+
+            # will convert Q to 1/A each time traj file is read
 
 
     # =============================================================
@@ -85,9 +100,32 @@ class params:
         """
 
         if self.Qpoints_file == False:
-            self._Qpoints_from_2d_scan() # gen 2d scan from inputs, convert Q to 1/A
+            self._Qpoints_from_2d_scan() # gen 2d scan from inputs
         else:
-            self._Qpoints_from_list()    # gen from input file, convert Q to 1/A
+            self._Qpoints_from_list()    # gen from input file
+
+        message = f'Qpoints: {self.Qsteps}'
+        print_log(self.log_handle,message,msg_type='Brillouin zone path')
+
+        for Q in range(self.Qsteps):
+            message = (f'{Q+1}\t{self.reduced_Q[Q,0]:2.3f} {self.reduced_Q[Q,1]:2.3f} '
+                    f'{self.reduced_Q[Q,2]:2.3f} r.l.u.')
+            print_log(self.log_handle,message)
+
+
+    def convert_Q_to_1_over_A(self):
+
+        """
+        convert Q points on rlu grid to 1/A
+        """
+
+        self._compute_reciprocal_latt()
+
+        self.Qpoints = np.zeros((self.Qsteps,3))
+        for Q in range(self.Qsteps):
+            self.Qpoints[Q,:] = (self.r_lattice_vectors[0,:]*self.reduced_Q[Q,0]+
+                    self.r_lattice_vectors[1,:]*self.reduced_Q[Q,1]+
+                    self.r_lattice_vectors[2,:]*self.reduced_Q[Q,2])
 
 
     def clean_up(self):
@@ -115,15 +153,10 @@ class params:
         """
 
         # ========= generate BZ slice from input options ===========
-        self.Qpoints = np.zeros((self.Qsteps,3))
-        reduced_Q = np.zeros((self.Qsteps,3))
-        reduced_Q[:,0] = np.linspace(self.Qmin[0],self.Qmax[0],self.Qsteps)
-        reduced_Q[:,1] = np.linspace(self.Qmin[1],self.Qmax[1],self.Qsteps)
-        reduced_Q[:,2] = np.linspace(self.Qmin[2],self.Qmax[2],self.Qsteps)
-        self.reduced_Q = np.copy(reduced_Q)
-
-        self._compute_reciprocal_latt()
-        self._convert_Q_to_1_over_A()
+        self.reduced_Q = np.zeros((self.Qsteps,3))
+        self.reduced_Q[:,0] = np.linspace(self.Qmin[0],self.Qmax[0],self.Qsteps)
+        self.reduced_Q[:,1] = np.linspace(self.Qmin[1],self.Qmax[1],self.Qsteps)
+        self.reduced_Q[:,2] = np.linspace(self.Qmin[2],self.Qmax[2],self.Qsteps)
 
     
     def _Qpoints_from_list(self):
@@ -135,22 +168,12 @@ class params:
         """
 
         # ============== read Q point list from file =================
-        try:
-            self.reduced_Q = np.loadtxt(self.Qpoints_file)
-        except: 
-            print('\n\tERROR: Qpoint list seems wrong\n')
-            exit()
+        self.reduced_Q = np.loadtxt(self.Qpoints_file)
+
         if len(self.reduced_Q.shape) == 1:
             self.reduced_Q = self.reduced_Q.reshape((1,self.reduced_Q.shape[0]))
-        if self.reduced_Q.shape[1] != 3:
-            print('\n\tERROR: Qpoint list seems wrong\n')
-            exit()
 
         self.Qsteps = self.reduced_Q.shape[0]
-        self.Qpoints = np.zeros((self.Qsteps,3)) # in this case, just total number of Q points
-
-        self._compute_reciprocal_latt() # compute reciprocal lattice vectors
-        self._convert_Q_to_1_over_A()   # convert from rlu to 1/A
 
 
     def _compute_reciprocal_latt(self):
@@ -158,8 +181,8 @@ class params:
         """
         compute reciprocal lattice vectors from real lattice
         """
-
         self.lattice_vectors = np.array(self.lattice_vectors)
+
         self.r_lattice_vectors = np.zeros((3,3))
         self.cell_vol = self.lattice_vectors[0,:].dot(np.cross(self.lattice_vectors[1,:],
             self.lattice_vectors[2,:]))
@@ -170,36 +193,23 @@ class params:
         self.r_lattice_vectors[2,:] = 2*np.pi*np.cross(self.lattice_vectors[0,:],
                 self.lattice_vectors[1,:])/self.cell_vol
 
-    def _convert_Q_to_1_over_A(self):
+        message = (f'real space lattice (Angstrom):\n'
+                f'  {self.lattice_vectors[0,0]:2.3f} {self.lattice_vectors[0,1]:2.3f}'
+                f' {self.lattice_vectors[0,2]:2.3f}\n  {self.lattice_vectors[1,0]:2.3f}'
+                f' {self.lattice_vectors[1,1]:2.3f} {self.lattice_vectors[1,2]:2.3f}\n'
+                f'  {self.lattice_vectors[2,0]:2.3f} {self.lattice_vectors[2,1]:2.3f}'
+                f' {self.lattice_vectors[2,2]:2.3f}\n')
+        print_log(self.log_handle,message,msg_type='NOTE')
 
-        """
-        convert Q points on rlu grid to 1/A
-        """
+        message = (f'reciprocal space lattice (1/Angstrom):\n'
+                f'  {self.r_lattice_vectors[0,0]:2.3f} {self.r_lattice_vectors[0,1]:2.3f}'
+                f' {self.r_lattice_vectors[0,2]:2.3f}\n  {self.r_lattice_vectors[1,0]:2.3f}'
+                f' {self.r_lattice_vectors[1,1]:2.3f} {self.r_lattice_vectors[1,2]:2.3f}\n'
+                f'  {self.r_lattice_vectors[2,0]:2.3f} {self.r_lattice_vectors[2,1]:2.3f}'
+                f' {self.r_lattice_vectors[2,2]:2.3f}\n')
+        print_log(self.log_handle,message)
 
-        self.log_handle.write('\n** Brillouin zone path **\n' 
-                f' Qpoints: {self.Qsteps}:\n')
-        self.log_handle.flush()
-
-        for Q in range(self.Qsteps):
-            self.Qpoints[Q,:] = (self.r_lattice_vectors[0,:]*self.reduced_Q[Q,0]+    
-                    self.r_lattice_vectors[1,:]*self.reduced_Q[Q,1]+
-                    self.r_lattice_vectors[2,:]*self.reduced_Q[Q,2])
-            self.log_handle.write(f' {Q+1}\t{self.Qpoints[Q,0]:2.3f} '          
-                    f'{self.Qpoints[Q,1]:2.3f} {self.Qpoints[Q,2]:2.3f} 1/Angst\t'
-                    f'({self.reduced_Q[Q,0]:2.3f} {self.reduced_Q[Q,1]:2.3f} '
-                    f'{self.reduced_Q[Q,2]:2.3f} r.l.u.) \n')
-            self.log_handle.flush()
-
-
-    def _get_Qsteps(self):
-
-        """
-        open the file and get the number of Qsteps in it. we need it to set up arrays
-        """
-
-        self.Qsteps = np.loadtxt(self.Qpoints_file).shape[0]
-
-
+    
     def _make_frequency_grid(self):
 
         """
@@ -214,11 +224,9 @@ class params:
         self.num_freq = self.meV.shape[0]                               # same as block_steps
         self.df = self.meV[1]-self.meV[0]                               # frequency resolution
 
-        self.log_handle.write('\n** Frequency Grid **\n')               # print to log file
-        self.log_handle.write(f' Max freq: {self.max_freq:2.3f} meV\n')
-        self.log_handle.write(f' Number of freq.: {self.num_freq}\n')
-        self.log_handle.write(f' Resolution: {self.df:2.3e} meV\n')
-        self.log_handle.flush()
+        message = (f'max freq: {self.max_freq:2.3f} meV\n number of freq.: {self.num_freq}\n'
+                   f' resolution: {self.df:2.3e} meV\n')
+        print_log(self.log_handle,message,msg_type='frequency Grid')
 
 
         

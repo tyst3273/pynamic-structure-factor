@@ -3,12 +3,7 @@
 
 # ============= paral options ==================
 
-# might try to 'tune' the parallelization here by splitting seperately
-# over number of Q points per process (nqpp) and number of blocks per 
-# process (nbpp). obviously, on each process, the loop over Q's and blocks
-# will be sequential. i guess it would go like, for 2 blocks and 4 procs,
-# nb = 2, np = 4, assign 2 procs to block 1 and 2 procs to blocks 1. then on
-# in block, split the procs among the q-points
+num_Q_per_proc = 10
 
 
 # ============== I/O options ===================

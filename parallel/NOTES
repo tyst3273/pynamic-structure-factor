@@ -1,8 +1,0 @@
-# notes for development
-
-need to figure out a better way to do error handling. right now, if an error occurs, that single 
-proc crashes and the rest just wait in deadlock.
-
-also need a better way to 'load' balance the Q points per process. rn, it puts the remainder on the 
-first proc. 
-

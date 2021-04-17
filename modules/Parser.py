@@ -12,6 +12,9 @@ class parser:
         
         # ============= defaults =================
 
+        # Paral
+        self.num_Q_per_proc = False
+
         # I/O
         self.pos_dir = os.getcwd()
         self.traj_file = os.path.join(self.pos_dir,'pos.hdf5')
@@ -34,7 +37,7 @@ class parser:
         self.Qpoints_file = False
         self.Qmin = [0,0,0]
         self.Qmax = [2,0,0]
-        self.Qsteps = 17
+        self.total_Qsteps = 17
         self.num_blocks = 1
         self.blocks = list(range(self.num_blocks)) 
 
@@ -47,6 +50,9 @@ class parser:
 
         with open(input_file,'r') as inp:
             self.input_txt = inp.readlines()
+
+        # ============== paral =====================
+        self.num_Q_per_proc = self._parse_int('num_Q_per_proc',self.num_Q_per_proc)
 
         # ================ I/O ======================
         self.pos_dir = self._parse_str('pos_dir',self.pos_dir)
@@ -89,7 +95,7 @@ class parser:
         self.Qpoints_file = self._parse_str('Qpoints_file',self.Qpoints_file)
         self.Qmin = self._parse_float_vec('Qmin',self.Qmin)
         self.Qmax = self._parse_float_vec('Qmax',self.Qmax)
-        self.Qsteps = self._parse_int('Qsteps',self.Qsteps)
+        self.total_Qsteps = self._parse_int('total_Qsteps',self.total_Qsteps)
         self.num_blocks = self._parse_int('num_blocks',self.num_blocks)
         self.blocks = list(range(self.num_blocks)) # update default
         self.blocks = self._parse_int_vec('blocks',self.blocks) # overwrite default IF in the file.

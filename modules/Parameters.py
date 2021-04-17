@@ -1,9 +1,14 @@
 
 import numpy as np
 import h5py 
-from FileIO import print_log, print_herald
+from FileIO import print_stdout
 
 class params:
+
+    # =================================================================
+    # initialization. main initiliazatin done by all ranks, then rank 0
+    # specific, then inits done afterward 
+    # =================================================================
 
     def __init__(self,parser):
 
@@ -23,6 +28,9 @@ class params:
         """
 
         # ============ copy attributes from parser ==============
+
+        # Paral
+        self.num_Q_per_proc = parser.num_Q_per_proc
 
         # I/O
         self.pos_dir = parser.pos_dir
@@ -46,72 +54,61 @@ class params:
         self.Qpoints_file = parser.Qpoints_file
         self.Qmin = parser.Qmin
         self.Qmax = parser.Qmax
-        self.Qsteps = parser.Qsteps
+        self.total_Qsteps = parser.total_Qsteps
         self.num_blocks = parser.num_blocks
         self.blocks = parser.blocks
-
-
-        # ==========================================================
-        # ------ initialize the rest of the stuff we need ----------
-        # ==========================================================
     
-        # open files
-        self.traj_handle = h5py.File(self.traj_file,'r')
-        self.log_handle = open(self.log_file,'w')
+        # cant pass h5py object between ranks apparently
+        # self.traj_handle = h5py.File(self.traj_file,'r') # open HDF5 file
 
-        print_herald(self.log_handle)
 
-        message = 'this wont work for non-orthogonal lattice vectors (yet)\n'
-        print_log(self.log_handle,message,msg_type='WARNING')
 
-        # build arrays
-        self.gen_Qpoints() # read Q points from file or build slice from input
-        self._make_frequency_grid() # compute frequencies corresponding to time FFT
+    def rank_0_init(self):
+
+        message = 'this wont work for non-orthogonal lattice vectors (yet)'
+        print_stdout(message,msg_type='WARNING')
+
+        # read Q points from file or build slice from input        
+        # will split it up Qpoints and send to other ranks to do in parallel
+        self._gen_Qpoints() 
 
         # print input cell lengths
         message = (f'cell lengths from input: {self.lattice_vectors[0][0]} '
                    f'{self.lattice_vectors[1][1]} '
-                   f'{self.lattice_vectors[2][2]} Angstrom\n')
-        print_log(self.log_handle,message,msg_type='NOTE')
+                   f'{self.lattice_vectors[2][2]} Angstrom')
+        print_stdout(message,msg_type='NOTE')
 
-        # do once and for all if not recalculating
+        # print that we will use lengths from input
         if not self.recalculate_cell_lengths:
-            message = 'using cell lenghts from input\n'
-            print_log(self.log_handle,message,msg_type='NOTE')
+            message = 'using cell lengths from input\n'
+            print_stdout(message,msg_type='NOTE')
 
+        # other wise, print that it will be done later
+        else:
+            message = 'using cell lengths from hdf5 trajectory file'
+            print_stdout(message,msg_type='NOTE')
+
+
+
+    def rank_x_init(self,reduced_Q,rank):
+       
+        self.my_rank = rank 
+        self.traj_handle = h5py.File(self.traj_file,'r') # open HDF5 file
+
+        self._make_frequency_grid() # compute frequencies corresponding to time FFT
+
+        self.reduced_Q = reduced_Q # the reduced set of Q points to be done on this rank
+        self.Qsteps = self.reduced_Q.shape[0]
+
+        if not self.recalculate_cell_lengths:
             self.convert_Q_to_1_over_A()
 
-        # other wise, print that will be done later
-        else:
-            message = 'using cell lenghts from hdf5 trajectory file\n'
-            print_log(self.log_handle,message,msg_type='NOTE')
-
-            # will convert Q to 1/A each time traj file is read
 
 
     # =============================================================
     # ****************    public methods    ***********************
     # =============================================================
     
-    def gen_Qpoints(self):
-
-        """ 
-        generate Q points, either a 2d scan or read list from file.
-        """
-
-        if self.Qpoints_file == False:
-            self._Qpoints_from_2d_scan() # gen 2d scan from inputs
-        else:
-            self._Qpoints_from_list()    # gen from input file
-
-        message = f'Qpoints: {self.Qsteps}'
-        print_log(self.log_handle,message,msg_type='Brillouin zone path')
-
-        for Q in range(self.Qsteps):
-            message = (f'{Q+1}\t{self.reduced_Q[Q,0]:2.3f} {self.reduced_Q[Q,1]:2.3f} '
-                    f'{self.reduced_Q[Q,2]:2.3f} r.l.u.')
-            print_log(self.log_handle,message)
-
 
     def convert_Q_to_1_over_A(self):
 
@@ -128,6 +125,7 @@ class params:
                     self.r_lattice_vectors[2,:]*self.reduced_Q[Q,2])
 
 
+
     def clean_up(self):
 
         """
@@ -135,30 +133,52 @@ class params:
         """
 
         self.traj_handle.close()
-        self.log_handle.close()
     
+
 
     # =============================================================
     # ****************    private methods    **********************
     # =============================================================
+    
+    def _gen_Qpoints(self):
+
+        """ 
+        generate Q points, either a 2d scan or read list from file.
+        """
+
+        if self.Qpoints_file == False:
+            self._Qpoints_from_2d_scan() # gen 2d scan from inputs
+        else:
+            self._Qpoints_from_list()    # gen from input file
+
+        message = f'Qpoints: {self.total_Qsteps}'
+        print_stdout(message,msg_type='Brillouin zone path')
+
+        for Q in range(self.total_Qsteps):
+            message = (f'{Q+1}\t{self.total_reduced_Q[Q,0]:2.3f} {self.total_reduced_Q[Q,1]:2.3f} '
+                    f'{self.total_reduced_Q[Q,2]:2.3f} r.l.u.')
+            print_stdout(message)
+
+
 
     def _Qpoints_from_2d_scan(self): 
 
         """
         generate Q-points between Qmin and Qmax for 2d BZ scan. 
-        there will be Qsteps number of them. generate list in rlu
+        there will be total_Qsteps number of them. generate list in rlu
         and then convert to 1/A based on lattice_vectors
         designed for orthogonal lattice vecs, but set up to be 
         easily exteneded to non-orthogonal case. 
         """
 
         # ========= generate BZ slice from input options ===========
-        self.reduced_Q = np.zeros((self.Qsteps,3))
-        self.reduced_Q[:,0] = np.linspace(self.Qmin[0],self.Qmax[0],self.Qsteps)
-        self.reduced_Q[:,1] = np.linspace(self.Qmin[1],self.Qmax[1],self.Qsteps)
-        self.reduced_Q[:,2] = np.linspace(self.Qmin[2],self.Qmax[2],self.Qsteps)
+        self.total_reduced_Q = np.zeros((self.total_Qsteps,3))
+        self.total_reduced_Q[:,0] = np.linspace(self.Qmin[0],self.Qmax[0],self.total_Qsteps)
+        self.total_reduced_Q[:,1] = np.linspace(self.Qmin[1],self.Qmax[1],self.total_Qsteps)
+        self.total_reduced_Q[:,2] = np.linspace(self.Qmin[2],self.Qmax[2],self.total_Qsteps)
 
-    
+
+
     def _Qpoints_from_list(self):
 
         """
@@ -168,12 +188,13 @@ class params:
         """
 
         # ============== read Q point list from file =================
-        self.reduced_Q = np.loadtxt(self.Qpoints_file)
+        self.total_reduced_Q = np.loadtxt(self.Qpoints_file)
 
-        if len(self.reduced_Q.shape) == 1:
-            self.reduced_Q = self.reduced_Q.reshape((1,self.reduced_Q.shape[0]))
+        if len(self.total_reduced_Q.shape) == 1:
+            self.total_reduced_Q = self.total_reduced_Q.reshape((1,self.total_reduced_Q.shape[0]))
 
-        self.Qsteps = self.reduced_Q.shape[0]
+        self.total_Qsteps = self.total_reduced_Q.shape[0]
+
 
 
     def _compute_reciprocal_latt(self):
@@ -181,6 +202,7 @@ class params:
         """
         compute reciprocal lattice vectors from real lattice
         """
+
         self.lattice_vectors = np.array(self.lattice_vectors)
 
         self.r_lattice_vectors = np.zeros((3,3))
@@ -193,21 +215,24 @@ class params:
         self.r_lattice_vectors[2,:] = 2*np.pi*np.cross(self.lattice_vectors[0,:],
                 self.lattice_vectors[1,:])/self.cell_vol
 
-        message = (f'real space lattice (Angstrom):\n'
-                f'  {self.lattice_vectors[0,0]:2.3f} {self.lattice_vectors[0,1]:2.3f}'
-                f' {self.lattice_vectors[0,2]:2.3f}\n  {self.lattice_vectors[1,0]:2.3f}'
-                f' {self.lattice_vectors[1,1]:2.3f} {self.lattice_vectors[1,2]:2.3f}\n'
-                f'  {self.lattice_vectors[2,0]:2.3f} {self.lattice_vectors[2,1]:2.3f}'
-                f' {self.lattice_vectors[2,2]:2.3f}\n')
-        print_log(self.log_handle,message,msg_type='NOTE')
+        if self.my_rank == 0:
 
-        message = (f'reciprocal space lattice (1/Angstrom):\n'
-                f'  {self.r_lattice_vectors[0,0]:2.3f} {self.r_lattice_vectors[0,1]:2.3f}'
-                f' {self.r_lattice_vectors[0,2]:2.3f}\n  {self.r_lattice_vectors[1,0]:2.3f}'
-                f' {self.r_lattice_vectors[1,1]:2.3f} {self.r_lattice_vectors[1,2]:2.3f}\n'
-                f'  {self.r_lattice_vectors[2,0]:2.3f} {self.r_lattice_vectors[2,1]:2.3f}'
-                f' {self.r_lattice_vectors[2,2]:2.3f}\n')
-        print_log(self.log_handle,message)
+            message = (f'real space lattice (Angstrom):\n'
+                    f'  {self.lattice_vectors[0,0]:2.3f} {self.lattice_vectors[0,1]:2.3f}'
+                    f' {self.lattice_vectors[0,2]:2.3f}\n  {self.lattice_vectors[1,0]:2.3f}'
+                    f' {self.lattice_vectors[1,1]:2.3f} {self.lattice_vectors[1,2]:2.3f}\n'
+                    f'  {self.lattice_vectors[2,0]:2.3f} {self.lattice_vectors[2,1]:2.3f}'
+                    f' {self.lattice_vectors[2,2]:2.3f}\n')
+            print_stdout(message,msg_type='NOTE')
+
+            message = (f'reciprocal space lattice (1/Angstrom):\n'
+                    f'  {self.r_lattice_vectors[0,0]:2.3f} {self.r_lattice_vectors[0,1]:2.3f}'
+                    f' {self.r_lattice_vectors[0,2]:2.3f}\n  {self.r_lattice_vectors[1,0]:2.3f}'
+                    f' {self.r_lattice_vectors[1,1]:2.3f} {self.r_lattice_vectors[1,2]:2.3f}\n'
+                    f'  {self.r_lattice_vectors[2,0]:2.3f} {self.r_lattice_vectors[2,1]:2.3f}'
+                    f' {self.r_lattice_vectors[2,2]:2.3f}\n')
+            print_stdout(message)
+
 
     
     def _make_frequency_grid(self):
@@ -224,9 +249,12 @@ class params:
         self.num_freq = self.meV.shape[0]                               # same as block_steps
         self.df = self.meV[1]-self.meV[0]                               # frequency resolution
 
-        message = (f'max freq: {self.max_freq:2.3f} meV\n number of freq.: {self.num_freq}\n'
-                   f' resolution: {self.df:2.3e} meV\n')
-        print_log(self.log_handle,message,msg_type='frequency Grid')
+
+        if self.my_rank == 0:
+
+            message = (f'max freq: {self.max_freq:2.3f} meV\n number of freq.: {self.num_freq}\n'
+                       f' resolution: {self.df:2.3e} meV\n')
+            print_stdout(message,msg_type='frequency Grid')
 
 
         
