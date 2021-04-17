@@ -21,7 +21,7 @@ python code to calculate inelastic-neutron-scattering dynamic structure factor, 
   - ty.sterling@colorado.edu
 - also can use input files as examples and try to figure it out. i will write better docs when i am done with the project i am using this for. 
 
-## new in v1
+## new in v1.0
 - parallelized using mpi4py
   - can now run in parallel using mpi4py. install this with conda and use the mpiexec executable that comes with it (i recommend a new environment to not interfere with your local MPI installation). 
   - only parallelized over Q-points, but could also split over 'blocks' of trajectory data.
