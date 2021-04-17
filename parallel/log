@@ -1,0 +1,53 @@
+
+
+ Pynamic Structure Factor, version 1.0
+
+ Now with MPI support!
+
+ Author: Ty Sterling
+         Department of Physics
+         University of Colorado Boulder
+
+ Email: ty.sterling@colorado.edu
+
+
+
+ This is free software licensed under the Gnu General Public License (GPL) v3. 
+ You should have a copy of the license agreement in the top directory. 
+
+ This software is presented in the hope that you will find it useful, but with 
+ no warranty or gaurantee that the results will be accurate or valid. If you do
+ happen to notice bugs or errors, please notify me and I will try to address 
+ them (but I can make no promises). Thanks and have fun :)
+
+ 
+ running the S(Q,w) calculation using 2 processes
+
+
+ #############################################################################
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ #############################################################################
+
+
+ ** WARNING **
+ this wont work for non-orthogonal lattice vectors (yet)
+
+ ** Brillouin zone path **
+ Qpoints: 11
+ 1	1.000 0.000 0.000 r.l.u.
+ 2	1.050 0.000 0.000 r.l.u.
+ 3	1.100 0.000 0.000 r.l.u.
+ 4	1.150 0.000 0.000 r.l.u.
+ 5	1.200 0.000 0.000 r.l.u.
+ 6	1.250 0.000 0.000 r.l.u.
+ 7	1.300 0.000 0.000 r.l.u.
+ 8	1.350 0.000 0.000 r.l.u.
+ 9	1.400 0.000 0.000 r.l.u.
+ 10	1.450 0.000 0.000 r.l.u.
+ 11	1.500 0.000 0.000 r.l.u.
+
+ ** NOTE **
+ cell lengths from input: 5.431 5.431 5.431 Angstrom
+
+ ** NOTE **
+ using cell lengths from hdf5 trajectory file
