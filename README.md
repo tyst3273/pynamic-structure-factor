@@ -25,6 +25,7 @@ python code to calculate inelastic-neutron-scattering dynamic structure factor, 
 - parallelized using mpi4py
   - can now run in parallel using mpi4py. install this with conda and use the mpiexec executable that comes with it (i recommend a new environment to not interfere with your local MPI installation). 
   - only parallelized over Q-points, but could also split over 'blocks' of trajectory data.
-  - if you dont want to use mpi4py, you can run the 'serial' version that is in the example_inputs directory. it uses the same methods without parallelization. 
-  - it is nearly **mandatory** when running in with mpi to pass the '-m mpi4py' argument to the python interpreter when calling. if not, exceptions or errors will only kill the calling process and the code will run forever. if you pass the module argument, the code will know to kill all processes if an exception is raised on any process. see the mpi4py docs for more info.
+  - if you dont want to use mpi4py, you can run the 'serial' version that is in the example_inputs directory. it uses the same methods without parallelization. this way, can avoid installing mpi4py.
+  - can also run the mpi version with -np 1 or without calling the mpi executable. the results are identical. but why? 
+  - it is mandatory when running with mpi to pass the '-m mpi4py' argument to the python interpreter when calling. if not, exceptions or errors will only kill the calling process and the code will enter deadlock and run forever. if you pass the module argument, the code will know to kill all processes if an exception is raised on any process. see the mpi4py docs for more info, cause i dont understand anymore than what i wrote here.
   - example syntax: mpiexec -np 4 python -m mpi4py PSF.py > log
