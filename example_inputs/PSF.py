@@ -9,8 +9,8 @@ import FileIO
 import Calculator
 
 
-
 print('\n starting the S(Q,w) calculation. Check the log file for progress.\n')
+
 
 # parser input file. should be done on rank 1.
 parser = Parser.parser()

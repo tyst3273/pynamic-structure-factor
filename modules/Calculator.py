@@ -1,6 +1,7 @@
 
 import numpy as np
 from timeit import default_timer as timer
+from FileIO import save_sqe, print_log
 
 class calc:
 
@@ -10,15 +11,12 @@ class calc:
         this class contains the data structures and methods relevant to SQW. 
         """
 
-        print(f'\n\tComputing S(Q,w) now. Check {params.log_file} for progress.\n')
-
         self.sqw = np.zeros((params.num_freq,params.Qsteps))            # SQW array
         self.pos = np.zeros((params.block_steps,params.num_atoms,3))    # time-steps, atoms, xyz
-        self.atom_ids = np.zeros((params.block_steps,params.num_atoms)) # used to map to scattering lenghts
+        self.atom_ids = np.zeros((params.block_steps,params.num_atoms)) # used to map to scatt. lenghts
         self.b_array = np.zeros((params.block_steps,params.num_atoms))  # scattering lengths
-        self.box_lengths = [-1,0,0]                                     # used if calculating cell lengths from file
+        self.box_lengths = [0,0,0]                                      # read from traj file
         self.num_blocks = len(params.blocks)
-        self.counter = 1
 
     # =============================================================
     # ****************    public methods    ***********************
@@ -60,7 +58,7 @@ class calc:
         
         i didnt have another MD post-processing code to compare the output to
         (if i did, i wouldn't have written this...) but i computed S(Q,w) in 
-        tersoff-silicon using this code. i also computed the phonons using phonopy and 
+        tersoff-silicon using this code. i also computed the phonons using phonopy and a 
         hack-job of an interface to lammps. i then used the eigenvectors from phonopy
         in SNAXS, which computes S(Q,w) from the harmonic phonon expansion and my results
         match SNAXS **VERY** well. so i assert that this method is valid and accurate. 
@@ -80,8 +78,10 @@ class calc:
 
         self._loop_over_blocks(params)
 
-        self.sqw = self.sqw/self.num_blocks   # average over the blocks
+        self.sqw = self.sqw/self.num_blocks # average over the blocks
 
+        f_name = params.outfile_prefix+f'_BX.dat'
+        save_sqe(params,self.sqw,f_name=f_name)
 
 
 
@@ -96,7 +96,9 @@ class calc:
         """
 
         for block_index in params.blocks:      
+
             start_time = timer()                # start a timer to print wall time to log file
+
             self.block_index = block_index      
             
             # ================================================================
@@ -106,31 +108,20 @@ class calc:
             # computing the Fourier transforms. 
             # ================================================================
 
-            if params.file_format == 'hdf5':    # only support for hdf5 remains
-                self._parse_traj_file(params)
-                self._make_b_array(params)
-                a = self.box_lengths[0]/params.supercell[0] # read in the box lengths 
-                b = self.box_lengths[1]/params.supercell[1]
-                c = self.box_lengths[2]/params.supercell[2]
+            self._parse_traj_file(params)
+            self._make_b_array(params)
+            a = self.box_lengths[0]/params.supercell[0] # read in the box lengths 
+            b = self.box_lengths[1]/params.supercell[1]
+            c = self.box_lengths[2]/params.supercell[2]
 
-                # ==========     compute cell lengths and compare to input    ===============
+            # ==========   compute cell lengths and compare to input   ===============
 
-                params.log_handle.write(f'\n** NOTE: cell lengths from hdf5 file: {a:2.2f} {b:2.2f} {c:2.2f} Angstr **\n')
-                params.log_handle.write('\n** NOTE: cell lengths from input: {:2.2f} {:2.2f} {:2.2f} Angstr **\n'.format(
-                    params.lattice_vectors[0][0],params.lattice_vectors[1][1],params.lattice_vectors[2][2]))
+            message = f'cell lengths from hdf5 file: {a:2.3f} {b:2.3f} {c:2.3f} Angstrom\n'
+            print_log(params.log_handle,message,msg_type='NOTE')
 
-                if params.recalculate_cell_lengths == True: # optionally recalculates from avg in MD file
-                    params.log_handle.write('\n** NOTE: Using cell lengths from hdf5 file **\n')
-                    params.lattice_vectors = [[a,0,0],[0,b,0],[0,0,c]]
-                    params.gen_Qpoints()                    # compte Q points with these cell lengths
-                else:                                       # otherwise just print to log
-                    params.log_handle.write('\n** NOTE: Using cell lengths from input **\n')
-                params.log_handle.flush()
-
-            else:   # this useless since hdf5 is hard-enforced in the params.__init__() but left here for legacy reasons
-                params.log_handle.write('\n** ERROR: Unkown file format "{}" **\n'.format(params.file_format))
-                params.log_handle.flush()
-                exit()
+            if params.recalculate_cell_lengths == True: # optionally recalculates from avg in MD file
+                params.lattice_vectors = [[a,0,0],[0,b,0],[0,0,c]]
+                params.convert_Q_to_1_over_A()          
 
 
             # ===============   loop over the Q points    ====================
@@ -142,13 +133,14 @@ class calc:
 
             end_time = timer()  # stop the timer
             elapsed_time = (end_time-start_time)/60 # minutes
-            params.log_handle.write(f'\n Elapsed time for this block: '
-                                    f'{elapsed_time:2.3f} minutes')
-            params.log_handle.write(f'\n Time per Q-point: '
-                                    f'{elapsed_time*60/params.Qsteps:2.3f} seconds\n')
-            params.log_handle.flush()
 
-            self.counter = self.counter+1
+            message = f' elapsed time for this block: {elapsed_time:2.3f} minutes'
+            print_log(params.log_handle,message,msg_type='TIMING')
+            message = f' time per Q-point: {elapsed_time*60/params.Qsteps:2.3f} seconds\n'
+            print_log(params.log_handle,message)
+
+            f_name = params.outfile_prefix+f'_B{block_index}.dat'
+            save_sqe(params,self.sqw,f_name=f_name)
 
 
 
@@ -158,15 +150,15 @@ class calc:
         contains inner loop over Q points
         """
 
-        params.log_handle.write('\n** Loop over Q **\n')
-        params.log_handle.flush()
+        message = 'entering loop over Q\n'
+        print_log(params.log_handle,message,msg_type='NOTE')
 
         for q in range(params.Qsteps):  # do the loop over Q points. 
             self.q = q
-            params.log_handle.write(f' Now on Qpoint {self.q+1} out of {params.Qsteps}\n')
-            params.log_handle.flush()   # print progress to log file. useful to check on long runs. 
             self.Q = params.Qpoints[q,:]
 
+            message = f' now on Q-point {q+1} out of {params.Qsteps}'
+            print_log(params.log_handle,message)
 
             # ======   compute the neutron weighted density and correlation functions   ========
 
@@ -202,6 +194,8 @@ class calc:
     def _parse_traj_file(self,params):
 
         """
+        this probably should have been put in the FileIO module
+
         parse the hdf5 file for positions, box lenghts, and atom types. 
         assemble b_array (scattering lengths) and  optionally call method
         to unwrap positions.
@@ -210,10 +204,8 @@ class calc:
         inds = [self.block_index*params.block_steps,    # list of the indicies in the block
                         (self.block_index+1)*params.block_steps]
 
-        params.log_handle.write(f'\n** Reading Velocities ({params.file_format}) **\n')
-        params.log_handle.write(f' Now on block {self.counter} out of {self.num_blocks}\n')
-        params.log_handle.write('\n Now reading:\n')
-        params.log_handle.flush()
+        message = 'now reading positions:\n'
+        print_log(params.log_handle,message,msg_type='NOTE')
 
         self.box_lengths = [0,0,0]      # get the box lengths
         self.box_lengths[0] = np.mean(params.traj_handle['box_bounds'][inds[0]:inds[1],1]-
@@ -222,9 +214,6 @@ class calc:
                 params.traj_handle['box_bounds'][inds[0]:inds[1],2])
         self.box_lengths[2] = np.mean(params.traj_handle['box_bounds'][inds[0]:inds[1],5]-
                 params.traj_handle['box_bounds'][inds[0]:inds[1],4])
-        params.log_handle.write(f' Box lengths: {self.box_lengths[0]:2.3f} '
-            f'{self.box_lengths[1]:2.3f} {self.box_lengths[2]:2.3f} Angst.\n')
-        params.log_handle.flush()
 
         self.pos[:,:,:] = params.traj_handle['pos_data'][inds[0]:inds[1],:,:]   # get the positins 
         self.atom_ids[0,:] = params.traj_handle['atom_types'][:]                # get the atom TYPES
@@ -233,8 +222,9 @@ class calc:
         # ======   (optionally) unimpose minimum image convention  =======
 
         if params.unwrap_pos == True:   
-            params.log_handle.write('\n** NOTE: Unwrapping positions **\n ')
-            params.log_handle.flush()
+            message = 'unwrapping positions'
+            print_log(params.log_handle,message,msg_type='NOTE')
+            
             self._unwrap_positions(params)
 
 
