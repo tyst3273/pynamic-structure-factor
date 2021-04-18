@@ -157,7 +157,7 @@ class calc:
             if self.counter != self.num_blocks:
 
                 f_name = params.outfile_prefix+f'_P{params.my_rank}_B{block_index}.dat'
-                save_sqw(params,self.sqw/self.counter,params.reduced_Q,f_name=f_name)
+                save_sqw(params,params.reduced_Q,self.sqw/self.counter,f_name=f_name)
 
             self.counter = self.counter+1 # update the counter
 
