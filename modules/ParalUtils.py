@@ -3,32 +3,27 @@ from FileIO import print_stdout
 
 
 # =======================================================================
-# ------------ subroutine to split Q points over processes. -------------
+# ------------ subroutines to split Q points over processes. -------------
 # =======================================================================
 
 def prepare_Qpoints(params,n_ranks):
 
     """
-    if num_Q_per_proc is in the input file, put this many Q's on each proc. if there is a remainder, 
-    add it to the first proc. if a proc will have 0 Q, exit. if not defined, determine automatically 
-    (not implemented yet. exit for now.)
+    num_Q_per_proc is determined as the largest integer diving the total_Qsteps number. the remainder
+    is placed on rank 0 (if there is a remainder...)
     """
 
     total_reduced_Q = params.total_reduced_Q 
     total_Qsteps = params.total_Qsteps
-    num_Q_per_proc = params.num_Q_per_proc
-
+    
+    # if only 1 proc, return the total Q set
     if n_ranks == 1:
+        message = f'process: 0    Q points: {total_Qsteps:g}\n'
+        print_stdout(message,msg_type='Q points on each process')
         return [total_reduced_Q]
 
-    elif num_Q_per_proc == False:
-        message = ('automatically distributing Q points over more than 1 proc isnt implemented (yet).\n'
-                    ' specify \'num_Q_per_proc\' in the input file or run with 1 process.')
-        raise ParaExcept(message=message)
-
-    if total_Qsteps < n_ranks*num_Q_per_proc:
-        message = f'at least one process will calculate zero Q points. aborting'
-        raise ParaExcept(message=message)
+    # else, take num_Q_per_proc to be the largest integer dividing total_Qsteps
+    num_Q_per_proc = total_Qsteps//n_ranks
 
     nQpp_arr = np.zeros(n_ranks).astype(int)
     nQpp_remainder = total_Qsteps-n_ranks*num_Q_per_proc 
@@ -55,9 +50,8 @@ def prepare_Qpoints(params,n_ranks):
     for ii in range(n_ranks):
         reduced_Q_set.append(total_reduced_Q[shift:shift+nQpp_arr[ii],:])
         shift = shift+nQpp_arr[ii]
-    
-    return reduced_Q_set
 
+    return reduced_Q_set
 
 
 # =======================================================================
@@ -86,10 +80,10 @@ def assemble_sqw_total(params,sqw_total_set,n_ranks):
 # ------------ cleanest way i could figure out how to exit --------------
 # =======================================================================
 
-class ParaExcept(Exception):
+class ParalExcept(Exception):
 
     """
-    to exit the code, just run 'raise ParaExcept'. note, must call python with
+    to exit the code, just run 'raise ParalExcept'. note, must call python with
     python -m mpi4py [script] or it will only kill the calling process, possibly
     resulting in deadlock.
     """

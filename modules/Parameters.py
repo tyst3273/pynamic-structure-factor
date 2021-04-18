@@ -29,9 +29,6 @@ class params:
 
         # ============ copy attributes from parser ==============
 
-        # Paral
-        self.num_Q_per_proc = parser.num_Q_per_proc
-
         # I/O
         self.pos_dir = parser.pos_dir
         self.traj_file = parser.traj_file

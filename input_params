@@ -1,0 +1,55 @@
+# input params for PSF
+# '#' are comments
+
+
+# ============== I/O options ===================
+
+pos_dir        = /mnt/5f27543f-dac3-492c-a181-1d9503ab021e/posvel/10K/
+traj_file      = pos_10_10K.hdf5
+output_dir     = sqe_diffuse_paral
+outfile_prefix = MAPI_diffuse_10K_L0.5_all
+
+
+# =============== MD params ====================
+
+dt             = 0.25e-15  # fs
+stride         = 200       # steps
+total_steps    = 4000000
+num_atoms      = 48000
+supercell      = 20 20 10
+
+
+# ============== calc option ===================
+
+log_file       = log.diffuse
+Qpoints_file   = qpt_L0.5
+num_blocks     = 20
+blocks         = 0 2 4
+
+# =======  types are C, N, H, H, Pb, I =========
+
+b              = 6.646e-5 9.360e-5 6.671e-5 6.671e-5 9.405e-5 5.280e-5 # all
+#b              = 0 0 0 0 9.405e-5 5.280e-5 # cage
+#b              = 6.646e-5 9.360e-5 6.671e-5 6.671e-5 0 0  # ma
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

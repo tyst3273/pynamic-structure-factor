@@ -12,9 +12,6 @@ class parser:
         
         # ============= defaults =================
 
-        # Paral
-        self.num_Q_per_proc = False
-
         # I/O
         self.pos_dir = os.getcwd()
         self.traj_file = os.path.join(self.pos_dir,'pos.hdf5')
@@ -50,9 +47,6 @@ class parser:
 
         with open(input_file,'r') as inp:
             self.input_txt = inp.readlines()
-
-        # ============== paral =====================
-        self.num_Q_per_proc = self._parse_int('num_Q_per_proc',self.num_Q_per_proc)
 
         # ================ I/O ======================
         self.pos_dir = self._parse_str('pos_dir',self.pos_dir)
