@@ -1,5 +1,5 @@
 # pynamic-structure-factor 
-python code to calculate inelastic-neutron-scattering dynamic structure factor, S(**Q**,*w*), from molecular dynamics trajectories..  
+python code to calculate inelastic-neutron-scattering dynamic structure factor, S(**Q**,*w*), from molecular dynamics trajectories using MPI parallelism over **Q**-points.  
 
 ## note:
 - this code assumes the classical approx. so that everything commutes and we can directly evaluate S(**Q**,*w*) by time and space FTs. this violates detailed balance (i.e. there is no distinction between energy gain/loss of the neutron and some other symmetry requirements aren't fulfilled). nevertheless, this approximation makes it possible to do this calculation. if you can write a code that calculates it from purely quantum trajectories, please share that with me :)
