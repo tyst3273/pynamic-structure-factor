@@ -26,8 +26,6 @@ if rank == 0:
     # print the herald 
     FileIO.print_herald(n_ranks)
 
-    exit()
-
     # get input opts from file
     parser = Parser.parser()
     parser.parse('input_params')
@@ -65,7 +63,7 @@ else:
 calc = Calculator.calc(params)
 
 # run calc on all procs and close the hdf5 file when done. 
-calc.run(params)
+#calc.run(params)
 
 
 if rank == 0:
