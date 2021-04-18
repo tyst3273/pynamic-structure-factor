@@ -63,7 +63,7 @@ else:
 calc = Calculator.calc(params)
 
 # run calc on all procs and close the hdf5 file when done. 
-#calc.run(params)
+calc.run(params)
 
 
 if rank == 0:
@@ -78,7 +78,7 @@ if rank == 0:
     
     # save it
     f_name = params.outfile_prefix+f'_FINAL.dat'
-    FileIO.save_sqw(params,sqw_total,f_name=f_name)
+    FileIO.save_sqw(params,params.total_reduced_Q,sqw_total,f_name=f_name)
 
     # calculate and print elapsed time
     end_time = timer()
