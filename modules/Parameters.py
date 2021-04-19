@@ -69,6 +69,12 @@ class params:
         # will split it up Qpoints and send to other ranks to do in parallel
         self._gen_Qpoints() 
 
+        message = '-- scattering lengths (b) in Angstrom --\n'
+        for bb in self.b:
+            this_b  = self.b[f'{bb}']
+            message = message+f'  atom-type: {bb}    b: {this_b:2.6e}\n'  
+        print_stdout(message,msg_type='NOTE')
+
         # print input cell lengths
         message = (f'cell lengths from input: {self.lattice_vectors[0][0]} '
                    f'{self.lattice_vectors[1][1]} '
