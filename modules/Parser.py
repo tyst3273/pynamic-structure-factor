@@ -55,8 +55,12 @@ class parser:
         the default.
         """
 
-        with open(input_file,'r') as inp:
-            self.input_txt = inp.readlines()
+        try:
+            with open(input_file,'r') as inp:
+                self.input_txt = inp.readlines()
+        except:
+            message = f'input file \'{input_file}\' not found'
+            raise ParalExcept(message)
 
         # ========== check keywords in file =========
         self._check_file()

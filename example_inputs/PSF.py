@@ -12,6 +12,13 @@ import Calculator
 from ParalUtils import *
 
 
+# get input file if given as arg
+if len(sys.argv) != 1:
+    input_file = sys.argv[1]
+else:
+    input_file = 'input_params'
+
+
 # initialize the communicator and get info
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
@@ -28,7 +35,7 @@ if rank == 0:
 
     # get input opts from file
     parser = Parser.parser()
-    parser.parse('input_params')
+    parser.parse(input_file)
 
     # initialize params obj
     params = Parameters.params(parser)
