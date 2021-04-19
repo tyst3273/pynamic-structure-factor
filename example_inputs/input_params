@@ -4,10 +4,10 @@
 
 # ============== I/O options ===================
 
-pos_dir        = /mnt/5f27543f-dac3-492c-a181-1d9503ab021e/posvel/10K/
-traj_file      = pos_10_10K.hdf5
-output_dir     = sqe_diffuse_paral
-outfile_prefix = MAPI_diffuse_10K_L0.5_all
+pos_dir        = /mnt/5f27543f-dac3-492c-a181-1d9503ab021e/posvel/300K/
+traj_file      = pos_10_300K.hdf5
+output_dir     = scan_1
+outfile_prefix = all
 
 
 # =============== MD params ====================
@@ -21,10 +21,11 @@ supercell      = 20 20 10
 
 # ============== calc option ===================
 
-log_file       = log.diffuse
-Qpoints_file   = qpt_L0.5
+Qmin           = 0 0 0.5
+Qmax           = 4 0 0.5
+total_Qsteps   = 81
 num_blocks     = 20
-blocks         = 0 2 4
+blocks         = 0 2 4 6 8 10 12 14 16 18 
 
 # =======  types are C, N, H, H, Pb, I =========
 
