@@ -93,8 +93,8 @@ def print_herald(n_ranks):
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  ########################################################################################
 """
-    print(banner)
-    print(logo)
+#    print(banner)
+#    print(logo)
     print(herald)
     print(license)
     print(f' ** running the S(Q,w) calculation using {n_ranks} processes **\n')

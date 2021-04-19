@@ -34,7 +34,8 @@ class params:
         self.traj_file = parser.traj_file
         self.output_dir = parser.output_dir
         self.outfile_prefix = parser.outfile_prefix
-
+        self.save_progress = parser.save_progress
+    
         # MD params
         self.dt = parser.dt
         self.stride = parser.stride
@@ -55,15 +56,16 @@ class params:
         self.num_blocks = parser.num_blocks
         self.blocks = parser.blocks
     
-        # cant pass h5py object between ranks apparently
-        # self.traj_handle = h5py.File(self.traj_file,'r') # open HDF5 file
-
 
 
     def rank_0_init(self):
 
         message = 'this wont work for non-orthogonal lattice vectors (yet)'
         print_stdout(message,msg_type='WARNING')
+
+        if self.save_progress:
+            message = 'saving progress to output directory at the end of each block'
+            print_stdout(message,msg_type='NOTE')
 
         # read Q points from file or build slice from input        
         # will split it up Qpoints and send to other ranks to do in parallel

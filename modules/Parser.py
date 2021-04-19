@@ -17,6 +17,7 @@ class parser:
         self.traj_file = os.path.join(self.pos_dir,'pos.hdf5')
         self.output_dir = 'sqe_output'
         self.outfile_prefix = 'sqe'
+        self.save_progress = False
 
         # MD params
         self.dt = 1e-15
@@ -54,6 +55,7 @@ class parser:
         self.traj_file = os.path.join(self.pos_dir,self.traj_file)
         self.output_dir = self._parse_str('output_dir',self.output_dir)
         self.outfile_prefix = self._parse_str('outfile_prefix',self.outfile_prefix)
+        self.save_progress = self._parse_bool('save_progress',self.save_progress)
 
         # =============== MD params =====================
         self.dt = self._parse_float('dt',self.dt)
