@@ -15,7 +15,7 @@ class parser:
         # list of keywords to check that none are wrong
         self.key_words = ['pos_dir','traj_file','output_dir','outfile_prefix','save_progress',
                 'dt','stride','total_steps','num_atoms','supercell','lattice_vectors','unwrap_pos',
-                'recalculate_cell_lengths','b','log_file','Qpoints_file','Qmin','Qmax','total_steps',
+                'recalculate_cell_lengths','b','log_file','Qpoints_file','Qmin','Qmax','total_Qsteps',
                 'num_blocks','blocks']
 
         # ============= defaults =================
@@ -46,6 +46,8 @@ class parser:
         self.total_Qsteps = 17
         self.num_blocks = 1
         self.blocks = list(range(self.num_blocks)) 
+
+
 
     def parse(self,input_file):
 
@@ -123,7 +125,6 @@ class parser:
             else:
                 key_word = line.strip().split('=')[0].strip()
                 if key_word not in self.key_words:
-                    print_stdout(key_word)
                     message = f'\'{key_word}\' is not one of the expected variables. check the input file'
                     raise ParalExcept(message=message)
 
