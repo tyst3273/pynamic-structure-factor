@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import h5py 
+from FileIO import print_stdout
+from ParalUtils import ParalExcept
 
 class parser:
 
@@ -10,6 +12,12 @@ class parser:
         set the defaults for all options. 
         """
         
+        # list of keywords to check that none are wrong
+        self.key_words = ['pos_dir','traj_file','output_dir','outfile_prefix','save_progress',
+                'dt','stride','total_steps','num_atoms','supercell','lattice_vectors','unwrap_pos',
+                'recalculate_cell_lengths','b','log_file','Qpoints_file','Qmin','Qmax','total_steps',
+                'num_blocks','blocks']
+
         # ============= defaults =================
 
         # I/O
@@ -48,6 +56,9 @@ class parser:
 
         with open(input_file,'r') as inp:
             self.input_txt = inp.readlines()
+
+        # ========== check keywords in file =========
+        self._check_file()
 
         # ================ I/O ======================
         self.pos_dir = self._parse_str('pos_dir',self.pos_dir)
@@ -100,6 +111,21 @@ class parser:
     # ====================================================
     # ---------------- private methods -------------------
     # ====================================================
+    
+    def _check_file(self):
+
+        for line in self.input_txt:
+
+            # skip blank lines and comment lines
+            if len(line.split()) == 0 or line.strip().startswith('#'):
+                continue
+
+            else:
+                key_word = line.strip().split('=')[0].strip()
+                if key_word not in self.key_words:
+                    print_stdout(key_word)
+                    message = f'\'{key_word}\' is not one of the expected variables. check the input file'
+                    raise ParalExcept(message=message)
 
     def _parse_str(self,key_word,default):
 
