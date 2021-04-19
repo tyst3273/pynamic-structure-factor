@@ -15,7 +15,7 @@ class parser:
         # list of keywords to check that none are wrong
         self.key_words = ['pos_dir','traj_file','output_dir','outfile_prefix','save_progress',
                 'dt','stride','total_steps','num_atoms','supercell','lattice_vectors','unwrap_pos',
-                'recalculate_cell_lengths','b','log_file','Qpoints_file','Qmin','Qmax','total_Qsteps',
+                'recalculate_cell_lengths','b','Qpoints_file','Qmin','Qmax','total_Qsteps',
                 'num_blocks','blocks']
 
         # ============= defaults =================
@@ -39,7 +39,6 @@ class parser:
         self.unwrap_pos = True
         self.recalculate_cell_lengths = True
         self.b = [4.1491e-5]
-        self.log_file = 'log'
         self.Qpoints_file = False
         self.Qmin = [0,0,0]
         self.Qmax = [2,0,0]
@@ -100,7 +99,6 @@ class parser:
             b[f'{bb+1}'] = self.b[bb]
         self.b = b
 
-        self.log_file = 'log'
         self.Qpoints_file = self._parse_str('Qpoints_file',self.Qpoints_file)
         self.Qmin = self._parse_float_vec('Qmin',self.Qmin)
         self.Qmax = self._parse_float_vec('Qmax',self.Qmax)

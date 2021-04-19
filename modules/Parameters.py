@@ -48,7 +48,6 @@ class params:
         self.unwrap_pos = parser.unwrap_pos
         self.recalculate_cell_lengths = parser.recalculate_cell_lengths
         self.b = parser.b
-        self.log_file = parser.log_file
         self.Qpoints_file = parser.Qpoints_file
         self.Qmin = parser.Qmin
         self.Qmax = parser.Qmax
