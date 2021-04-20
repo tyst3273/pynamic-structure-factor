@@ -31,7 +31,4 @@ python code to calculate inelastic-neutron-scattering dynamic structure factor, 
   - example syntax: mpiexec -np 4 python -m mpi4py PSF.py > log
   - the number of Q points will be split as evenly as possible over all procs with the remainder going on rank 0.
 
-## TODO
-- use pyFFTW with threading instead of scipy or numpy ffts, as these are way faster. 
-  - can i convert my space-FT's into FFT? i don't think so, since we are summing over Q in other BZ's.
 
