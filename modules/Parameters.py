@@ -248,10 +248,10 @@ class params:
         """
 
         self.block_steps = (self.total_steps//self.stride)//self.num_blocks # dt in array
-        self.max_freq = 1e-12/self.dt/self.stride/2*4.13567             # FFT of real fn
-        self.meV = np.linspace(0,self.max_freq*2,self.block_steps*2)    # convert to meV
-        self.num_freq = self.meV.shape[0]                               # same as block_steps
-        self.df = self.meV[1]-self.meV[0]                               # frequency resolution
+        self.max_freq = 1e-12/self.dt/self.stride/2*4.13567                 # FFT of real fn
+        self.num_freq = self.block_steps                                    # to be explicit
+        self.meV = np.linspace(0,self.max_freq*2,self.num_freq)             # convert to meV
+        self.df = self.meV[1]-self.meV[0]                                   # frequency resolution
 
 
         if self.my_rank == 0:

@@ -2,6 +2,7 @@
 import numpy as np
 from timeit import default_timer as timer
 from FileIO import save_sqw, print_stdout
+from scipy.fft import fft
 
 class calc:
 
@@ -207,8 +208,10 @@ class calc:
         exp_iQr = np.tile(self.Q.reshape(1,3),
             reps=[params.block_steps,params.num_atoms,1])*self.pos
         exp_iQr = np.exp(1j*exp_iQr.sum(axis=2))*self.b_array 
-        self.sqw[:,self.q] = self.sqw[:,self.q]+np.abs(np.fft.fft(exp_iQr.sum(axis=1),
-          n=params.num_freq))**2
+#        self.sqw[:,self.q] = self.sqw[:,self.q]+np.abs(np.fft.fft(exp_iQr.sum(axis=1),
+#          n=params.num_freq))**2
+        self.sqw[:,self.q] = self.sqw[:,self.q]+np.abs(fft(exp_iQr.sum(axis=1)))**2
+
 
 
 
