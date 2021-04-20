@@ -6,7 +6,10 @@ from matplotlib.image import imread
 import sys
 
 vlims = [None,None]
-vlims = [0,1]
+#vlims = [-8,5]
+vlims = [0,1e-6]
+
+axis_lims = [0,4,0,15]
 
 interp = 'none'
 cmap = 'hot'
@@ -20,17 +23,17 @@ else:
 
 sqe = np.loadtxt(f_name)
 
-num_e = sqe.shape[0]//2
+num_e = (sqe.shape[0]-3)//2
 num_Q = sqe.shape[1]-1
 
-energy = sqe[:num_e,0]
+energy = sqe[3:num_e,0]
 e_max = energy[-1]
 
-sqe = sqe[:num_e,1:]
+sqe = sqe[3:num_e,1:]
 
 
 ######### create plots ###########
-fig,ax=plt.subplots(figsize=(4,6))
+fig,ax=plt.subplots(figsize=(4,4))
 im = ax.imshow(sqe,aspect='auto',cmap=cmap,origin='lower',extent=[0,4,0,e_max],
         interpolation=interp,vmin=vlims[0],vmax=vlims[1])
 fig.colorbar(im,ax=ax,extend='both')
@@ -42,7 +45,7 @@ ax.minorticks_on()
 ax.tick_params(which='both',width=1,labelsize='large')
 ax.tick_params(which='major',length=5)
 ax.tick_params(which='minor',length=2)
-#ax.axis([0,2,0,2])
+ax.axis(axis_lims)
 
 xlabel = r'($\xi$,0,0) (r.l.u.)'
 ax.set_xlabel(xlabel,labelpad=4.0,fontweight='normal',fontsize='large')
