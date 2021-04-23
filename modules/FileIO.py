@@ -1,26 +1,40 @@
 import numpy as np
 import os
+import h5py
 
 # ========================================================
 # ------------ write result of calculation ---------------
 # ========================================================
 
-def save_sqw(params,Q_points,sqw,fmt='%6.10f',f_name='sqw.dat'):
+def save_sqw(params,Q_points,sqw,fmt='%6.10f',f_name='sqw.hdf5'):
+
+    energy = params.meV
+    num_e = params.num_freq
+    num_Q = Q_points.shape[0]
 
     if not os.path.exists(params.output_dir):
         os.mkdir(params.output_dir)
 
-    energy = params.meV
-
-    header = ' 1st 3 rows are Qpts (the E col is (h,k,l)==(0,0,0)). the 1st col is E in meV'
-
-    write_dat = np.zeros((energy.shape[0]+3,Q_points.shape[0]+1))
-    write_dat[3:,0] = energy
-    write_dat[:3,1:] = Q_points.T
-    write_dat[3:,1:] = sqw
-
     f_name = os.path.join(params.output_dir,f_name)
-    np.savetxt(f_name,write_dat,fmt=fmt,header=header)
+    with h5py.File(f_name,'w') as db:
+
+        db_energy = db.create_dataset('energy_meV',[num_e])
+        db_Qpts = db.create_dataset('Qpts_rlu',[num_Q,3])
+        db_sqw = db.create_dataset('sqw',[num_e,num_Q])
+
+        db_energy[:] = energy[:]
+        db_Qpts[:,:] = Q_points[:,:]
+        db_sqw[:,:] = sqw[:,:]
+
+
+def read_sqw(f_name):
+    
+    with h5py.File(f_name,'r') as db:
+        energy = db['energy_meV'][:]
+        Qpts = db['Qpts_rlu'][:,:]
+        sqw = db['sqw'][:,:]
+
+    return energy, Qpts, sqw
 
 
 

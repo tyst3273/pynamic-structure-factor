@@ -41,7 +41,7 @@ calc.run(params)
 
 
 # save it the SQW result
-f_name = params.outfile_prefix+f'_FINAL.dat'
+f_name = params.outfile_prefix+f'_FINAL.hdf5'
 FileIO.save_sqw(params,calc.sqw,f_name=f_name)
 
 

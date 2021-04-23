@@ -5,11 +5,15 @@ from scipy.io import loadmat
 from matplotlib.image import imread
 import sys
 
+sys.path.append('/home/ty/custom_modules/pynamic-structure-factor/')
+
+from FileIO import read_sqw
+
 vlims = [None,None]
 #vlims = [-8,5]
-vlims = [0,1e-6]
+vlims = [0,0.1]
 
-axis_lims = [0,4,0,15]
+axis_lims = [0,4,0,80]
 
 interp = 'none'
 cmap = 'hot'
@@ -21,15 +25,15 @@ if len(sys.argv) != 2:
 else:
     f_name = sys.argv[1]
 
-sqe = np.loadtxt(f_name)
 
-num_e = (sqe.shape[0]-3)//2
-num_Q = sqe.shape[1]-1
+energy, Qpts, sqe = read_sqw(f_name)
 
-energy = sqe[3:num_e,0]
+num_e = energy.shape[0]//2
+num_Q = Qpts.shape[0]
+
+energy = energy[:num_e]
 e_max = energy[-1]
-
-sqe = sqe[3:num_e,1:]
+sqe = sqe[:num_e,:]
 
 
 ######### create plots ###########

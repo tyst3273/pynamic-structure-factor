@@ -84,7 +84,7 @@ if rank == 0:
     sqw_total = assemble_sqw_total(params,sqw_total_set,n_ranks)
     
     # save it
-    f_name = params.outfile_prefix+f'_FINAL.dat'
+    f_name = params.outfile_prefix+f'_FINAL.hdf5'
     FileIO.save_sqw(params,params.total_reduced_Q,sqw_total,f_name=f_name)
 
     # calculate and print elapsed time

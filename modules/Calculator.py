@@ -85,7 +85,7 @@ class calc:
         self.sqw = self.sqw/self.num_blocks # average over the blocks
 
         if params.save_progress:
-            f_name = params.outfile_prefix+f'_P{params.my_rank}_BX.dat' # final file
+            f_name = params.outfile_prefix+f'_P{params.my_rank}_BX.hdf5' # final file
             save_sqw(params,params.reduced_Q,self.sqw,f_name=f_name)
 
         self._clean_up()
@@ -158,7 +158,7 @@ class calc:
 
             if params.save_progress:
                 if self.counter != self.num_blocks:
-                    f_name = params.outfile_prefix+f'_P{params.my_rank}_B{block_index}.dat'
+                    f_name = params.outfile_prefix+f'_P{params.my_rank}_B{block_index}.hdf5'
                     save_sqw(params,params.reduced_Q,self.sqw/self.counter,f_name=f_name)
 
             self.counter = self.counter+1 # update the counter
