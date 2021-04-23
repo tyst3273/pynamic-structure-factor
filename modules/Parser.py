@@ -16,7 +16,7 @@ class parser:
         self.key_words = ['pos_dir','traj_file','output_dir','outfile_prefix','save_progress',
                 'dt','stride','total_steps','num_atoms','supercell','lattice_vectors','unwrap_pos',
                 'recalculate_cell_lengths','b','Qpoints_file','Qmin','Qmax','total_Qsteps',
-                'num_blocks','blocks']
+                'num_blocks','blocks','parse_lammps']
 
         # ============= defaults =================
 
@@ -26,6 +26,7 @@ class parser:
         self.output_dir = 'sqe_output'
         self.outfile_prefix = 'sqe'
         self.save_progress = False
+        self.parse_lammps = False
 
         # MD params
         self.dt = 1e-15
@@ -72,6 +73,7 @@ class parser:
         self.output_dir = self._parse_str('output_dir',self.output_dir)
         self.outfile_prefix = self._parse_str('outfile_prefix',self.outfile_prefix)
         self.save_progress = self._parse_bool('save_progress',self.save_progress)
+        self.parse_lammps = self._parse_bool('parse_lammps',self.parse_lammps)
 
         # =============== MD params =====================
         self.dt = self._parse_float('dt',self.dt)

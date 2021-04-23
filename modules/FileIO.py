@@ -61,25 +61,6 @@ def print_stdout(message,msg_type=None):
 
 def print_herald(n_ranks):
 
-    logo = r"""
-          /##########\
-         /###/  /#####\  /##/####|  /##/#####|/###||###\\############//########\
-        /###/  /###/\##\/##/#####| /##/##/|##|##########|  |##|      /##/    \##\
-       /##########/  \####/##/|##|/##/#######|##||##||##|  |##|     /##/
-      /###/          /###/##/ |#####/##/  |##|##|    |##|  |##|    |##|
-     /###/          /###/##/  |####/##/   |##|##|    |##|#######|  |###############\
-    /###/#############################|   |##|##################|  |##|######\|#####\
-   /###/##/       /###/    /##/ /#####|   |##|##|      /##/  |##|  |##|##| |##|##|
-  /###/########/ /###/    /#######/|##|   |##|##|     /##/   |##|  |##|#######|#######\
- |###|     /##/ /###/    /##/ \##\ |##|   |##|##|    /##/    |##|  |##|##| \##\##|
- |###|#######/ /###/    /##/   \##\\########/ \####//##/      \######/ ##|  \###########|
- |#####################|####################\ /#######/      
- |###|       /###/  |##|##|     |##||##|  |##|##| |##|   |@@\    /@@| /@@@@|     /@@@@@\
- |#####################|##|     |##||##|  |##|#######|    \@@\  /@@/ /@/|@@|    |@@| |@@|
- |###|     /###/    |##|##|     |##||##|  |##|##| \##\     \@@\/@@/     |@@|    |@@| |@@|
- |###|    /###/     |##|\######||##| \######/|##|  \##\     \@@@@/   |@@@@@@@|(@)\@@@@@/
-
-"""
     herald = """
  Pynamic Structure Factor, version 1.0
 
@@ -95,7 +76,7 @@ def print_herald(n_ranks):
  This is free software licensed under the Gnu General Public License (GPL) version 3.
  You should have a copy of the license agreement in the top directory. 
 
- This software is presented in the hope that you will find it useful, but with no 
+ This software is presented in the hope that you will find it useful, but with no
  warranty or gaurantee that the results will be accurate or valid. If you do happen 
  to notice bugs or errors, please notify me and I will try to address them (but I can 
  make no promises). Thanks and have fun :)
@@ -107,8 +88,6 @@ def print_herald(n_ranks):
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  ########################################################################################
 """
-#    print(banner)
-#    print(logo)
     print(herald)
     print(license)
     print(f' ** running the S(Q,w) calculation using {n_ranks} processes **\n')

@@ -119,8 +119,14 @@ class calc:
             # computing the Fourier transforms. 
             # ================================================================
 
-            self._parse_traj_file(params)
+            if params.parse_lammps:
+                self._parse_traj_file_lammps(params)
+
+            else:
+                self._parse_traj_file(params)
+
             self._make_b_array(params)
+
             a = self.box_lengths[0]/params.supercell[0] # read in the box lengths 
             b = self.box_lengths[1]/params.supercell[1]
             c = self.box_lengths[2]/params.supercell[2]
@@ -208,10 +214,8 @@ class calc:
         exp_iQr = np.tile(self.Q.reshape(1,3),
             reps=[params.block_steps,params.num_atoms,1])*self.pos
         exp_iQr = np.exp(1j*exp_iQr.sum(axis=2))*self.b_array 
-#        self.sqw[:,self.q] = self.sqw[:,self.q]+np.abs(np.fft.fft(exp_iQr.sum(axis=1),
-#          n=params.num_freq))**2
+        
         self.sqw[:,self.q] = self.sqw[:,self.q]+np.abs(fft(exp_iQr.sum(axis=1)))**2
-
 
 
 
@@ -222,7 +226,7 @@ class calc:
 
     def _clean_up(self):
 
-        del self.pos, self.b_array, self.atom_ids, 
+        del self.pos, self.b_array, self.atom_ids 
 
 
 
@@ -240,7 +244,7 @@ class calc:
                         (self.block_index+1)*params.block_steps]
 
         if params.my_rank == 0:
-            message = 'now reading positions:'
+            message = 'now reading positions'
             print_stdout(message,msg_type='NOTE')
 
         self.box_lengths = [0,0,0]      # get the box lengths
@@ -250,10 +254,9 @@ class calc:
                 params.traj_handle['box_bounds'][inds[0]:inds[1],2])
         self.box_lengths[2] = np.mean(params.traj_handle['box_bounds'][inds[0]:inds[1],5]-
                 params.traj_handle['box_bounds'][inds[0]:inds[1],4])
-
+    
         self.pos[:,:,:] = params.traj_handle['pos_data'][inds[0]:inds[1],:,:]   # get the positins 
         self.atom_ids[0,:] = params.traj_handle['atom_types'][:]                # get the atom TYPES
-
 
         # ======   (optionally) unimpose minimum image convention  =======
 
@@ -263,6 +266,45 @@ class calc:
                 message = 'unwrapping positions'
                 print_stdout(message,msg_type='NOTE')
             
+            self._unwrap_positions(params)
+
+
+
+    def _parse_traj_file_lammps(self,params):
+
+        """
+        parse the hdf5 file for positions, box lenghts, and atom types. 
+        assemble b_array (scattering lengths) and  optionally call method
+        to unwrap positions... use .h5 file written by lammps
+        """
+
+        inds = [self.block_index*params.block_steps,    # list of the indicies in the block
+                        (self.block_index+1)*params.block_steps]
+
+        if params.my_rank == 0:
+            message = 'now reading positions'
+            print_stdout(message,msg_type='NOTE')
+
+
+        self.box_lengths = [0,0,0]      # get the box lengths
+        self.box_lengths[0] = np.mean(params.traj_handle['particles']['all']['box']['edges']['value']
+                    [inds[0]:inds[1],0],axis=0)
+        self.box_lengths[1] = np.mean(params.traj_handle['particles']['all']['box']['edges']['value']
+                    [inds[0]:inds[1],1],axis=0)
+        self.box_lengths[2] = np.mean(params.traj_handle['particles']['all']['box']['edges']['value']
+                    [inds[0]:inds[1],2],axis=0)
+
+        self.pos[:,:,:] = params.traj_handle['particles']['all']['position']['value'][inds[0]:inds[1],:,:]
+        self.atom_ids[:,:] = params.traj_handle['particles']['all']['species']['value'][inds[0]:inds[1],:]
+
+        # ======   (optionally) unimpose minimum image convention  =======
+
+        if params.unwrap_pos == True:
+
+            if params.my_rank == 0:
+                message = 'unwrapping positions'
+                print_stdout(message,msg_type='NOTE')
+
             self._unwrap_positions(params)
 
 

@@ -35,6 +35,7 @@ class params:
         self.output_dir = parser.output_dir
         self.outfile_prefix = parser.outfile_prefix
         self.save_progress = parser.save_progress
+        self.parse_lammps = parser.parse_lammps
     
         # MD params
         self.dt = parser.dt
