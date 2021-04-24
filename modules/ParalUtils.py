@@ -11,11 +11,16 @@ def prepare_Qpoints(params,n_ranks):
     """
     num_Q_per_proc is determined as the largest integer diving the total_Qsteps number. the remainder
     is placed on rank 0 (if there is a remainder...)
+
+    should probably use scatter/gather methods from MPI, but don't know how yet
     """
 
     total_reduced_Q = params.total_reduced_Q 
     total_Qsteps = params.total_Qsteps
-    
+
+
+    # =========== assign number of Q's to each proc ===============
+
     # if only 1 proc, return the total Q set
     if n_ranks == 1:
         message = f'process: 0    Q points: {total_Qsteps:g}\n'
@@ -44,6 +49,8 @@ def prepare_Qpoints(params,n_ranks):
     for ii in range(1,n_ranks):
         message = message+f' process: {ii:g}    Q points: {nQpp_arr[ii]:g}\n'
     print_stdout(message,msg_type='Q points on each process')
+
+    # ============== slice the Q points onto each proc ==============
 
     shift = 0
     reduced_Q_set = []

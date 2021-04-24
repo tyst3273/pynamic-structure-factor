@@ -8,6 +8,10 @@ import h5py
 
 def save_sqw(params,Q_points,sqw,fmt='%6.10f',f_name='sqw.hdf5'):
 
+    """
+    write the output to an hdf5 file. use the read_sqw method to read it 
+    """
+
     energy = params.meV
     num_e = params.num_freq
     num_Q = Q_points.shape[0]
@@ -27,8 +31,13 @@ def save_sqw(params,Q_points,sqw,fmt='%6.10f',f_name='sqw.hdf5'):
         db_sqw[:,:] = sqw[:,:]
 
 
+
 def read_sqw(f_name):
     
+    """
+    read the sqw data written with save_sqw
+    """
+
     with h5py.File(f_name,'r') as db:
         energy = db['energy_meV'][:]
         Qpts = db['Qpts_rlu'][:,:]
