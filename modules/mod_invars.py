@@ -134,7 +134,7 @@ class input_variables:
 
         # print the scattering lengths to file
         message = f' atom-type: 0    b: {self.b[0]:2.4f}\n'
-        for bb in range(self.num_types-1):
+        for bb in range(1,self.num_types):
             message = message+f'  atom-type: {bb}    b: {self.b[bb]:2.4f}\n'
         print_stdout(message,msg_type='scattering lengths (b) in femtometers')
 
