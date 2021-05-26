@@ -16,11 +16,13 @@ class lattice:
         self.lattice_vectors = invars.lattice_vectors
         self.r_lattice_vectors = np.zeros((3,3))
 
+        # print cell lengths from INPUT file
         message = (f'cell lengths from input: {self.lattice_vectors[0,0]} '
                    f'{self.lattice_vectors[1,1]} '
                    f'{self.lattice_vectors[2,2]} Angstrom')
         print_stdout(message,msg_type='NOTE')
 
+        # print whether or not lattice vectors will be recalculated from traj. file
         if not invars.recalculate_cell_lengths:
             message = 'using cell lengths from input\n'
             print_stdout(message,msg_type='NOTE')
@@ -28,8 +30,10 @@ class lattice:
             message = 'using cell lengths from hdf5 trajectory file'
             print_stdout(message,msg_type='NOTE')
 
+        # set up reciprocal lattice
         self._compute_reciprocal_lattice()
-
+    
+        # print the lattice/reciprocal lattice 
         message = (f'real space lattice (Angstrom):\n'
                 f'  {self.lattice_vectors[0,0]:2.3f} {self.lattice_vectors[0,1]:2.3f}'
                 f' {self.lattice_vectors[0,2]:2.3f}\n  {self.lattice_vectors[1,0]:2.3f}'
@@ -48,11 +52,10 @@ class lattice:
 
     # ------------------------------------------------------------------------------------------
 
-    def recompute_lattice(self,invars):
+    def recompute_lattice(self):
         """
-        recompute lattice vectors etc. from data read from traj file
+        recompute lattice vectors etc. from data read from traj file. 
         """
-        self.lattice_vectors = invars.lattice_vectors
         self.r_lattice_vectors = np.zeros((3,3))
         self._compute_reciprocal_lattice()
 

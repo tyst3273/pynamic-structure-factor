@@ -15,15 +15,18 @@ class sqw:
     def __init__(self,invars,Qpoints,rank):
         """
         setup freq. grid from MD params and initialize variables to hold SQW
+        i tried padding the FFT w 0's, but spectral leakage was waaayyy worse
         """
-        self.rank = rank
+        self.rank = rank # the calling mpi rank
 
         # effective number of steps, i.e. num in each block that is read and computed
         self.block_steps = (invars.total_steps//invars.stride)//invars.num_blocks 
+
+        # max freq is actual self.max_freq/2 according to nyquist theorem
         self.max_freq = 1e-12/invars.dt/invars.stride*4.13567
+        self.df = self.max_freq/self.block_steps # freq. resolution
         self.num_freq = self.block_steps
         self.meV = np.linspace(0,self.max_freq,self.num_freq) 
-        self.df = self.meV[1]-self.meV[0] # freq. resolution
 
         if self.rank == 0:
             message = (f'max freq: {self.max_freq/2:2.3f} meV\n number of freq.: {self.num_freq//2}\n'
@@ -32,11 +35,11 @@ class sqw:
 
         self.sqw = np.zeros((self.num_freq,Qpoints.Qsteps))        # SQW array
         self.pos = np.zeros((self.block_steps,invars.num_atoms,3)) # time-steps, atoms, xyz
-        self.atom_ids = np.zeros((self.block_steps,invars.num_atoms)).astype(int)
-        self.b_array = np.zeros((self.block_steps,invars.num_atoms))  
+        self.atom_ids = np.zeros((self.block_steps,invars.num_atoms)).astype(int) # see mod_io
+        self.b_array = np.zeros((self.block_steps,invars.num_atoms)) # see below
         self.box_lengths = [0,0,0] # read from traj file
-        self.num_blocks = len(invars.blocks)
-        self.counter = 1
+        self.num_blocks = len(invars.blocks) # see mod_invars
+        self.counter = 1 
 
     # ----------------------------------------------------------------------------------------
 
@@ -48,11 +51,10 @@ class sqw:
 
         self.sqw = self.sqw/self.num_blocks # average over the blocks
 
+        # optionally save progress
         if invars.save_progress:
             f_name = invars.outfile_prefix+f'_P{self.rank}_BF.hdf5' # final file
             mod_io.save_sqw(invars,Qpoints.reduced_Q,self.meV,self.sqw,f_name)
-
-        del self.pos, self.b_array, self.atom_ids
 
     # =======================================================================================
     # ------------------------------ private methods ----------------------------------------
@@ -61,11 +63,20 @@ class sqw:
     def _loop_over_blocks(self,invars,Qpoints,lattice,traj_file):
         """
         contains outer loop over blocks
+
+        info about scattering lengths: there should be 1 length per TYPE, in order
+        of types. e.g. for 4 types = 1,2,3,4 there should be for lenghts atom 1 : length 1,
+        atom 2 : lenght 2, etc... i am also assuming that dump_modify sort id was used so
+        that the order of atoms is the  same for each step. this can be changed easily if
+        not the case using the atom_ids variable, but that will slow down the calc a little.
+        the b_array variable has shape [num_steps, num_atoms] to vectorize calculating the
+        neutron weighted density-density correlation fn
         """
-        for block_index in invars.blocks:
+        for block_index in invars.blocks: # loop over blocks to 'ensemble' average
 
             self.block_index = block_index
 
+            # print progress and start timer
             if self.rank == 0:
                 start_time = timer()
                 message = f'now on block {self.counter} out of {self.num_blocks}'
@@ -74,12 +85,7 @@ class sqw:
             # get the positions from file
             traj_file.parse_trajectory(invars,self) 
 
-            # -------------------- set up array of scattering lengths -------------------------
-            # note, these should be 1 length per TYPE, in order of types. e.g. for 4 types,
-            # 1,2,3,4 there should be for lenghts  atom 1 : length 1, atom 2 : lenght 2, etc...
-            # also assuming that dump_modify sort id was used so that the order of atoms is the 
-            # same for each step. this can be changed easily if not the case. 
-            # ---------------------------------------------------------------------------------
+            # set up array of scattering lengths. 
             for aa in range(invars.num_atoms):
                 self.b_array[0,aa] = invars.b[self.atom_ids[0,aa]-1]
             self.b_array = np.tile(self.b_array[0,:].reshape(1,invars.num_atoms),
@@ -90,30 +96,31 @@ class sqw:
             b = self.box_lengths[1]/invars.supercell[1]
             c = self.box_lengths[2]/invars.supercell[2]
 
+            # print box lengths read from traj file to compare to input file
             if self.rank == 0:
                 message = f'cell lengths from hdf5 file: {a:2.3f} {b:2.3f} {c:2.3f} Angstrom'
                 print_stdout(message,msg_type='NOTE')
 
+            # recall, only ortho lattice vectors used (for now)
             if invars.recalculate_cell_lengths: # optionally recalculates from avg in MD file
-                invars.lattice_vectors = np.array([[a,0,0],[0,b,0],[0,0,c]])
-                lattice.recompute_lattice(invars)
-                Qpoints.reconvert_Q_points(lattice)
+                lattice.lattice_vectors = np.array([[a,0,0],[0,b,0],[0,0,c]])
+                lattice.recompute_lattice()         # recompute reciprocal lattice
+                Qpoints.reconvert_Q_points(lattice) # convert Q to 1/A in new basis
 
+            # do the loop over Q points
             if self.rank == 0:
                 message = ('printing progess for rank 0, which has >= the number of Q on other procs.\n'
                             ' -- now entering loop over Q -- ')
                 print_stdout(message,msg_type='NOTE')
 
-            # do the loop over Q points
             for qq in range(Qpoints.Qsteps):  
 
                 if self.rank == 0:
                     message = f' now on Q-point {qq+1} out of {Qpoints.Qsteps}'
                     print_stdout(message)
 
-                Q = Qpoints.Qpoints[qq,:] # these are the ones in 1/Angstrom
-
-                exp_iQr = np.tile(Q.reshape(1,3),reps=[self.block_steps,invars.num_atoms,1])*self.pos
+                Q = Qpoints.Qpoints[qq,:].reshape((1,3)) # these are the ones in 1/Angstrom
+                exp_iQr = np.tile(Q,reps=[self.block_steps,invars.num_atoms,1])*self.pos
                 exp_iQr = np.exp(1j*exp_iQr.sum(axis=2))*self.b_array
                 self.sqw[:,qq] = self.sqw[:,qq]+np.abs(fft(exp_iQr.sum(axis=1)))**2
 

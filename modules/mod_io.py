@@ -14,30 +14,40 @@ class traj_file:
 
     def __init__(self,invars):
         """
-        open the hdf5 file
+        open the hdf5 file. had to open it on each process rather than open and copy. mpi4py 
+        complains when trying to pass open files, atleast using the 'pickle' versions of send
+        & recv. 
         """
         self.handle = h5py.File(invars.traj_file,'r')
 
     # -----------------------------------------------------------------------------------------
 
     def parse_trajectory(self,invars,sqw):
+        """
+        get the trajectories, atom_ids, and box sizes from the hdf5 files. can add methods to 
+        get the data from differnt file formats, but ultimately the pos, atom_ids, and box_lengths
+        arrays that are returend need to be consistent with my code. 
+        pos has shape [number of time steps in block, number of atoms, 3-dimensions (i.e. x,y,z)]
+        atom_ids has shape [number of time steps in block, number of atoms]
+        note that ids here really means TYPES, but i am too lazy to go change the rest of my code.
+        for now, my code assumes that the ids are sorted at each time step so that they are 
+        identical at each step. if they arent sorted, the ids(=TYPES) at each step can be used to 
+        assign the correct scattering lenght to the atoms.
+        box_bounds has shape [3], 1 for each cartesian direction.
+        to use the lammps read, lammps should dump using a command like:
 
+        dump            pos all h5md ${dt_dump} pos.h5 position species
+        dump_modify     pos sort id
+
+        """
         if sqw.rank == 0:
             message = 'now reading positions'
             print_stdout(message,msg_type='NOTE')
 
+        # the indicies to be sliced.
         inds = [sqw.block_index*sqw.block_steps,(sqw.block_index+1)*sqw.block_steps]
 
-        if invars.parse_lammps:
-            sqw.box_lengths[0] = np.mean(self.handle['particles']['all']['box']['edges']['value']
-                        [inds[0]:inds[1],0],axis=0)
-            sqw.box_lengths[1] = np.mean(self.handle['particles']['all']['box']['edges']['value']
-                        [inds[0]:inds[1],1],axis=0)
-            sqw.box_lengths[2] = np.mean(self.handle['particles']['all']['box']['edges']['value']
-                        [inds[0]:inds[1],2],axis=0)
-            sqw.pos[:,:,:] = self.handle['particles']['all']['position']['value'][inds[0]:inds[1],:,:]
-            sqw.atom_ids[:,:] = self.handle['particles']['all']['species']['value'][inds[0]:inds[1],:] 
-        else:
+        if invars.parse_custom: # get from my old format made using the 'compressor' tool
             sqw.box_lengths[0] = np.mean(self.handle['box_bounds'][inds[0]:inds[1],1]-
                     self.handle['box_bounds'][inds[0]:inds[1],0])
             sqw.box_lengths[1] = np.mean(self.handle['box_bounds'][inds[0]:inds[1],3]-
@@ -46,6 +56,15 @@ class traj_file:
                     self.handle['box_bounds'][inds[0]:inds[1],4])
             self.pos[:,:,:] = self.handle['pos_data'][inds[0]:inds[1],:,:]   # get the positins
             self.atom_ids[0,:] = self.handle['atom_types'][:]                # get the atom TYPES
+        else: # read from lammps output.
+            sqw.box_lengths[0] = np.mean(self.handle['particles']['all']['box']['edges']['value']
+                        [inds[0]:inds[1],0],axis=0)
+            sqw.box_lengths[1] = np.mean(self.handle['particles']['all']['box']['edges']['value']
+                        [inds[0]:inds[1],1],axis=0)
+            sqw.box_lengths[2] = np.mean(self.handle['particles']['all']['box']['edges']['value']
+                        [inds[0]:inds[1],2],axis=0)
+            sqw.pos[:,:,:] = self.handle['particles']['all']['position']['value'][inds[0]:inds[1],:,:]
+            sqw.atom_ids[:,:] = self.handle['particles']['all']['species']['value'][inds[0]:inds[1],:]
 
         # optionally unimpose minimum image convention
         if invars.unwrap_pos:
@@ -111,7 +130,7 @@ class traj_file:
 
         # apply the shift    
         sqw.pos = sqw.pos+shift
-
+        
 # ============================================================================================
 # --------------------------------------------------------------------------------------------
 # ============================================================================================
@@ -121,10 +140,8 @@ def save_sqw(invars,Qpts,energy,sqw,f_name='sqw.hdf5'):
     write the output to an hdf5 file. use the read_sqw method to read it 
     """
     fmt = '%6.10f'
-
     num_e = energy.shape[0]
     num_Q = Qpts.shape[0]
-
     f_name = os.path.join(invars.output_dir,f_name)
     with h5py.File(f_name,'w') as db:
         db_energy = db.create_dataset('energy_meV',[num_e])
@@ -137,11 +154,9 @@ def save_sqw(invars,Qpts,energy,sqw,f_name='sqw.hdf5'):
 # --------------------------------------------------------------------------------------------
 
 def read_sqw(f_name):
-
     """
     read the sqw data written with save_sqw
     """
-
     with h5py.File(f_name,'r') as db:
         energy = db['energy_meV'][:]
         Qpts = db['Qpts_rlu'][:,:]

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mod_io import read_sqw
 
 vlims = [None,None]
-vlims = [0,0.05]
+vlims = [0,0.025]
 
 axis_lims = [0,4,0,80]
 

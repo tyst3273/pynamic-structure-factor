@@ -91,13 +91,9 @@ if rank == 0:
         sqw_ii = comm.recv(source=ii,tag=11)
         sqw_from_ranks.append(sqw_ii)
 
-    # assemble the results back into one
+    # assemble the results back into one 
     sqw_total = np.zeros((sqw.num_freq,Qpoints.total_Qsteps))
-    shift = 0
-    for ii in range(num_ranks):
-        nQpp = sqw_from_ranks[ii].shape[1]
-        sqw_total[:,shift:shift+nQpp] = sqw_from_ranks[ii]
-        shift = shift+nQpp
+    mod_utils.assemble_sqw(sqw_from_ranks,sqw_total)
 
     # save it
     f_name = invars.outfile_prefix+f'_FINAL.hdf5'

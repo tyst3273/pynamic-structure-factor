@@ -8,7 +8,6 @@ class PSF_exception(Exception):
     resulting in deadlock.
     """
     def __init__(self,message='an error occured. aborting',rank=0):
-
         if rank == 0:
             print_stdout(message,msg_type='ERROR')
 
@@ -48,6 +47,19 @@ def print_herald(num_ranks):
     print(f' ** running the S(Q,w) calculation using {num_ranks} processes **\n')
     print(banner,flush=True)
 
+
+# -----------------------------------------------------------------------------------------
+
+def assemble_sqw(sqw_from_ranks,sqw_total):
+    """
+    assemble SQW from all the procs back into 1 array.
+    """
+    shift = 0
+    num_ranks = len(sqw_from_ranks)
+    for ii in range(num_ranks):
+        nQpp = sqw_from_ranks[ii].shape[1]
+        sqw_total[:,shift:shift+nQpp] = sqw_from_ranks[ii]
+        shift = shift+nQpp
 
 
 
