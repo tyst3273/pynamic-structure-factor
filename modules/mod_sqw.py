@@ -104,8 +104,8 @@ class sqw:
             # recall, only ortho lattice vectors used (for now)
             if invars.recalculate_cell_lengths: # optionally recalculates from avg in MD file
                 lattice.lattice_vectors = np.array([[a,0,0],[0,b,0],[0,0,c]])
-                lattice.recompute_lattice()         # recompute reciprocal lattice
-                Qpoints.reconvert_Q_points(lattice) # convert Q to 1/A in new basis
+                lattice.recompute_lattice(self.rank)    # recompute reciprocal lattice
+                Qpoints.reconvert_Q_points(lattice)     # convert Q to 1/A in new basis
 
             # do the loop over Q points
             if self.rank == 0:

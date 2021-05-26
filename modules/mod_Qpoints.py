@@ -22,10 +22,18 @@ class Qpoints:
         # print list of Q in rlu 
         message = f'Qpoints: {self.total_Qsteps}'
         print_stdout(message,msg_type='Brillouin zone path')
+        Q_count = 0
         for Q in range(self.total_Qsteps):
             message = (f'{Q+1}\t{self.total_reduced_Q[Q,0]:2.3f} {self.total_reduced_Q[Q,1]:2.3f} '
                     f'{self.total_reduced_Q[Q,2]:2.3f} r.l.u.')
             print_stdout(message)
+
+            if Q_count == 49:
+                message = ('...............................\n number of Qpoints is >= 50.'
+                           '\n suppressing output.')
+                print_stdout(message)
+                break
+            Q_count = Q_count+1
 
     # --------------------------------------------------------------------------------------------
 
