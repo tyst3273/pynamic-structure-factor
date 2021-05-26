@@ -1,108 +1,118 @@
-import sys
-import numpy as np
 from timeit import default_timer as timer
-from mpi4py import MPI
+import numpy as np
+import sys
 
-sys.path.append('/home/ty/custom_modules/pynamic-structure-factor/')
+sys.path.append('./modules')
 
-import Parser
-import Parameters 
-import FileIO
-import Calculator
-from ParalUtils import *
+import mod_invars
+import mod_io
+import mod_lattice
+import mod_Qpoints
+import mod_sqw
+import mod_utils 
+import mod_mpi
 
 
-# get input file if given as arg
+
+# get the input file from command line
 if len(sys.argv) != 1:
     input_file = sys.argv[1]
 else:
     input_file = 'input_params'
 
 
-# initialize the communicator and get info
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-n_ranks = comm.Get_size()
+
+# initialize the mpi stuff
+comm = mod_mpi.comm
+rank = mod_mpi.rank
+num_ranks = mod_mpi.num_ranks
+
 
 
 if rank == 0:
-
+    
     # start a timer
     start_time = timer()
 
-    # print the herald 
-    FileIO.print_herald(n_ranks)
+    # print herald
+    mod_utils.print_herald(num_ranks)
 
-    # get input opts from file
-    parser = Parser.parser()
-    parser.parse(input_file)
+    # read the input file
+    invars = mod_invars.input_variables()
+    invars.parse_input(input_file)
 
-    # initialize params obj
-    params = Parameters.params(parser)
-    params.rank_0_init()
+    # setup the lattice
+    lattice = mod_lattice.lattice(invars)
 
-    # get the total set of Q's 
-    total_Qsteps = params.total_Qsteps
-    total_reduced_Q = params.total_reduced_Q
+    # setup Qpoints or read the file
+    Qpoints = mod_Qpoints.Qpoints()
+    Qpoints.generate_Qpoints(invars)
 
-    # split the total set of Q's over the procs
-    reduced_Q_set = prepare_Qpoints(params,n_ranks)
+    # split Qpoints over procs
+    Qpoints.distribute_Q_over_procs(invars,num_ranks)
 
-    # pass the sets of Q's and params object to each proc.
-    for ii in range(1,n_ranks):
-        comm.send(reduced_Q_set[ii],dest=ii,tag=0)
-        comm.send(params,dest=ii,tag=1)
-
-    # initiliaze params on rank 0 using set of Q's
-    params.rank_x_init(reduced_Q_set[0],rank)
+    # distribute the vars over all procs
+    for ii in range(1,num_ranks):
+        comm.send(invars,dest=ii,tag=0)
+        comm.send(lattice,dest=ii,tag=1)
+        comm.send(Qpoints,dest=ii,tag=2)
 
 else:
-   
-    # get the set of Q's and params object
-    reduced_Q = comm.recv(source=0,tag=0)
-    params = comm.recv(source=0,tag=1)
-
-    # initiliaze params on this proc using set of Q's
-    params.rank_x_init(reduced_Q,rank)
+    # receive the vars from rank 0
+    invars = comm.recv(source=0,tag=0)
+    lattice = comm.recv(source=0,tag=1)
+    Qpoints = comm.recv(source=0,tag=2)
 
 
-# initialize calculation on all procs
-calc = Calculator.calc(params)
 
-# run calc on all procs and close the hdf5 file when done. 
-calc.run(params)
+# get Qpoints for this rank, conver to 1/A
+Qpoints.rank_init(lattice,rank)
+
+# open the hdf5 file
+traj_file = mod_io.traj_file(invars)
+
+# setup calculator
+sqw = mod_sqw.sqw(invars,Qpoints,rank)
+
+# run the calculation
+sqw.calculate(invars,Qpoints,lattice,traj_file)
+
+# close the hdf5 files
+traj_file.close()
 
 
+
+# gather all the results and save total array
 if rank == 0:
-    
+
     # gather all of the results
-    sqw_total_set = [calc.sqw]
-    for ii in range(1,n_ranks):
-        sqw_total_set.append(comm.recv(source=ii,tag=3))
-    
+    sqw_from_ranks = [sqw.sqw]
+    for ii in range(1,num_ranks):
+        sqw_ii = comm.recv(source=ii,tag=11)
+        sqw_from_ranks.append(sqw_ii)
+
     # assemble the results back into one
-    sqw_total = assemble_sqw_total(params,sqw_total_set,n_ranks)
-    
+    sqw_total = np.zeros((sqw.num_freq,Qpoints.total_Qsteps))
+    shift = 0
+    for ii in range(num_ranks):
+        nQpp = sqw_from_ranks[ii].shape[1]
+        sqw_total[:,shift:shift+nQpp] = sqw_from_ranks[ii]
+        shift = shift+nQpp
+
     # save it
-    f_name = params.outfile_prefix+f'_FINAL.hdf5'
-    FileIO.save_sqw(params,params.total_reduced_Q,sqw_total,f_name=f_name)
+    f_name = invars.outfile_prefix+f'_FINAL.hdf5'
+    mod_io.save_sqw(invars,Qpoints.total_reduced_Q,sqw.meV,sqw_total,f_name)
 
     # calculate and print elapsed time
     end_time = timer()
     elapsed_time = (end_time-start_time)/60 #minutes
     message = f'total elapsed time: {elapsed_time:2.3f} minutes'
-    FileIO.print_stdout(message,msg_type='TIMING')
- 
-else:    
+    mod_io.print_stdout(message,msg_type='TIMING')
+
+else:
 
     # send the results to rank 0
-    comm.send(calc.sqw,dest=0,tag=3)
-    
-
-
-
-
-
+    comm.send(sqw.sqw,dest=0,tag=11)
 
 
 

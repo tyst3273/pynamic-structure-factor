@@ -1,18 +1,24 @@
-import sys
-sys.path.append('./modules')
+import numpy as np
+import os
 import matplotlib.pyplot as plt
-from mod_io import read_sqw
+from scipy.io import loadmat
+from matplotlib.image import imread
+import sys
+
+sys.path.append('/home/ty/custom_modules/pynamic-structure-factor/')
+
+from FileIO import read_sqw
 
 vlims = [None,None]
-vlims = [0,0.05]
+#vlims = [-8,5]
+vlims = [0,0.1]
 
 axis_lims = [0,4,0,80]
 
 interp = 'none'
-cmap = 'CMRmap'
+cmap = 'hot'
 
-
-# load data 
+############ load data #######################
 if len(sys.argv) != 2:
     print('give file name to plot')
     exit()
@@ -20,24 +26,23 @@ else:
     f_name = sys.argv[1]
 
 
-energy, Qpts, sqw = read_sqw(f_name)
+energy, Qpts, sqe = read_sqw(f_name)
 
 num_e = energy.shape[0]//2
 num_Q = Qpts.shape[0]
 
 energy = energy[:num_e]
 e_max = energy[-1]
-sqw = sqw[:num_e,:]
+sqe = sqe[:num_e,:]
 
 
-# create plots 
-fig,ax = plt.subplots(figsize=(4,4))
-im = ax.imshow(sqw,aspect='auto',cmap=cmap,origin='lower',extent=[0,4,0,e_max],
+######### create plots ###########
+fig,ax=plt.subplots(figsize=(4,4))
+im = ax.imshow(sqe,aspect='auto',cmap=cmap,origin='lower',extent=[0,4,0,e_max],
         interpolation=interp,vmin=vlims[0],vmax=vlims[1])
 fig.colorbar(im,ax=ax,extend='both')
 
-
-# format plots 
+######## format plots #########
 for axis in ['top','bottom','left','right']:
     ax.spines[axis].set_linewidth(1.5)
 ax.minorticks_on()

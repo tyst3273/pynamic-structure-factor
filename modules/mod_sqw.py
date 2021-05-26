@@ -26,7 +26,7 @@ class sqw:
         self.df = self.meV[1]-self.meV[0] # freq. resolution
 
         if self.rank == 0:
-            message = (f'max freq: {self.max_freq/2:2.3f} meV\n number of freq.: {self.num_freq}\n'
+            message = (f'max freq: {self.max_freq/2:2.3f} meV\n number of freq.: {self.num_freq//2}\n'
                        f' resolution: {self.df:2.3e} meV\n')
             print_stdout(message,msg_type='frequency Grid')
 

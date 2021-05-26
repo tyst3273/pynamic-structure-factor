@@ -38,14 +38,14 @@ class traj_file:
             sqw.pos[:,:,:] = self.handle['particles']['all']['position']['value'][inds[0]:inds[1],:,:]
             sqw.atom_ids[:,:] = self.handle['particles']['all']['species']['value'][inds[0]:inds[1],:] 
         else:
-            sqw.box_lengths[0] = np.mean(invars.traj_handle['box_bounds'][inds[0]:inds[1],1]-
-                    invars.traj_handle['box_bounds'][inds[0]:inds[1],0])
-            sqw.box_lengths[1] = np.mean(invars.traj_handle['box_bounds'][inds[0]:inds[1],3]-
-                    invars.traj_handle['box_bounds'][inds[0]:inds[1],2])
-            sqw.box_lengths[2] = np.mean(invars.traj_handle['box_bounds'][inds[0]:inds[1],5]-
-                    invars.traj_handle['box_bounds'][inds[0]:inds[1],4])
-            self.pos[:,:,:] = invars.traj_handle['pos_data'][inds[0]:inds[1],:,:]   # get the positins
-            self.atom_ids[0,:] = invars.traj_handle['atom_types'][:]                # get the atom TYPES
+            sqw.box_lengths[0] = np.mean(self.handle['box_bounds'][inds[0]:inds[1],1]-
+                    self.handle['box_bounds'][inds[0]:inds[1],0])
+            sqw.box_lengths[1] = np.mean(self.handle['box_bounds'][inds[0]:inds[1],3]-
+                    self.handle['box_bounds'][inds[0]:inds[1],2])
+            sqw.box_lengths[2] = np.mean(self.handle['box_bounds'][inds[0]:inds[1],5]-
+                    self.handle['box_bounds'][inds[0]:inds[1],4])
+            self.pos[:,:,:] = self.handle['pos_data'][inds[0]:inds[1],:,:]   # get the positins
+            self.atom_ids[0,:] = self.handle['atom_types'][:]                # get the atom TYPES
 
         # optionally unimpose minimum image convention
         if invars.unwrap_pos:

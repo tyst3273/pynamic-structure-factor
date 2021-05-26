@@ -3,21 +3,17 @@ sys.path.append('./modules')
 import matplotlib.pyplot as plt
 from mod_io import read_sqw
 
-vlims = [None,None]
-vlims = [0,0.05]
 
-axis_lims = [0,4,0,80]
-
-interp = 'none'
-cmap = 'CMRmap'
+axis_lims = [0,80,1e-6,1e2]
 
 
 # load data 
-if len(sys.argv) != 2:
-    print('give file name to plot')
+if len(sys.argv) != 3:
+    print('give file name to plot and which Q point')
     exit()
 else:
     f_name = sys.argv[1]
+    which_Q = int(sys.argv[2])
 
 
 energy, Qpts, sqw = read_sqw(f_name)
@@ -31,11 +27,8 @@ sqw = sqw[:num_e,:]
 
 
 # create plots 
-fig,ax = plt.subplots(figsize=(4,4))
-im = ax.imshow(sqw,aspect='auto',cmap=cmap,origin='lower',extent=[0,4,0,e_max],
-        interpolation=interp,vmin=vlims[0],vmax=vlims[1])
-fig.colorbar(im,ax=ax,extend='both')
-
+fig,ax = plt.subplots(figsize=(6,4))
+ax.semilogy(energy,sqw[:,which_Q],marker='o',ms=2,mfc='b',mec='k',color='b',lw=1,ls=':')
 
 # format plots 
 for axis in ['top','bottom','left','right']:
@@ -46,9 +39,9 @@ ax.tick_params(which='major',length=5)
 ax.tick_params(which='minor',length=2)
 ax.axis(axis_lims)
 
-xlabel = r'($\xi$,0,0) (r.l.u.)'
+xlabel = r'Energy (meV)'
 ax.set_xlabel(xlabel,labelpad=4.0,fontweight='normal',fontsize='large')
-ylabel = r'Energy (meV)'
+ylabel = 'intensity (arb. units.)'
 ax.set_ylabel(ylabel,labelpad=2.0,fontweight='normal',fontsize='large')
 
 #ax.annotate(r"all modes",xy=(0.03,0.925),
