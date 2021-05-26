@@ -31,4 +31,7 @@ python code to calculate inelastic-neutron-scattering dynamic structure factor, 
   - example syntax: mpiexec -np 4 python -m mpi4py PSF.py > log
   - the number of Q points will be split as evenly as possible over all procs with the remainder going on rank 0.
 
-
+## new in v2.0
+- refactored code 
+  - wanted to improve readability and ease further development. v1 was my original spaghetti code converted to work with mpi4py. 
+  - v2.0 is refactored to be simpler to understand.  
