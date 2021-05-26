@@ -54,8 +54,8 @@ class traj_file:
                     self.handle['box_bounds'][inds[0]:inds[1],2])
             sqw.box_lengths[2] = np.mean(self.handle['box_bounds'][inds[0]:inds[1],5]-
                     self.handle['box_bounds'][inds[0]:inds[1],4])
-            self.pos[:,:,:] = self.handle['pos_data'][inds[0]:inds[1],:,:]   # get the positins
-            self.atom_ids[0,:] = self.handle['atom_types'][:]                # get the atom TYPES
+            sqw.pos[:,:,:] = self.handle['pos_data'][inds[0]:inds[1],:,:]   # get the positins
+            sqw.atom_ids[0,:] = self.handle['atom_types'][:]                # get the atom TYPES
         else: # read from lammps output.
             sqw.box_lengths[0] = np.mean(self.handle['particles']['all']['box']['edges']['value']
                         [inds[0]:inds[1],0],axis=0)
