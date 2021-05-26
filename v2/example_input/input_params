@@ -1,0 +1,57 @@
+# input params for PSF
+# '#' are comments
+
+
+# ============== I/O options ===================
+
+traj_file       = pos.h5
+output_dir      = sqw
+outfile_prefix  = si_test
+parse_lammps    = 1
+save_progress   = 1
+
+
+# =============== MD params ====================
+
+dt              = 0.75e-15  
+stride          = 32
+total_steps     = 524288
+num_atoms       = 13824
+supercell       = 12 12 12
+lattice_vectors = 5.445 0 0 0 5.445 0 0 0 5.445
+
+
+# ============== calc option ===================
+
+recalculate_cell_lengths  = 1
+unwrap_pos                = 1
+
+#Qpoints_file   = Qpoints.in
+Qmin           = 0 0 2
+Qmax           = 6 0 2
+total_Qsteps   = 73
+num_blocks     = 6
+#blocks         = 0 1 2 3
+b              = 4.1491
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
