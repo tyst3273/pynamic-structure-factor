@@ -6,8 +6,6 @@ from mod_io import read_sqw
 vlims = [None,None]
 vlims = [0,0.025]
 
-axis_lims = [0,4,0,80]
-
 interp = 'none'
 cmap = 'CMRmap'
 
@@ -29,10 +27,11 @@ energy = energy[:num_e]
 e_max = energy[-1]
 sqw = sqw[:num_e,:]
 
+axis_lims = [0,num_Q,0,e_max]
 
 # create plots 
 fig,ax = plt.subplots(figsize=(4,4))
-im = ax.imshow(sqw,aspect='auto',cmap=cmap,origin='lower',extent=[0,4,0,e_max],
+im = ax.imshow(sqw,aspect='auto',cmap=cmap,origin='lower',extent=[0,num_Q,0,e_max],
         interpolation=interp,vmin=vlims[0],vmax=vlims[1])
 fig.colorbar(im,ax=ax,extend='both')
 
@@ -46,7 +45,8 @@ ax.tick_params(which='major',length=5)
 ax.tick_params(which='minor',length=2)
 ax.axis(axis_lims)
 
-xlabel = r'($\xi$,0,0) (r.l.u.)'
+#xlabel = r'($\xi$,0,0) (r.l.u.)'
+xlabel = r'$\bf{Q}$ index'
 ax.set_xlabel(xlabel,labelpad=4.0,fontweight='normal',fontsize='large')
 ylabel = r'Energy (meV)'
 ax.set_ylabel(ylabel,labelpad=2.0,fontweight='normal',fontsize='large')
