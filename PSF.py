@@ -1,4 +1,5 @@
 from timeit import default_timer as timer
+from mpi4py import MPI
 import numpy as np
 import sys
 
@@ -10,7 +11,6 @@ import mod_lattice
 import mod_Qpoints
 import mod_sqw
 import mod_utils 
-import mod_mpi
 
 
 
@@ -23,9 +23,9 @@ else:
 
 
 # initialize the mpi stuff
-comm = mod_mpi.comm
-rank = mod_mpi.rank
-num_ranks = mod_mpi.num_ranks
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+num_ranks = comm.Get_size()
 
 
 
@@ -58,6 +58,7 @@ if rank == 0:
         comm.send(Qpoints,dest=ii,tag=2)
 
 else:
+
     # receive the vars from rank 0
     invars = comm.recv(source=0,tag=0)
     lattice = comm.recv(source=0,tag=1)
@@ -82,7 +83,6 @@ traj_file.close()
 
 
 
-# gather all the results and save total array
 if rank == 0:
 
     # gather all of the results
