@@ -132,6 +132,10 @@ class input_variables:
             message = 'only ortho. lattice vectors are currently supported. see comments in mod_invars'
             raise PSF_exception(message)
 
+        # print the traj file
+        message = f'reading trajectories from file \'{self.traj_file}\''
+        print_stdout(message,msg_type='NOTE')
+
         # print the scattering lengths to file
         message = f' atom-type:  0    b: {self.b[0]: 2.4f}\n'
         for bb in range(1,self.num_types):
