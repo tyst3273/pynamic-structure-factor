@@ -57,7 +57,7 @@ class input_variables:
 
         self.unwrap_pos               = True    # unimpose minimum image convention
         self.recalculate_cell_lengths = True    # recalculate cell lens from box bounds in traj file
-        self.b                        = [4.1491e-5] # neutron scatt. lengths
+        self.b                        = [4.1491]    # neutron scatt. lengths
         self.Qpoints_file             = False       # read Q points from file (give name of file here)
         self.Qmin                     = [0,0,0]     # min of Q path to make 2d scan
         self.Qmax                     = [2,0,0]     # max of Q path to make 2d scan
@@ -191,7 +191,7 @@ class input_variables:
         """
         return_value = default
         for line in self.input_txt:
-            if line.strip().startswith(key_word):
+            if line.split('=')[0].strip() == key_word:
                 return_value = line.split('=')[-1]
                 return_value = return_value.split('#')[0].strip()
                 return_value = str(return_value)
@@ -205,7 +205,7 @@ class input_variables:
         """
         return_value = default
         for line in self.input_txt:
-            if line.strip().startswith(key_word):
+            if line.split('=')[0].strip() == key_word:
                 return_value = line.split('=')[-1]
                 return_value = return_value.split('#')[0].strip()
                 try:
@@ -223,7 +223,7 @@ class input_variables:
         """
         return_value = default
         for line in self.input_txt:
-            if line.strip().startswith(key_word):
+            if line.split('=')[0].strip() == key_word:
                 return_value = line.split('=')[-1]
                 return_value = return_value.split('#')[0].strip()
                 try:
@@ -241,7 +241,7 @@ class input_variables:
         """
         return_value = default
         for line in self.input_txt:
-            if line.strip().startswith(key_word):
+            if line.split('=')[0].strip() == key_word:
                 return_value = line.split('=')[-1]
                 return_value = return_value.split('#')[0].strip()
                 try:
@@ -259,7 +259,7 @@ class input_variables:
         """
         return_value = default
         for line in self.input_txt:
-            if line.strip().startswith(key_word):
+            if line.split('=')[0].strip() == key_word:
                 return_value = line.split('=')[-1]
                 return_value = return_value.split('#')[0].strip()
                 return_value = return_value.split()
@@ -278,7 +278,7 @@ class input_variables:
         """
         return_value = default
         for line in self.input_txt:
-            if line.strip().startswith(key_word):
+            if line.split('=')[0].strip() == key_word:
                 return_value = line.split('=')[-1]
                 return_value = return_value.split('#')[0].strip()
                 return_value = return_value.split()

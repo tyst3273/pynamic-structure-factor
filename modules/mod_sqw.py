@@ -22,7 +22,7 @@ class sqw:
         # effective number of steps, i.e. num in each block that is read and computed
         self.block_steps = (invars.total_steps//invars.stride)//invars.num_blocks 
 
-        # max freq is actual self.max_freq/2 according to nyquist theorem
+        # max freq is actually self.max_freq/2 according to nyquist theorem
         self.max_freq = 1e-12/invars.dt/invars.stride*4.13567
         self.df = self.max_freq/self.block_steps # freq. resolution
         self.num_freq = self.block_steps
@@ -84,6 +84,12 @@ class sqw:
 
             # get the positions from file
             traj_file.parse_trajectory(invars,self) 
+
+            # check that the number of b's defined in file are consistent with traj
+            if self.rank == 0:
+                if np.unique(self.atom_ids[0,:]).shape[0] != invars.num_types:
+                    message = 'number of types in input file doesnt match simulation'
+                    raise PSF_exception(message)
 
             # set up array of scattering lengths. 
             for aa in range(invars.num_atoms):
