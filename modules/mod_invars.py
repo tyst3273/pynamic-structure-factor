@@ -133,9 +133,9 @@ class input_variables:
             raise PSF_exception(message)
 
         # print the scattering lengths to file
-        message = f' atom-type: 0    b: {self.b[0]:2.4f}\n'
+        message = f' atom-type:  0    b: {self.b[0]: 2.4f}\n'
         for bb in range(1,self.num_types):
-            message = message+f'  atom-type: {bb}    b: {self.b[bb]:2.4f}\n'
+            message = message+f'  atom-type: {bb:2g}    b: {self.b[bb]: 2.4f}\n'
         print_stdout(message,msg_type='scattering lengths (b) in femtometers')
 
         # now convert b to Angstrom. 'intensities' are of order 1 this way. with FM, theyre 

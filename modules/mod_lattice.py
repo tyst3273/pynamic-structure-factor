@@ -35,19 +35,19 @@ class lattice:
 
         # print the lattice/reciprocal lattice
         message = (f'real space lattice from input file (Angstrom):\n'
-                f'  {self.lattice_vectors[0,0]:2.3f} {self.lattice_vectors[0,1]:2.3f}'
-                f' {self.lattice_vectors[0,2]:2.3f}\n  {self.lattice_vectors[1,0]:2.3f}'
-                f' {self.lattice_vectors[1,1]:2.3f} {self.lattice_vectors[1,2]:2.3f}\n'
-                f'  {self.lattice_vectors[2,0]:2.3f} {self.lattice_vectors[2,1]:2.3f}'
-                f' {self.lattice_vectors[2,2]:2.3f}\n')
+                f'  {self.lattice_vectors[0,0]: 2.3f} {self.lattice_vectors[0,1]: 2.3f}'
+                f' {self.lattice_vectors[0,2]: 2.3f}\n  {self.lattice_vectors[1,0]: 2.3f}'
+                f' {self.lattice_vectors[1,1]: 2.3f} {self.lattice_vectors[1,2]: 2.3f}\n'
+                f'  {self.lattice_vectors[2,0]: 2.3f} {self.lattice_vectors[2,1]: 2.3f}'
+                f' {self.lattice_vectors[2,2]: 2.3f}\n')
         print_stdout(message,msg_type='NOTE')
 
         message = (f'reciprocal space lattice from input file (1/Angstrom):\n'
-                f'  {self.r_lattice_vectors[0,0]:2.3f} {self.r_lattice_vectors[0,1]:2.3f}'
-                f' {self.r_lattice_vectors[0,2]:2.3f}\n  {self.r_lattice_vectors[1,0]:2.3f}'
-                f' {self.r_lattice_vectors[1,1]:2.3f} {self.r_lattice_vectors[1,2]:2.3f}\n'
-                f'  {self.r_lattice_vectors[2,0]:2.3f} {self.r_lattice_vectors[2,1]:2.3f}'
-                f' {self.r_lattice_vectors[2,2]:2.3f}')
+                f'  {self.r_lattice_vectors[0,0]: 2.3f} {self.r_lattice_vectors[0,1]: 2.3f}'
+                f' {self.r_lattice_vectors[0,2]: 2.3f}\n  {self.r_lattice_vectors[1,0]: 2.3f}'
+                f' {self.r_lattice_vectors[1,1]: 2.3f} {self.r_lattice_vectors[1,2]: 2.3f}\n'
+                f'  {self.r_lattice_vectors[2,0]: 2.3f} {self.r_lattice_vectors[2,1]: 2.3f}'
+                f' {self.r_lattice_vectors[2,2]: 2.3f}')
         print_stdout(message)
             
     # ------------------------------------------------------------------------------------------
@@ -63,19 +63,19 @@ class lattice:
 
             # print the lattice/reciprocal lattice
             message = (f'real space lattice from trajectory file (Angstrom):\n'
-                    f'  {self.lattice_vectors[0,0]:2.3f} {self.lattice_vectors[0,1]:2.3f}'
-                    f' {self.lattice_vectors[0,2]:2.3f}\n  {self.lattice_vectors[1,0]:2.3f}'
-                    f' {self.lattice_vectors[1,1]:2.3f} {self.lattice_vectors[1,2]:2.3f}\n'
-                    f'  {self.lattice_vectors[2,0]:2.3f} {self.lattice_vectors[2,1]:2.3f}'
-                    f' {self.lattice_vectors[2,2]:2.3f}\n')
+                    f'  {self.lattice_vectors[0,0]: 2.3f} {self.lattice_vectors[0,1]: 2.3f}'
+                    f' {self.lattice_vectors[0,2]: 2.3f}\n  {self.lattice_vectors[1,0]: 2.3f}'
+                    f' {self.lattice_vectors[1,1]: 2.3f} {self.lattice_vectors[1,2]: 2.3f}\n'
+                    f'  {self.lattice_vectors[2,0]: 2.3f} {self.lattice_vectors[2,1]: 2.3f}'
+                    f' {self.lattice_vectors[2,2]: 2.3f}\n')
             print_stdout(message,msg_type='NOTE')
 
             message = (f'reciprocal space lattice from trajectory file (1/Angstrom):\n'
-                    f'  {self.r_lattice_vectors[0,0]:2.3f} {self.r_lattice_vectors[0,1]:2.3f}'
-                    f' {self.r_lattice_vectors[0,2]:2.3f}\n  {self.r_lattice_vectors[1,0]:2.3f}'
-                    f' {self.r_lattice_vectors[1,1]:2.3f} {self.r_lattice_vectors[1,2]:2.3f}\n'
-                    f'  {self.r_lattice_vectors[2,0]:2.3f} {self.r_lattice_vectors[2,1]:2.3f}'
-                    f' {self.r_lattice_vectors[2,2]:2.3f}')
+                    f'  {self.r_lattice_vectors[0,0]: 2.3f} {self.r_lattice_vectors[0,1]: 2.3f}'
+                    f' {self.r_lattice_vectors[0,2]: 2.3f}\n  {self.r_lattice_vectors[1,0]: 2.3f}'
+                    f' {self.r_lattice_vectors[1,1]: 2.3f} {self.r_lattice_vectors[1,2]: 2.3f}\n'
+                    f'  {self.r_lattice_vectors[2,0]: 2.3f} {self.r_lattice_vectors[2,1]: 2.3f}'
+                    f' {self.r_lattice_vectors[2,2]: 2.3f}')
             print_stdout(message)
 
 
