@@ -130,7 +130,9 @@ class traj_file:
 
         # apply the shift    
         sqw.pos = sqw.pos+shift
-        
+       
+        del shift, dr, lx, ly, lz
+
 # ============================================================================================
 # --------------------------------------------------------------------------------------------
 # ============================================================================================
@@ -139,7 +141,6 @@ def save_sqw(invars,Qpts,energy,sqw,f_name='sqw.hdf5'):
     """
     write the output to an hdf5 file. use the read_sqw method to read it 
     """
-    fmt = '%6.10f'
     num_e = energy.shape[0]
     num_Q = Qpts.shape[0]
     f_name = os.path.join(invars.output_dir,f_name)

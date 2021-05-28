@@ -7,7 +7,7 @@ import sys
 
 sys.path.append('/home/ty/custom_modules/pynamic-structure-factor/')
 
-from FileIO import read_sqw
+from mod_io import read_sqw
 
 
 e_lo = 0

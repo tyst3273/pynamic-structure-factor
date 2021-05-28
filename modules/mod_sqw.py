@@ -56,6 +56,8 @@ class sqw:
             f_name = invars.outfile_prefix+f'_P{self.rank}_BF.hdf5' # final file
             mod_io.save_sqw(invars,Qpoints.reduced_Q,self.meV,self.sqw,f_name)
 
+        del self.pos, self.atom_ids, self.b_array
+
     # =======================================================================================
     # ------------------------------ private methods ----------------------------------------
     # =======================================================================================

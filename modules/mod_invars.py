@@ -124,7 +124,7 @@ class input_variables:
         # check that lattice vectors are ortho
         # the issue is that positions etc. are in cartesian coords with ortho boxes. different lattice
         # vectors should work, but i haven't tested it yet. it will be necessary to convert Q in 1/A 
-        # to cartesian coordinates so that the vectorized multiplaction done in mod_sqw._loop_over_blocks
+        # to cartesian coordinates so that the vectorized multiplication done in mod_sqw._loop_over_blocks
         # works. 
         if (self.lattice_vectors[0,1] != 0 or self.lattice_vectors[0,2] != 0 or 
             self.lattice_vectors[1,0] != 0 or self.lattice_vectors[1,2] != 0  or

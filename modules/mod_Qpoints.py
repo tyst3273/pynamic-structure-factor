@@ -125,7 +125,7 @@ class Qpoints:
 
     def _convert_Q_to_1_over_Angstrom(self,lattice):
         """
-        convert Q points from rlu to 1/A
+        convert Q points from rlu to 1/A in cartesian coords
         """
         self.Qpoints = np.zeros((self.Qsteps,3))
         for Q in range(self.Qsteps):
