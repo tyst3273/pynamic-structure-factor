@@ -1,3 +1,22 @@
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                               !
+#   ! this file is part of the 'pynamic-structure-factor' code      !
+#   ! written by Ty Sterling at the University of Colorado          !
+#   ! Boulder, advised by Dmitry Reznik.                            !
+#   !                                                               !
+#   ! the software calculates inelastic neutron dynamic structure   !
+#   ! factors from molecular dynamics trajectories.                 !
+#   !                                                               !
+#   ! this is free software distrubuted under the GNU GPL v3 and    !
+#   ! with no warrantee or garauntee of the results. you should     !
+#   ! have recieved a copy of the new license with this software    !
+#   ! if you do find bugs or have questions, dont hesitate to       !
+#   ! write to the author at ty.sterling@colorado.edu               !
+#   !                                                               !
+#   ! pynamic-structure-factor version 2.0, dated June 8, 2021      !
+#   !                                                               !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 import os
 import numpy as np
 from mod_utils import PSF_exception, print_stdout
@@ -7,6 +26,8 @@ class input_variables:
 
     """
     object to hold all the input variables. sets defaults and parses input file to overwrite them
+    if a keyword appears twice in the input file, only the 1st occurence is used. should change this
+    in the future
     """ 
 
     # -----------------------------------------------------------------------------------------
