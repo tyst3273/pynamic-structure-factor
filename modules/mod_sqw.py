@@ -29,7 +29,8 @@ class sqw:
         self.meV = np.linspace(0,self.max_freq,self.num_freq) 
 
         if self.rank == 0:
-            message = (f'max freq: {self.max_freq/2:2.3f} meV\n number of freq.: {self.num_freq//2}\n'
+            message = (f'max freq: {self.max_freq/2:2.3f} meV\n'
+                       f' number of (positive) freq.: {self.num_freq//2}\n'
                        f' resolution: {self.df:2.3e} meV\n')
             print_stdout(message,msg_type='frequency Grid')
 
