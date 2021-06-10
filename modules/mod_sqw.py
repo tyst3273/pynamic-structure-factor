@@ -26,7 +26,7 @@ from mod_utils import print_stdout, PSF_exception
 class sqw:
 
     """
-    store the SQW data and calculator
+    store the SQW data and calculator. see the doc string at the end of this file for more info
     """
 
     # ---------------------------------------------------------------------------------------
@@ -182,17 +182,22 @@ class sqw:
         in the specified file. the calculation in each block is independent of
         the others. they are averaged at the end. we read in the positions
         in the block at the start of the outer loop. we also set up the
-        scattering lengths array.
+        scattering lengths array. if data were 'wrapped' during the MD simulation,
+        use the flag unwrap_positions = 1 to 'unwrap' them (i.e. unimpose minimum 
+        image convention)
 
         2) in each block, we loop over Q points. the calculation at a given
         Q is independent of the others.
 
         3) at each Q point, compute the neutron-weighted density, rho (i.e. space
-        FT weighted by scattering lengths). we need its auto-correlation function:
-        <rho(t),rho(o)> == S(Q,t) == F(Q,t). this is sometimes called the intermediate
-        scattering function. the dynamic scattering function is time-FT[F(Q,t)] = S(Q,w).
-        since x(t) is classical, everything commutes. then we just use the convolution
-        theorem to go directly from rho(t) to S(Q,w) = |time-FT[rho]|**2
+        FT weighted by scattering lengths). we need the cross-correlation function
+        of rho and its complex conjugate (sortof). <rho(0),rho(t)> ==  F(Q,t). 
+        this is sometimes called the intermediate scattering function. 
+        the dynamic scattering function is time-FT[F(Q,t)] = S(Q,w). since x(t) is classical, 
+        everything commutes. then we just use (sortof) the Wiener-Khinchin theorem to go directly 
+        from rho(t) to S(Q,w) = |time-FT[rho](Q,-w)|**2. The -w comes from the positive time in
+        rho(-Q,t). see my notes in the doc directory. my code basically returns S(Q,-w), but the 
+        +/- w components are nearly identical.
 
         for refs, see Dove: "Lattice Dynamics," Allen: "Computer Simulation of Liquids,"
         and Squires: "Theory of Thermal Neutron Scattering"
@@ -208,11 +213,10 @@ class sqw:
 
         notes:
 
-        1) could parallelize over the blocks.
-        2) could parallelize over Q points.
+        1) could parallelize over the blocks, already parallelized over Q. 
         3) the space FT is all-ready highly vectorized. could probably be improved
-        using some fancier LAPACK or BLAS functions to do vector products, but the bottle
-        neck for now is serial execution over blocks and Q-points.
+        using some fancier LAPACK or BLAS functions to do vector products, but i dont think we can FFT
+        the Q transform since its not on reduced q grid. maybe?
 
         """
 
