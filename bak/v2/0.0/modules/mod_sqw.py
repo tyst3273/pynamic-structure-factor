@@ -47,7 +47,6 @@ class sqw:
         self.num_freq = self.block_steps
         self.meV = np.linspace(0,self.max_freq,self.num_freq) 
 
-        # print the energy resolution, max, etc
         if self.rank == 0:
             message = (f'max freq: {self.max_freq/2:2.3f} meV\n'
                        f' number of (positive) freq.: {self.num_freq//2}\n'
@@ -62,41 +61,21 @@ class sqw:
         self.num_blocks = len(invars.blocks) # see mod_invars
         self.counter = 1 
 
-        # only create bragg array if requested
-        if invars.compute_bragg:
-
-            if self.rank == 0:
-                message = 'calculating the Bragg intensity too'
-                print_stdout(message,msg_type='NOTE')
-
-            self.bragg = np.zeros(Qpoints.Qsteps)
-
     # ----------------------------------------------------------------------------------------
 
     def calculate(self,invars,Qpoints,lattice,traj_file):
         """
         calculate SQW from MD data
         """
-
-        # this call does all of the 'work'
         self._loop_over_blocks(invars,Qpoints,lattice,traj_file)
 
         self.sqw = self.sqw/self.num_blocks # average over the blocks
 
-        if invars.compute_bragg:
-            self.bragg = self.bragg/self.num_blocks # average over the blocks
-
-        # optionally save progress. 
+        # optionally save progress
         if invars.save_progress:
-
-            f_name = invars.outfile_prefix+f'_SQW_P{self.rank}_BF.hdf5' # final file
+            f_name = invars.outfile_prefix+f'_P{self.rank}_BF.hdf5' # final file
             mod_io.save_sqw(invars,Qpoints.reduced_Q,self.meV,self.sqw,f_name)
 
-            if invars.compute_bragg:
-                f_name = invars.outfile_prefix+f'_BRAGG_P{self.rank}_BF.hdf5'
-                mod_io.save_bragg(invars,Qpoints.reduced_Q,self.bragg,f_name)
-
-        # free up memory (probably is already done by garbage collection)
         del self.pos, self.atom_ids, self.b_array
 
     # =======================================================================================
@@ -117,7 +96,6 @@ class sqw:
         """
         for block_index in invars.blocks: # loop over blocks to 'ensemble' average
 
-            # used below
             self.block_index = block_index
 
             # print progress and start timer
@@ -129,19 +107,19 @@ class sqw:
             # get the positions from file
             traj_file.parse_trajectory(invars,self) 
 
-            # check that the number of b's defined in input file are consistent with traj file
+            # check that the number of b's defined in file are consistent with traj
             if self.rank == 0:
                 if np.unique(self.atom_ids[0,:]).shape[0] != invars.num_types:
                     message = 'number of types in input file doesnt match simulation'
                     raise PSF_exception(message)
 
-            # set up array of scattering lengths assuming atoms in the same order each time step
+            # set up array of scattering lengths. 
             for aa in range(invars.num_atoms):
                 self.b_array[0,aa] = invars.b[self.atom_ids[0,aa]-1]
             self.b_array = np.tile(self.b_array[0,:].reshape(1,invars.num_atoms),
                     reps=[self.block_steps,1])
 
-            # box lengths read from traj file
+            # box lenghts read from traj file
             a = self.box_lengths[0]/invars.supercell[0] 
             b = self.box_lengths[1]/invars.supercell[1]
             c = self.box_lengths[2]/invars.supercell[2]
@@ -157,7 +135,7 @@ class sqw:
                 lattice.recompute_lattice(self.rank)    # recompute reciprocal lattice
                 Qpoints.reconvert_Q_points(lattice)     # convert Q to 1/A in new basis
 
-            # --------------------- enter the loop over Qpoints -----------------------------------
+            # do the loop over Q points
             if self.rank == 0:
                 message = ('printing progess for rank 0, which has >= the number of Q on other procs.\n'
                             ' -- now entering loop over Q -- ')
@@ -170,20 +148,9 @@ class sqw:
                     print_stdout(message)
 
                 Q = Qpoints.Qpoints[qq,:].reshape((1,3)) # these are the ones in 1/Angstrom
-
-                # vectorized Q.r dot products and sum over atoms. (tile prepends new axes)
                 exp_iQr = np.tile(Q,reps=[self.block_steps,invars.num_atoms,1])*self.pos
                 exp_iQr = np.exp(1j*exp_iQr.sum(axis=2))*self.b_array
-                exp_iQr = exp_iQr.sum(axis=1)
-
-                # optionally compute bragg intensity
-                if invars.compute_bragg:
-                    self.bragg[qq] = self.bragg[qq]+np.abs((exp_iQr).mean())**2
-
-                # the dynamical intensity
-                self.sqw[:,qq] = self.sqw[:,qq]+np.abs(fft(exp_iQr))**2 
-
-            # -------------------------------------------------------------------------------------
+                self.sqw[:,qq] = self.sqw[:,qq]+np.abs(fft(exp_iQr.sum(axis=1)))**2
 
             # print timing to the log file
             if self.rank == 0:
@@ -199,69 +166,58 @@ class sqw:
             # optionally save progress
             if invars.save_progress:
                 if self.counter != self.num_blocks:
-                    f_name = invars.outfile_prefix+f'_SQW_P{self.rank}_B{block_index}.hdf5'
+                    f_name = invars.outfile_prefix+f'_P{self.rank}_B{block_index}.hdf5'
                     mod_io.save_sqw(invars,Qpoints.reduced_Q,self.meV,self.sqw/self.counter,f_name)
-
-                    if invars.compute_bragg:
-                        f_name = invars.outfile_prefix+f'_BRAGG_P{self.rank}_B{block_index}.hdf5'
-                        mod_io.save_bragg(invars,Qpoints.reduced_Q,self.bragg,f_name)
 
             self.counter = self.counter+1 # update the counter
 
-    # -----------------------------------------------------------------------------------------
-
-    """
-    TODO:
-
-    need to normalize time FFT to satisfy Plancherel's theorem
 
 
-    description:
-
-    1) the outer loop over 'blocks' computes SQW for chunks of the data
-    in the specified file. the calculation in each block is independent of
-    the others. they are averaged at the end. we read in the positions
-    in the block at the start of the outer loop. we also set up the
-    scattering lengths array. if data were 'wrapped' during the MD simulation,
-    use the flag unwrap_positions = 1 to 'unwrap' them (i.e. unimpose minimum 
-    image convention)
-
-    2) in each block, we loop over Q points. the calculation at a given
-    Q is independent of the others.
-
-    3) at each Q point, compute the neutron-weighted density, rho (i.e. space
-    FT weighted by scattering lengths). we need the cross-correlation function
-    of rho and its complex conjugate (sortof). <rho(0),rho(t)> ==  F(Q,t). 
-    this is sometimes called the intermediate scattering function. 
-    the dynamic scattering function is time-FT[F(Q,t)] = S(Q,w). since x(t) is classical, 
-    everything commutes. then we just use (sortof) the Wiener-Khinchin theorem to go directly 
-    from rho(t) to S(Q,w) = |time-FT[rho](Q,-w)|**2. The -w comes from the positive time in
-    rho(-Q,t). see my notes in the doc directory. my code basically returns S(Q,-w), but the 
-    +/- w components are nearly identical.
-
-    for refs, see Dove: "Lattice Dynamics," Allen: "Computer Simulation of Liquids,"
-    and Squires: "Theory of Thermal Neutron Scattering"
-
-    validation:
-
-    i didnt have another MD post-processing code to compare the output to
-    (if i did, i wouldn't have written this...) but i computed S(Q,w) in
-    tersoff-silicon using this code. i also computed the phonons using phonopy and a
-    hack-job of an interface to lammps. i then used the eigenvectors from phonopy
-    in SNAXS, which computes S(Q,w) from the harmonic phonon expansion and my results
-    match SNAXS **VERY** well. so i assert that this method is valid and accurate.
-
-    notes:
-
-    1) could parallelize over the blocks, already parallelized over Q. 
-    3) the space FT is all-ready highly vectorized. could probably be improved
-    using some fancier LAPACK or BLAS functions to do vector products, but i dont think we can FFT
-    the Q transform since its not on reduced q grid. maybe?
-
-    """
-
-    # ---------------------------------------------------------------------------------------------
 
 
+        """
+        description:
+
+        1) the outer loop over 'blocks' computes SQW for chunks of the data
+        in the specified file. the calculation in each block is independent of
+        the others. they are averaged at the end. we read in the positions
+        in the block at the start of the outer loop. we also set up the
+        scattering lengths array. if data were 'wrapped' during the MD simulation,
+        use the flag unwrap_positions = 1 to 'unwrap' them (i.e. unimpose minimum 
+        image convention)
+
+        2) in each block, we loop over Q points. the calculation at a given
+        Q is independent of the others.
+
+        3) at each Q point, compute the neutron-weighted density, rho (i.e. space
+        FT weighted by scattering lengths). we need the cross-correlation function
+        of rho and its complex conjugate (sortof). <rho(0),rho(t)> ==  F(Q,t). 
+        this is sometimes called the intermediate scattering function. 
+        the dynamic scattering function is time-FT[F(Q,t)] = S(Q,w). since x(t) is classical, 
+        everything commutes. then we just use (sortof) the Wiener-Khinchin theorem to go directly 
+        from rho(t) to S(Q,w) = |time-FT[rho](Q,-w)|**2. The -w comes from the positive time in
+        rho(-Q,t). see my notes in the doc directory. my code basically returns S(Q,-w), but the 
+        +/- w components are nearly identical.
+
+        for refs, see Dove: "Lattice Dynamics," Allen: "Computer Simulation of Liquids,"
+        and Squires: "Theory of Thermal Neutron Scattering"
+
+        validation:
+
+        i didnt have another MD post-processing code to compare the output to
+        (if i did, i wouldn't have written this...) but i computed S(Q,w) in
+        tersoff-silicon using this code. i also computed the phonons using phonopy and a
+        hack-job of an interface to lammps. i then used the eigenvectors from phonopy
+        in SNAXS, which computes S(Q,w) from the harmonic phonon expansion and my results
+        match SNAXS **VERY** well. so i assert that this method is valid and accurate.
+
+        notes:
+
+        1) could parallelize over the blocks, already parallelized over Q. 
+        3) the space FT is all-ready highly vectorized. could probably be improved
+        using some fancier LAPACK or BLAS functions to do vector products, but i dont think we can FFT
+        the Q transform since its not on reduced q grid. maybe?
+
+        """
 
 

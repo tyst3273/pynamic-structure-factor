@@ -152,7 +152,7 @@ class Qpoints:
                     lattice.r_lattice_vectors[1,:]*self.reduced_Q[Q,1]+
                     lattice.r_lattice_vectors[2,:]*self.reduced_Q[Q,2])
 
-    # ---------------------------------------------------------------------------------------------
+
 
 
 

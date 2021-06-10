@@ -156,7 +156,7 @@ class traj_file:
 # --------------------------------------------------------------------------------------------
 # ============================================================================================
 
-def save_sqw(invars,Qpts,energy,sqw,f_name='SQW.hdf5'):
+def save_sqw(invars,Qpts,energy,sqw,f_name='sqw.hdf5'):
     """
     write the output to an hdf5 file. use the read_sqw method to read it 
     """
@@ -184,32 +184,7 @@ def read_sqw(f_name):
 
     return energy, Qpts, sqw
 
-# ---------------------------------------------------------------------------------------------
 
-def save_bragg(invars,Qpts,bragg,f_name='BRAGG.hdf5'):
-    """
-    write the output to an hdf5 file. use the read_bragg method to read it 
-    """
-    num_Q = Qpts.shape[0]
-    f_name = os.path.join(invars.output_dir,f_name)
-    with h5py.File(f_name,'w') as db:
-        db_Qpts = db.create_dataset('Qpts_rlu',[num_Q,3])
-        db_bragg = db.create_dataset('bragg',[num_Q])
-        db_Qpts[:,:] = Qpts[:,:]
-        db_bragg[:] = bragg[:]
 
-# --------------------------------------------------------------------------------------------
-
-def read_bragg(f_name):
-    """
-    read the bragg data written with save_bragg
-    """
-    with h5py.File(f_name,'r') as db:
-        Qpts = db['Qpts_rlu'][:,:]
-        bragg = db['bragg'][:]
-
-    return  Qpts, bragg
-
-# ---------------------------------------------------------------------------------------------
 
 

@@ -57,7 +57,6 @@ class input_variables:
                           'total_Qsteps',
                           'num_blocks',
                           'blocks',
-                          'compute_bragg',
                           'parse_custom']
 
         self.traj_file      = 'pos.hdf5'    # *.hdf5 file holding MD positions
@@ -94,13 +93,6 @@ class input_variables:
         # defaults to all blocks, but you can pick 1 or 2 or ... useful for debugging. set num_blocks
         # to a large number and blocks = 0 so that the code only loops over 1 (short trajectory) block
         self.blocks                   = list(range(self.num_blocks))
-
-        # compute 'bragg' scattering intensity and write it to '*_BRAGG.hdf5'
-        # the bragg intensity is |<rho(Q)>|^2 (see Dove, appendix E.)
-        # the total (time averaged) scattered intensity is <rho(Q)*rho(-Q)>
-        # which is equal to the integral of S(Q,w) over all freqs. the diffuse
-        # intensity is defined as the total intensity minus the bragg intensity
-        self.compute_bragg          = False
 
     # -----------------------------------------------------------------------------------------
 
@@ -143,7 +135,6 @@ class input_variables:
         self.num_blocks   = self._parse_int('num_blocks',self.num_blocks)
         self.blocks       = list(range(self.num_blocks)) 
         self.blocks       = self._parse_int_list('blocks',self.blocks) 
-        self.compute_bragg = self._parse_bool('compute_bragg',self.compute_bragg)
 
         # check that the lattice vectors make sense
         try:
@@ -322,7 +313,5 @@ class input_variables:
                     message = f'key word \'{key_word}\' seems wrongs.'
                     raise PSF_exception(message)
         return return_value
-
-    # ------------------------------------------------------------------------------------------
 
 

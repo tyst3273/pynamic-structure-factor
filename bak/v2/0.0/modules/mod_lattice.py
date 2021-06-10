@@ -116,7 +116,7 @@ class lattice:
         self.r_lattice_vectors[2,:] = 2*np.pi*np.cross(self.lattice_vectors[0,:],
                 self.lattice_vectors[1,:])/self.cell_vol
 
-    # ---------------------------------------------------------------------------------------
+
 
 
 

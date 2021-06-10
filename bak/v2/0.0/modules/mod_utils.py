@@ -23,7 +23,7 @@ class PSF_exception(Exception):
     """
     to exit the code, just run 'raise ParalExcept'. note, must call python with
     python -m mpi4py [script] or it will only kill the calling process, possibly
-    resulting in deadlock if during a send/recv
+    resulting in deadlock.
     """
     def __init__(self,message='an error occured. aborting',rank=0):
         if rank == 0:
@@ -79,20 +79,6 @@ def assemble_sqw(sqw_from_ranks,sqw_total):
         sqw_total[:,shift:shift+nQpp] = sqw_from_ranks[ii]
         shift = shift+nQpp
 
-# -----------------------------------------------------------------------------------------
-
-def assemble_bragg(bragg_from_ranks,bragg_total):
-    """
-    assemble bragg from all the procs back into 1 array.
-    """
-    shift = 0
-    num_ranks = len(bragg_from_ranks)
-    for ii in range(num_ranks):
-        nQpp = bragg_from_ranks[ii].shape[0]
-        bragg_total[shift:shift+nQpp] = bragg_from_ranks[ii]
-        shift = shift+nQpp
-
-# ------------------------------------------------------------------------------------------
 
 
 

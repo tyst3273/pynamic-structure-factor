@@ -1,9 +1,29 @@
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                               !
+#   ! this file is part of the 'pynamic-structure-factor' code      !
+#   ! written by Ty Sterling at the University of Colorado          !
+#   ! Boulder, advised by Dmitry Reznik.                            !
+#   !                                                               !
+#   ! the software calculates inelastic neutron dynamic structure   !
+#   ! factors from molecular dynamics trajectories.                 !
+#   !                                                               !
+#   ! this is free software distrubuted under the GNU GPL v3 and    !
+#   ! with no warrantee or garauntee of the results. you should     !
+#   ! have recieved a copy of the new license with this software    !
+#   ! if you do find bugs or have questions, dont hesitate to       !
+#   ! write to the author at ty.sterling@colorado.edu               !
+#   !                                                               !
+#   ! pynamic-structure-factor version 2.0, dated June 8, 2021      !
+#   !                                                               !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 from timeit import default_timer as timer
 from mpi4py import MPI
 import numpy as np
 import sys
 
-mod_path = 'modules'
+mod_path = '/home/ty/research/repos/pynamic-structure-factor/modules/'
 sys.path.append(mod_path)
 
 import mod_invars
@@ -82,8 +102,7 @@ for input_file in input_files:
             comm.send(invars,dest=ii,tag=0)
             comm.send(lattice,dest=ii,tag=1)
             comm.send(Qpoints,dest=ii,tag=2)
-    
-    # other ranks receive data produced on rank 0
+
     else:
 
         # receive the vars from rank 0
@@ -113,36 +132,19 @@ for input_file in input_files:
     # rank 0 gathers all the results to 1 array and saves it
     if rank == 0:
 
-        # gather all of the SQW results
+        # gather all of the results
         sqw_from_ranks = [sqw.sqw]
         for ii in range(1,num_ranks):
             sqw_ii = comm.recv(source=ii,tag=11)
             sqw_from_ranks.append(sqw_ii)
 
-        # assemble the SQW results back into one
+        # assemble the results back into one 
         sqw_total = np.zeros((sqw.num_freq,Qpoints.total_Qsteps))
         mod_utils.assemble_sqw(sqw_from_ranks,sqw_total)
 
-        # save total SQW to final hdf5 file
-        f_name = invars.outfile_prefix+f'_SQW_FINAL.hdf5'
+        # save it
+        f_name = invars.outfile_prefix+f'_FINAL.hdf5'
         mod_io.save_sqw(invars,Qpoints.total_reduced_Q,sqw.meV,sqw_total,f_name)
-
-        # optionally gather and save bragg results
-        if invars.compute_bragg:
-            
-            # get from all ranks
-            bragg_from_ranks = [sqw.bragg]
-            for ii in range(1,num_ranks):
-                bragg_ii = comm.recv(source=ii,tag=12)
-                bragg_from_ranks.append(bragg_ii)
-
-            # assemble into a single array
-            bragg_total = np.zeros(Qpoints.total_Qsteps)
-            mod_utils.assemble_bragg(bragg_from_ranks,bragg_total)
-
-            # write to final file
-            f_name = invars.outfile_prefix+f'_BRAGG_FINAL.hdf5'
-            mod_io.save_bragg(invars,Qpoints.total_reduced_Q,bragg_total,f_name)
 
         # calculate and print elapsed time for file
         inner_end = timer()
@@ -150,15 +152,10 @@ for input_file in input_files:
         message = f'elapsed time for this file: {inner_time:2.3f} minutes'
         mod_io.print_stdout(message,msg_type='TIMING')
 
-    # other ranks send thier data to rank 0
     else:
 
-        # send the SQW results to rank 0
+        # send the results to rank 0
         comm.send(sqw.sqw,dest=0,tag=11)
-
-        # optionally send the bragg intensity too
-        if invars.compute_bragg:
-            comm.send(sqw.bragg,dest=0,tag=12)
 
     # ----------------------------------------------------------------
 
