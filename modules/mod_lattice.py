@@ -13,8 +13,6 @@
 #   ! if you do find bugs or have questions, dont hesitate to       !
 #   ! write to the author at ty.sterling@colorado.edu               !
 #   !                                                               !
-#   ! pynamic-structure-factor version 2.0, dated June 8, 2021      !
-#   !                                                               !
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np

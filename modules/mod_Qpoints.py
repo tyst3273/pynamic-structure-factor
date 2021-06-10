@@ -13,12 +13,10 @@
 #   ! if you do find bugs or have questions, dont hesitate to       !
 #   ! write to the author at ty.sterling@colorado.edu               !
 #   !                                                               !
-#   ! pynamic-structure-factor version 2.0, dated June 8, 2021      !
-#   !                                                               !
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
-from mod_utils import print_stdout
+from mod_utils import print_stdout, PSF_exception
 
 class Qpoints:
 
@@ -133,7 +131,11 @@ class Qpoints:
         Give a csv file of Qpoints. 1 per line, each coord seperated by spaces. Overwrites other 
         definitions for Q slices if a file name is given.
         """
-        self.total_reduced_Q = np.loadtxt(invars.Qpoints_file) # read the Q points
+        try:
+            self.total_reduced_Q = np.loadtxt(invars.Qpoints_file) # read the Q points
+        except:
+            message = f'Qpoints file \'{invars.Qpoints_file}\' is broken'
+            raise PSF_exception(message)
 
         if len(self.total_reduced_Q.shape) == 1: # if only 1 Q, reshape to avoid breaking stuff later
             self.total_reduced_Q = self.total_reduced_Q.reshape((1,3))

@@ -13,20 +13,19 @@
 #   ! if you do find bugs or have questions, dont hesitate to       !
 #   ! write to the author at ty.sterling@colorado.edu               !
 #   !                                                               !
-#   ! pynamic-structure-factor version 2.0, dated June 8, 2021      !
-#   !                                                               !
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
 from timeit import default_timer as timer
-from scipy.fft import fft
+from scipy.fft import fft, fftfreq
 import mod_io 
 from mod_utils import print_stdout, PSF_exception
 
 class sqw:
 
     """
-    store the SQW data and calculator. see the doc string at the end of this file for more info
+    store the scattered intensity arrays and calculator. see the doc string at the end of this file 
+    for more info. calculates sqw, timeavg scattering, and bragg scattering if requested
     """
 
     # ---------------------------------------------------------------------------------------
@@ -40,36 +39,49 @@ class sqw:
 
         # effective number of steps, i.e. num in each block that is read and computed
         self.block_steps = (invars.total_steps//invars.stride)//invars.num_blocks 
-
-        # max freq is actually self.max_freq/2 according to nyquist theorem
-        self.max_freq = 1e-12/invars.dt/invars.stride*4.13567
-        self.df = self.max_freq/self.block_steps # freq. resolution
-        self.num_freq = self.block_steps
-        self.meV = np.linspace(0,self.max_freq,self.num_freq) 
-
-        # print the energy resolution, max, etc
-        if self.rank == 0:
-            message = (f'max freq: {self.max_freq/2:2.3f} meV\n'
-                       f' number of (positive) freq.: {self.num_freq//2}\n'
-                       f' resolution: {self.df:2.3e} meV\n')
-            print_stdout(message,msg_type='frequency Grid')
-
-        self.sqw = np.zeros((self.num_freq,Qpoints.Qsteps))        # SQW array
         self.pos = np.zeros((self.block_steps,invars.num_atoms,3)) # time-steps, atoms, xyz
-        self.atom_ids = np.zeros((self.block_steps,invars.num_atoms)).astype(int) # see mod_io
+        self.atom_types = np.zeros((self.block_steps,invars.num_atoms)).astype(int) # see mod_io
         self.b_array = np.zeros((self.block_steps,invars.num_atoms)) # see below
         self.box_lengths = [0,0,0] # read from traj file
         self.num_blocks = len(invars.blocks) # see mod_invars
         self.counter = 1 
 
-        # only create bragg array if requested
-        if invars.compute_bragg:
-
+        # only create sqw array if requested. saves time to not do this if only bragg and/or timeavg
+        if invars.compute_sqw:
             if self.rank == 0:
-                message = 'calculating the Bragg intensity too'
+                message = 'calculating the dynamical intensity'
                 print_stdout(message,msg_type='NOTE')
 
+            # setup frequency grid for fft
+            self.num_freq = self.block_steps
+            self.dt_eff = invars.dt*invars.stride*1e-3 # in units of ps, input is fs
+            self.meV = fftfreq(self.num_freq,self.dt_eff)*4.13567
+            self.df = self.meV[1]-self.meV[0]
+            self.max_freq = self.meV.max()
+
+            # print the energy resolution, max, etc
+            if self.rank == 0:
+                message = (f'max freq: {self.max_freq:2.3f} meV\n'
+                       f' number of freq.: {self.num_freq}\n'
+                       f' resolution: {self.df:2.3e} meV\n')
+                print_stdout(message,msg_type='frequency Grid')
+
+            # the sqw array
+            self.sqw = np.zeros((self.num_freq,Qpoints.Qsteps))        
+
+        # only create bragg array if requested
+        if invars.compute_bragg:
+            if self.rank == 0:
+                message = 'calculating the Bragg intensity'
+                print_stdout(message,msg_type='NOTE')
             self.bragg = np.zeros(Qpoints.Qsteps)
+
+        # only create timeavg array if requested
+        if invars.compute_timeavg:
+            if self.rank == 0:
+                message = 'calculating the time-avgeraged intensity'
+                print_stdout(message,msg_type='NOTE')
+            self.timeavg = np.zeros(Qpoints.Qsteps)
 
     # ----------------------------------------------------------------------------------------
 
@@ -81,23 +93,33 @@ class sqw:
         # this call does all of the 'work'
         self._loop_over_blocks(invars,Qpoints,lattice,traj_file)
 
-        self.sqw = self.sqw/self.num_blocks # average over the blocks
+        # average over the blocks
+        if invars.compute_sqw:
+            self.sqw = self.sqw/self.num_blocks 
 
         if invars.compute_bragg:
-            self.bragg = self.bragg/self.num_blocks # average over the blocks
+            self.bragg = self.bragg/self.num_blocks 
+
+        if invars.compute_timeavg:
+            self.timeavg = self.timeavg/self.num_blocks 
 
         # optionally save progress. 
         if invars.save_progress:
 
-            f_name = invars.outfile_prefix+f'_SQW_P{self.rank}_BF.hdf5' # final file
-            mod_io.save_sqw(invars,Qpoints.reduced_Q,self.meV,self.sqw,f_name)
+            if invars.compute_sqw:
+                f_name = invars.outfile_prefix+f'_SQW_P{self.rank}_BF.hdf5' # final file
+                mod_io.save_sqw(invars,Qpoints.reduced_Q,self.meV,self.sqw,f_name)
 
             if invars.compute_bragg:
                 f_name = invars.outfile_prefix+f'_BRAGG_P{self.rank}_BF.hdf5'
                 mod_io.save_bragg(invars,Qpoints.reduced_Q,self.bragg,f_name)
+        
+            if invars.compute_timeavg:
+                f_name = invars.outfile_prefix+f'_TIMEAVG_P{self.rank}_BF.hdf5'
+                mod_io.save_timeavg(invars,Qpoints.reduced_Q,self.timeavg,f_name)
 
         # free up memory (probably is already done by garbage collection)
-        del self.pos, self.atom_ids, self.b_array
+        del self.pos, self.atom_types, self.b_array
 
     # =======================================================================================
     # ------------------------------ private methods ----------------------------------------
@@ -111,7 +133,7 @@ class sqw:
         of types. e.g. for 4 types = 1,2,3,4 there should be for lenghts atom 1 : length 1,
         atom 2 : lenght 2, etc... i am also assuming that dump_modify sort id was used so
         that the order of atoms is the  same for each step. this can be changed easily if
-        not the case using the atom_ids variable, but that will slow down the calc a little.
+        not the case using the atom_types variable, but that will slow down the calc a little.
         the b_array variable has shape [num_steps, num_atoms] to vectorize calculating the
         neutron weighted density-density correlation fn
         """
@@ -123,7 +145,9 @@ class sqw:
             # print progress and start timer
             if self.rank == 0:
                 start_time = timer()
-                message = f'now on block {self.counter} out of {self.num_blocks}'
+                message = '\n............................................'
+                print_stdout(message)
+                message = f' now on block {self.counter} out of {self.num_blocks}'
                 print_stdout(message,msg_type='NOTE')
 
             # get the positions from file
@@ -131,13 +155,13 @@ class sqw:
 
             # check that the number of b's defined in input file are consistent with traj file
             if self.rank == 0:
-                if np.unique(self.atom_ids[0,:]).shape[0] != invars.num_types:
+                if np.unique(self.atom_types[0,:]).shape[0] != invars.num_types:
                     message = 'number of types in input file doesnt match simulation'
                     raise PSF_exception(message)
 
             # set up array of scattering lengths assuming atoms in the same order each time step
-            for aa in range(invars.num_atoms):
-                self.b_array[0,aa] = invars.b[self.atom_ids[0,aa]-1]
+            for atom in range(invars.num_atoms):
+                self.b_array[0,atom] = invars.b[self.atom_types[0,atom]-1]
             self.b_array = np.tile(self.b_array[0,:].reshape(1,invars.num_atoms),
                     reps=[self.block_steps,1])
 
@@ -158,6 +182,7 @@ class sqw:
                 Qpoints.reconvert_Q_points(lattice)     # convert Q to 1/A in new basis
 
             # --------------------- enter the loop over Qpoints -----------------------------------
+
             if self.rank == 0:
                 message = ('printing progess for rank 0, which has >= the number of Q on other procs.\n'
                             ' -- now entering loop over Q -- ')
@@ -169,19 +194,25 @@ class sqw:
                     message = f' now on Q-point {qq+1} out of {Qpoints.Qsteps}'
                     print_stdout(message)
 
-                Q = Qpoints.Qpoints[qq,:].reshape((1,3)) # these are the ones in 1/Angstrom
+                # the Qpoint to do
+                Q = Qpoints.Qpoints[qq,:].reshape((1,3)) # 1/Angstrom
 
-                # vectorized Q.r dot products and sum over atoms. (tile prepends new axes)
-                exp_iQr = np.tile(Q,reps=[self.block_steps,invars.num_atoms,1])*self.pos
-                exp_iQr = np.exp(1j*exp_iQr.sum(axis=2))*self.b_array
-                exp_iQr = exp_iQr.sum(axis=1)
+                # space FT by vectorized Q.r dot products and sum over atoms. (tile prepends new axes)
+                exp_iQr = np.tile(Q,reps=[self.block_steps,invars.num_atoms,1])*self.pos # Q.r
+                exp_iQr = np.exp(1j*exp_iQr.sum(axis=2))*self.b_array # sum over x, y, z
+                exp_iQr = exp_iQr.sum(axis=1) # sum over atoms
 
-                # optionally compute bragg intensity
+                # compute bragg intensity = |<rho(Q,t)>|**2
                 if invars.compute_bragg:
                     self.bragg[qq] = self.bragg[qq]+np.abs((exp_iQr).mean())**2
 
-                # the dynamical intensity
-                self.sqw[:,qq] = self.sqw[:,qq]+np.abs(fft(exp_iQr))**2 
+                # compute timeavg intensity = <|rho(Q,t)|**2>
+                if invars.compute_timeavg:
+                    self.timeavg[qq] = self.timeavg[qq]+(np.abs(exp_iQr)**2).mean()
+
+                # compute dynamical intensity = |rho(Q,w)|**2
+                if invars.compute_sqw:
+                    self.sqw[:,qq] = self.sqw[:,qq]+np.abs(fft(exp_iQr))**2/self.num_freq 
 
             # -------------------------------------------------------------------------------------
 
@@ -198,23 +229,26 @@ class sqw:
 
             # optionally save progress
             if invars.save_progress:
+
                 if self.counter != self.num_blocks:
-                    f_name = invars.outfile_prefix+f'_SQW_P{self.rank}_B{block_index}.hdf5'
-                    mod_io.save_sqw(invars,Qpoints.reduced_Q,self.meV,self.sqw/self.counter,f_name)
+
+                    if invars.compute_sqw:
+                        f_name = invars.outfile_prefix+f'_SQW_P{self.rank}_B{block_index}.hdf5'
+                        mod_io.save_sqw(invars,Qpoints.reduced_Q,self.meV,self.sqw/self.counter,f_name)
 
                     if invars.compute_bragg:
                         f_name = invars.outfile_prefix+f'_BRAGG_P{self.rank}_B{block_index}.hdf5'
                         mod_io.save_bragg(invars,Qpoints.reduced_Q,self.bragg,f_name)
+
+                    if invars.compute_timeavg:
+                        f_name = invars.outfile_prefix+f'_TIMEAVG_P{self.rank}_B{block_index}.hdf5'
+                        mod_io.save_timeavg(invars,Qpoints.reduced_Q,self.timeavg,f_name)
 
             self.counter = self.counter+1 # update the counter
 
     # -----------------------------------------------------------------------------------------
 
     """
-    TODO:
-
-    need to normalize time FFT to satisfy Plancherel's theorem
-
 
     description:
 
@@ -242,6 +276,9 @@ class sqw:
     for refs, see Dove: "Lattice Dynamics," Allen: "Computer Simulation of Liquids,"
     and Squires: "Theory of Thermal Neutron Scattering"
 
+    4) now it also computes time averaged intensity and bragg (also timeaveraged) to analyze
+    diffuse (total-bragg) intensity
+
     validation:
 
     i didnt have another MD post-processing code to compare the output to
@@ -253,8 +290,13 @@ class sqw:
 
     notes:
 
-    1) could parallelize over the blocks, already parallelized over Q. 
-    3) the space FT is all-ready highly vectorized. could probably be improved
+    - the SQW array is normalized so that the AVERAGE over all frequencies/energies is equal 
+    to the time averaged diffuse scattering intensity. this is because 1) the bragg/timeavg 
+    intensities are averaged as opposed to integrated and 2) to make it easier to handle the 
+    dimensions: integrated over ENERGY doesn't have the same dimensions as integrating over
+    FREQUENCY
+    - could parallelize over the blocks, already parallelized over Q. 
+    - the space FT is all-ready highly vectorized. could probably be improved
     using some fancier LAPACK or BLAS functions to do vector products, but i dont think we can FFT
     the Q transform since its not on reduced q grid. maybe?
 

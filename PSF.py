@@ -1,3 +1,20 @@
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                               !
+#   ! this file is part of the 'pynamic-structure-factor' code      !
+#   ! written by Ty Sterling at the University of Colorado          !
+#   ! Boulder, advised by Dmitry Reznik.                            !
+#   !                                                               !
+#   ! the software calculates inelastic neutron dynamic structure   !
+#   ! factors from molecular dynamics trajectories.                 !
+#   !                                                               !
+#   ! this is free software distrubuted under the GNU GPL v3 and    !
+#   ! with no warrantee or garauntee of the results. you should     !
+#   ! have recieved a copy of the new license with this software    !
+#   ! if you do find bugs or have questions, dont hesitate to       !
+#   ! write to the author at ty.sterling@colorado.edu               !
+#   !                                                               !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 from timeit import default_timer as timer
 from mpi4py import MPI
 import numpy as np
@@ -83,6 +100,8 @@ for input_file in input_files:
             comm.send(lattice,dest=ii,tag=1)
             comm.send(Qpoints,dest=ii,tag=2)
     
+    # ----------------------------------------------------------------
+
     # other ranks receive data produced on rank 0
     else:
 
@@ -93,7 +112,7 @@ for input_file in input_files:
 
     # ----------------------------------------------------------------
 
-    # get Qpoints for this rank, conver to 1/A
+    # get Qpoints that are on this rank, convert to 1/A
     Qpoints.rank_init(lattice,rank)
 
     # open the hdf5 file
@@ -110,24 +129,29 @@ for input_file in input_files:
 
     # ----------------------------------------------------------------
 
-    # rank 0 gathers all the results to 1 array and saves it
+    # rank 0 gathers all the results to 1 array and writes it
     if rank == 0:
 
         # gather all of the SQW results
-        sqw_from_ranks = [sqw.sqw]
-        for ii in range(1,num_ranks):
-            sqw_ii = comm.recv(source=ii,tag=11)
-            sqw_from_ranks.append(sqw_ii)
+        if invars.compute_sqw:
 
-        # assemble the SQW results back into one
-        sqw_total = np.zeros((sqw.num_freq,Qpoints.total_Qsteps))
-        mod_utils.assemble_sqw(sqw_from_ranks,sqw_total)
+            # get from all ranks
+            sqw_from_ranks = [sqw.sqw]
+            for ii in range(1,num_ranks):
+                sqw_ii = comm.recv(source=ii,tag=11)
+                sqw_from_ranks.append(sqw_ii)
 
-        # save total SQW to final hdf5 file
-        f_name = invars.outfile_prefix+f'_SQW_FINAL.hdf5'
-        mod_io.save_sqw(invars,Qpoints.total_reduced_Q,sqw.meV,sqw_total,f_name)
+            # assemble the SQW results back into one
+            sqw_total = np.zeros((sqw.num_freq,Qpoints.total_Qsteps))
+            mod_utils.assemble_sqw(sqw_from_ranks,sqw_total)
 
-        # optionally gather and save bragg results
+            # save total SQW to final hdf5 file
+            f_name = invars.outfile_prefix+f'_SQW_FINAL.hdf5'
+            mod_io.save_sqw(invars,Qpoints.total_reduced_Q,sqw.meV,sqw_total,f_name)
+
+        # ---------------------------------------------------------------------
+
+        # gather and save bragg results
         if invars.compute_bragg:
             
             # get from all ranks
@@ -138,11 +162,32 @@ for input_file in input_files:
 
             # assemble into a single array
             bragg_total = np.zeros(Qpoints.total_Qsteps)
-            mod_utils.assemble_bragg(bragg_from_ranks,bragg_total)
+            mod_utils.assemble_timeavg(bragg_from_ranks,bragg_total)
 
             # write to final file
             f_name = invars.outfile_prefix+f'_BRAGG_FINAL.hdf5'
             mod_io.save_bragg(invars,Qpoints.total_reduced_Q,bragg_total,f_name)
+
+        # ---------------------------------------------------------------------
+
+        # gather and save timeavg results
+        if invars.compute_timeavg:
+
+            # get from all ranks
+            timeavg_from_ranks = [sqw.timeavg]
+            for ii in range(1,num_ranks):
+                timeavg_ii = comm.recv(source=ii,tag=13)
+                timeavg_from_ranks.append(timeavg_ii)
+
+            # assemble into a single array
+            timeavg_total = np.zeros(Qpoints.total_Qsteps)
+            mod_utils.assemble_timeavg(timeavg_from_ranks,timeavg_total)
+
+            # write to final file
+            f_name = invars.outfile_prefix+f'_TIMEAVG_FINAL.hdf5'
+            mod_io.save_timeavg(invars,Qpoints.total_reduced_Q,timeavg_total,f_name)
+
+        # -------------------------------------------------------------------------
 
         # calculate and print elapsed time for file
         inner_end = timer()
@@ -150,15 +195,22 @@ for input_file in input_files:
         message = f'elapsed time for this file: {inner_time:2.3f} minutes'
         mod_io.print_stdout(message,msg_type='TIMING')
 
+    # ---------------------------------------------------------------
+
     # other ranks send thier data to rank 0
     else:
 
         # send the SQW results to rank 0
-        comm.send(sqw.sqw,dest=0,tag=11)
+        if invars.compute_sqw:
+            comm.send(sqw.sqw,dest=0,tag=11)
 
-        # optionally send the bragg intensity too
+        # send the bragg intensity too
         if invars.compute_bragg:
             comm.send(sqw.bragg,dest=0,tag=12)
+
+        # send the timeavg intensity too
+        if invars.compute_timeavg:
+            comm.send(sqw.timeavg,dest=0,tag=13)
 
     # ----------------------------------------------------------------
 
@@ -170,6 +222,14 @@ if rank == 0:
     outer_time = (outer_end-outer_start)/60 #minutes
     message = f'total elapsed time: {outer_time:2.3f} minutes'
     mod_io.print_stdout(message,msg_type='TIMING')
+
+# -----------------------------------------------------------------------------------
+
+
+
+
+
+
 
 
 

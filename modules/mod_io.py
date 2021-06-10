@@ -13,8 +13,6 @@
 #   ! if you do find bugs or have questions, dont hesitate to       !
 #   ! write to the author at ty.sterling@colorado.edu               !
 #   !                                                               !
-#   ! pynamic-structure-factor version 2.0, dated June 8, 2021      !
-#   !                                                               !
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
@@ -43,11 +41,11 @@ class traj_file:
 
     def parse_trajectory(self,invars,sqw):
         """
-        get the trajectories, atom_ids, and box sizes from the hdf5 files. can add methods to 
-        get the data from differnt file formats, but ultimately the pos, atom_ids, and box_lengths
+        get the trajectories, atom_types, and box sizes from the hdf5 files. can add methods to 
+        get the data from differnt file formats, but ultimately the pos, atom_types, and box_lengths
         arrays that are returend need to be consistent with my code. 
         pos has shape [number of time steps in block, number of atoms, 3-dimensions (i.e. x,y,z)]
-        atom_ids has shape [number of time steps in block, number of atoms]
+        atom_types has shape [number of time steps in block, number of atoms]
         note that ids here really means TYPES, but i am too lazy to go change the rest of my code.
         for now, my code assumes that the ids are sorted at each time step so that they are 
         identical at each step. if they arent sorted, the ids(=TYPES) at each step can be used to 
@@ -74,7 +72,7 @@ class traj_file:
             sqw.box_lengths[2] = np.mean(self.handle['box_bounds'][inds[0]:inds[1],5]-
                     self.handle['box_bounds'][inds[0]:inds[1],4])
             sqw.pos[:,:,:] = self.handle['pos_data'][inds[0]:inds[1],:,:]   # get the positins
-            sqw.atom_ids[0,:] = self.handle['atom_types'][:]                # get the atom TYPES
+            sqw.atom_types[0,:] = self.handle['atom_types'][:]                # get the atom TYPES
         else: # read from lammps output.
             sqw.box_lengths[0] = np.mean(self.handle['particles']['all']['box']['edges']['value']
                         [inds[0]:inds[1],0],axis=0)
@@ -83,7 +81,7 @@ class traj_file:
             sqw.box_lengths[2] = np.mean(self.handle['particles']['all']['box']['edges']['value']
                         [inds[0]:inds[1],2],axis=0)
             sqw.pos[:,:,:] = self.handle['particles']['all']['position']['value'][inds[0]:inds[1],:,:]
-            sqw.atom_ids[:,:] = self.handle['particles']['all']['species']['value'][inds[0]:inds[1],:]
+            sqw.atom_types[:,:] = self.handle['particles']['all']['species']['value'][inds[0]:inds[1],:]
 
         # optionally unimpose minimum image convention
         if invars.unwrap_pos:
@@ -209,6 +207,32 @@ def read_bragg(f_name):
         bragg = db['bragg'][:]
 
     return  Qpts, bragg
+
+# ---------------------------------------------------------------------------------------------
+
+def save_timeavg(invars,Qpts,timeavg,f_name='TIMEAVG.hdf5'):
+    """
+    write the output to an hdf5 file. use the read_timeavg method to read it 
+    """
+    num_Q = Qpts.shape[0]
+    f_name = os.path.join(invars.output_dir,f_name)
+    with h5py.File(f_name,'w') as db:
+        db_Qpts = db.create_dataset('Qpts_rlu',[num_Q,3])
+        db_timeavg = db.create_dataset('time_averaged',[num_Q])
+        db_Qpts[:,:] = Qpts[:,:]
+        db_timeavg[:] = timeavg[:]
+
+# --------------------------------------------------------------------------------------------
+
+def read_timeavg(f_name):
+    """
+    read the time averaged intensity written with save_timeavg
+    """
+    with h5py.File(f_name,'r') as db:
+        Qpts = db['Qpts_rlu'][:,:]
+        timeavg = db['time_averaged'][:]
+
+    return  Qpts, timeavg
 
 # ---------------------------------------------------------------------------------------------
 

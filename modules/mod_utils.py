@@ -13,8 +13,6 @@
 #   ! if you do find bugs or have questions, dont hesitate to       !
 #   ! write to the author at ty.sterling@colorado.edu               !
 #   !                                                               !
-#   ! pynamic-structure-factor version 2.0, dated June 8, 2021      !
-#   !                                                               !
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # -----------------------------------------------------------------------------------------
@@ -81,18 +79,19 @@ def assemble_sqw(sqw_from_ranks,sqw_total):
 
 # -----------------------------------------------------------------------------------------
 
-def assemble_bragg(bragg_from_ranks,bragg_total):
+def assemble_timeavg(timeavg_from_ranks,timeavg_total):
     """
-    assemble bragg from all the procs back into 1 array.
+    assemble timeaveraged (or bragg) intensity from all the procs back into 1 array.
     """
     shift = 0
-    num_ranks = len(bragg_from_ranks)
+    num_ranks = len(timeavg_from_ranks)
     for ii in range(num_ranks):
-        nQpp = bragg_from_ranks[ii].shape[0]
-        bragg_total[shift:shift+nQpp] = bragg_from_ranks[ii]
+        nQpp = timeavg_from_ranks[ii].shape[0]
+        timeavg_total[shift:shift+nQpp] = timeavg_from_ranks[ii]
         shift = shift+nQpp
 
 # ------------------------------------------------------------------------------------------
+
 
 
 

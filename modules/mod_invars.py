@@ -13,8 +13,6 @@
 #   ! if you do find bugs or have questions, dont hesitate to       !
 #   ! write to the author at ty.sterling@colorado.edu               !
 #   !                                                               !
-#   ! pynamic-structure-factor version 2.0, dated June 8, 2021      !
-#   !                                                               !
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import os
@@ -58,6 +56,8 @@ class input_variables:
                           'num_blocks',
                           'blocks',
                           'compute_bragg',
+                          'compute_sqw',
+                          'compute_timeavg',
                           'parse_custom']
 
         self.traj_file      = 'pos.hdf5'    # *.hdf5 file holding MD positions
@@ -70,7 +70,7 @@ class input_variables:
         # method if mod_io
         self.parse_custom   = False         # whether to read some other custom hdf5 heirarchy
 
-        self.dt              = 1e-15        # MD timestep
+        self.dt              = 1            # MD timestep in units of fs
         self.stride          = 32           # stride between when positions are printed
         self.total_steps     = 2**21        # total number of MD steps (NOT number of data points)
         self.num_atoms       = 4096         # number of atoms in the MD simulation
@@ -95,12 +95,16 @@ class input_variables:
         # to a large number and blocks = 0 so that the code only loops over 1 (short trajectory) block
         self.blocks                   = list(range(self.num_blocks))
 
-        # compute 'bragg' scattering intensity and write it to '*_BRAGG.hdf5'
+        # compute 'bragg' scattering intensity and write it to '*_bragg.hdf5'
         # the bragg intensity is |<rho(Q)>|^2 (see Dove, appendix E.)
         # the total (time averaged) scattered intensity is <rho(Q)*rho(-Q)>
-        # which is equal to the integral of S(Q,w) over all freqs. the diffuse
+        # which is equal to the integral of S(Q,w) over all freqs. the bragg
         # intensity is defined as the total intensity minus the bragg intensity
         self.compute_bragg          = False
+        # compute the timeaveraged total scattered intensity
+        self.compute_timeavg        = False
+        # compute the dynamical scattered intensity S(Q,w)
+        self.compute_sqw            = True 
 
     # -----------------------------------------------------------------------------------------
 
@@ -143,7 +147,9 @@ class input_variables:
         self.num_blocks   = self._parse_int('num_blocks',self.num_blocks)
         self.blocks       = list(range(self.num_blocks)) 
         self.blocks       = self._parse_int_list('blocks',self.blocks) 
-        self.compute_bragg = self._parse_bool('compute_bragg',self.compute_bragg)
+        self.compute_bragg   = self._parse_bool('compute_bragg',self.compute_bragg)
+        self.compute_timeavg = self._parse_bool('compute_timeavg',self.compute_timeavg)
+        self.compute_sqw     = self._parse_bool('compute_sqw',self.compute_sqw)
 
         # check that the lattice vectors make sense
         try:
@@ -196,6 +202,12 @@ class input_variables:
             message = f'creating directory \'{self.output_dir}\''
             print_stdout(message,msg_type='NOTE')
             os.mkdir(self.output_dir)
+
+        # check that atleast one of compute_* is not False
+        if not self.compute_sqw and not self.compute_timeavg and not self.compute_bragg:
+            message = ('there is nothing to do! set atleast one of compute_sqw, \n compute_timeavg,'
+                       ' or compute_bragg to 1 in the input file')
+            raise PSF_exception(message)
 
     # =======================================================================================
     # ------------------------------ private methods ----------------------------------------
