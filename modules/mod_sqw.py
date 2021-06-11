@@ -58,6 +58,7 @@ class sqw:
             self.meV = fftfreq(self.num_freq,self.dt_eff)*4.13567
             self.df = self.meV[1]-self.meV[0]
             self.max_freq = self.meV.max()
+            self.sqw_norm = self.num_freq # change this to change how time FT is normalized
 
             # print the energy resolution, max, etc
             if self.rank == 0:
@@ -65,6 +66,11 @@ class sqw:
                        f' number of freq.: {self.num_freq}\n'
                        f' resolution: {self.df:2.3e} meV\n')
                 print_stdout(message,msg_type='frequency Grid')
+
+                message = ('the time Fourier transform is normalized so that the MEAN\n'
+                           ' of the dynamical intensity over all energies is equal to the\n'
+                           ' total intensity averaged over time')
+                print_stdout(message,msg_type='NORMALIZATION')
 
             # the sqw array
             self.sqw = np.zeros((self.num_freq,Qpoints.Qsteps))        
@@ -212,7 +218,7 @@ class sqw:
 
                 # compute dynamical intensity = |rho(Q,w)|**2
                 if invars.compute_sqw:
-                    self.sqw[:,qq] = self.sqw[:,qq]+np.abs(fft(exp_iQr))**2/self.num_freq 
+                    self.sqw[:,qq] = self.sqw[:,qq]+np.abs(fft(exp_iQr))**2/self.sqw_norm
 
             # -------------------------------------------------------------------------------------
 
