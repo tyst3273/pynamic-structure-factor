@@ -1,0 +1,65 @@
+# input params for PSF to look at phonon dispersions. pretty much everything has a default 
+# (see mod_invars.py) but theyre not always sensible (i.e. file paths)
+# '#' are comments
+
+# -------------- I/O options -----------------
+
+traj_file      = lammps/pos.h5  # path to positions trajectory file
+output_dir     = sqw     # where to write output data
+outfile_prefix = diffuse # output file prefix. output files will have the form outfile_prexix_*.hdf5 
+parse_custom   = 0       # use the default method which parses data written by LAMMPS script (default). 
+save_progress  = 0       # optionally write out files from each processor at the end of each 'block'
+
+#---------------- MD params ------------------
+
+dt              = 0.75     # MD timestep in fs
+stride          = 32       # number of steps between when data are written to file
+total_steps     = 262144   # total number of steps integrated, NOT the number in the file
+num_atoms       = 13824    # total number of atoms in simulation box
+supercell       = 12 12 12 # supercell size
+
+lattice_vectors = 5.431 0 0  0 5.431 0  0 0 5.431 # lattice vectors in Angstrom, only orthogonal allowed
+recalculate_cell_lengths = 1 # use box lengths from pos file. useful if NPT thermostated or straining box
+
+# positions in pos file are 'wrapped' around periodic boundaries is they cross the box surfaces. this is
+# bad for our calculation since we are looking at position-position correlation, so we unwrap them.
+unwrap_pos      = 1 
+
+# ----------------- calc option --------------------
+
+Qpoints_file   = diffuse_Qpts # if given, Qpts are read from the file and the next variables are ignored
+Qmin           = 2 0 2      # start of Q path to scan along
+Qmax           = 6 0 2      # end of Q path to scan along
+total_Qsteps   = 49         # number Q pts along scan 
+num_blocks     = 4          # how many 'blocks' of time to split the file into.
+blocks         = 0 2        # which blocks to do. defaults to all of them.
+# neutron scattering lengths from "https://www.ncnr.nist.gov/resources/n-lengths/" in fm
+# there are 1 for each type. note, the code assumes the atom-types are the same at every time step,
+# but it can easily be modified to recalculate every timestep. this will have to be done if e.g.
+# the atoms are in different orders each time step or the box length changes substially for xray
+# atomic-factors which depend on Q
+b              = 4.1491 
+
+compute_bragg   = 1 # compute time-avg bragg intensities. defaults to false
+compute_timeavg = 1 # compute total time-avg intensity. defaults to false 
+compute_sqw     = 1 # compute dynamical intensity, S(Q,w). defaults to true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

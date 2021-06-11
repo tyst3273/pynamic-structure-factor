@@ -14,8 +14,9 @@ boundary        p p p
 processors      * * *
 
 ### read structure
-read_data	      si.lammps
-#write_data      out.lammps nocoeff
+read_data	      si.prim
+replicate       12 12 12
+write_data      out.lammps nocoeff
  
 ### potential
 pair_style      tersoff				
@@ -27,7 +28,7 @@ variable        T equal 300
 
 ### what to print and how often
 thermo_style    custom step temp pe etotal press pxx pyy pzz lx ly lz fmax fnorm
-thermo          1000
+thermo          2000
 
 # -------------------- equilibration ------------------------
 
@@ -40,26 +41,21 @@ min_modify      dmax 0.2
 ### NVT thermalization
 velocity        all create ${T} 123456 mom yes rot yes dist gaussian
 fix             NVT all nvt temp $T $T $(dt*100) tchain 10
-run             100000
+run             10000
 unfix           NVT
-
-### NPT thermalization and equilibration
-fix             NPT all npt temp ${T} ${T} $(dt*100) x 0 0 $(dt*1000) y 0 0 $(dt*1000) z 0 0 $(dt*1000) couple none tchain 10
-run             100000
-unfix           NPT
 
 ### NVE equlibration (de-correlate from thermostats)
 fix             NVE all nve
-run             100000
+run             10000
 unfix           NVE
 
 ### write a restart file
-write_restart   si.equil
+#write_restart   si.equil
 
 # -------------------- sample the data -----------------------
 
 ### vels/pos print frequency
-variable	      dt_dump equal 200
+variable	      dt_dump equal 32
 
 ### print pos to hdf5 file
 dump            pos all h5md ${dt_dump} pos.h5 position species
@@ -71,7 +67,7 @@ dump_modify     pos sort id
 
 ### run to collect pos/vels
 fix             NVE all nve
-run             524288
+run             262144
 unfix           NVE
 
 
