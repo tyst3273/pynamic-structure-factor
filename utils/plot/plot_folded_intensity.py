@@ -9,9 +9,6 @@ from mod_io import read_sqw, read_bragg, read_timeavg
 
 # -----------------------------------------------------------------------
 
-# cut off range range of averaging SQW
-e_cut = 2 # set to 2 to remake example low_energy_integrated.pdf
-
 # options for plotting
 num_Q = 41 # number of steps along each direction in the positive quadrant
 Q_range = [0,2, 0,2] # range of Q in the positive quadrant
@@ -22,16 +19,6 @@ interp = 'none' # colormap interpolation
 cmap = 'CMRmap' # colormap
 
 # ---------------------------------------------------------------------
-
-num_Q = 41 #number of steps along path in the file
-Q_range = [0,2, 0,2] # in the file
-
-extent = [-2,2,-2,2]
-vlims = [0,0.015]
-#vlims = [None,None]
-
-interp = 'none'
-cmap = 'CMRmap'
 
 # load sqw_raw
 in_file = f'sqw/diffuse_BRAGG_FINAL.hdf5'

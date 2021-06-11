@@ -209,6 +209,11 @@ class input_variables:
                        ' or compute_bragg to 1 in the input file')
             raise PSF_exception(message)
 
+        # check if traj file opens
+        if not os.path.exists(self.traj_file):
+            message = f'file \'{self.traj_file}\' not found'
+            raise PSF_exception(message)
+
     # =======================================================================================
     # ------------------------------ private methods ----------------------------------------
     # =======================================================================================
