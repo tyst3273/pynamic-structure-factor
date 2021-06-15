@@ -1,29 +1,25 @@
-#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#   !                                                                           !
-#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
-#   ! University of Colorado Boulder                                            !
-#   !                                                                           !
-#   ! This file is part of the pynamic-structure-factor (PSF) software.         !
-#   ! PSF is free software: you can redistribute it and/or modify it under      !
-#   ! the terms of the GNU General Public License as published by the           !
-#   ! Free software Foundation, either version 3 of the License, or             !
-#   ! (at your option) any later version. PSF is distributed in the hope        !
-#   ! that it will be useful, but WITHOUT ANY WARRANTY; without even the        !
-#   ! implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  !
-#   ! See the GNU General Public License for more details.                      !
-#   !                                                                           !
-#   ! A copy of the GNU General Public License should be available              !
-#   ! alongside this source in a file named gpl-3.0.txt. If not see             !
-#   ! <http://www.gnu.org/licenses/>.                                           !
-#   !                                                                           !
-#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                               !
+#   ! this file is part of the 'pynamic-structure-factor' code      !
+#   ! written by Ty Sterling at the University of Colorado          !
+#   ! Boulder, advised by Dmitry Reznik.                            !
+#   !                                                               !
+#   ! the software calculates inelastic neutron dynamic structure   !
+#   ! factors from molecular dynamics trajectories.                 !
+#   !                                                               !
+#   ! this is free software distrubuted under the GNU GPL v3 and    !
+#   ! with no warrantee or garauntee of the results. you should     !
+#   ! have recieved a copy of the new license with this software    !
+#   ! if you do find bugs or have questions, dont hesitate to       !
+#   ! write to the author at ty.sterling@colorado.edu               !
+#   !                                                               !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 from timeit import default_timer as timer
-from mpi4py import MPI
 import numpy as np
 import sys
 
-mod_path = '/home/ty/research/projects/psf/modules'
+mod_path = 'modules'
 sys.path.append(mod_path)
 
 import mod_invars
@@ -43,10 +39,9 @@ else:
 
 # -----------------------------------------------------------------------
 
-# initialize the mpi stuff
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-num_ranks = comm.Get_size()
+# stub for mpi
+rank = 0
+num_ranks = 1
 
 # -----------------------------------------------------------------------
 

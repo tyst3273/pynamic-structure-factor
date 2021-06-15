@@ -1,29 +1,25 @@
-#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#   !                                                                           !
-#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
-#   ! University of Colorado Boulder                                            !
-#   !                                                                           !
-#   ! This file is part of the pynamic-structure-factor (PSF) software.         !
-#   ! PSF is free software: you can redistribute it and/or modify it under      !
-#   ! the terms of the GNU General Public License as published by the           !
-#   ! Free software Foundation, either version 3 of the License, or             !
-#   ! (at your option) any later version. PSF is distributed in the hope        !
-#   ! that it will be useful, but WITHOUT ANY WARRANTY; without even the        !
-#   ! implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  !
-#   ! See the GNU General Public License for more details.                      !
-#   !                                                                           !
-#   ! A copy of the GNU General Public License should be available              !
-#   ! alongside this source in a file named gpl-3.0.txt. If not see             !
-#   ! <http://www.gnu.org/licenses/>.                                           !
-#   !                                                                           !
-#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                               !
+#   ! this file is part of the 'pynamic-structure-factor' code      !
+#   ! written by Ty Sterling at the University of Colorado          !
+#   ! Boulder, advised by Dmitry Reznik.                            !
+#   !                                                               !
+#   ! the software calculates inelastic neutron dynamic structure   !
+#   ! factors from molecular dynamics trajectories.                 !
+#   !                                                               !
+#   ! this is free software distrubuted under the GNU GPL v3 and    !
+#   ! with no warrantee or garauntee of the results. you should     !
+#   ! have recieved a copy of the new license with this software    !
+#   ! if you do find bugs or have questions, dont hesitate to       !
+#   ! write to the author at ty.sterling@colorado.edu               !
+#   !                                                               !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
 from timeit import default_timer as timer
 from scipy.fft import fft, fftfreq
 import mod_io 
 from mod_utils import print_stdout, PSF_exception
-import mod_xlengths
 
 class sqw:
 
@@ -45,13 +41,10 @@ class sqw:
         self.block_steps = (invars.total_steps//invars.stride)//invars.num_blocks 
         self.pos = np.zeros((self.block_steps,invars.num_atoms,3)) # time-steps, atoms, xyz
         self.atom_types = np.zeros((self.block_steps,invars.num_atoms)).astype(int) # see mod_io
+        self.b_array = np.zeros((self.block_steps,invars.num_atoms)) # see below
         self.box_lengths = [0,0,0] # read from traj file
         self.num_blocks = len(invars.blocks) # see mod_invars
         self.counter = 1 
-
-        # tools to fill xlengths array for ins/xray scattering
-        self.xlengths = np.zeros((self.block_steps,invars.num_atoms)) 
-        self.xlengths_tools = mod_xlengths.scattering_lengths(invars.num_types)
 
         # only create sqw array if requested. saves time to not do this if only bragg and/or timeavg
         if invars.compute_sqw:
@@ -132,7 +125,7 @@ class sqw:
                 mod_io.save_timeavg(invars,Qpoints.reduced_Q,self.timeavg,f_name)
 
         # free up memory (probably is already done by garbage collection)
-        del self.pos, self.atom_types, self.xlengths
+        del self.pos, self.atom_types, self.b_array
 
     # =======================================================================================
     # ------------------------------ private methods ----------------------------------------
@@ -143,7 +136,7 @@ class sqw:
         contains outer loop over blocks
 
         info about scattering lengths: there should be 1 length per TYPE, in order
-        of types. e.g. for 4 types = 1,2,3,4 there should be for lengths atom 1 : length 1,
+        of types. e.g. for 4 types = 1,2,3,4 there should be for lenghts atom 1 : length 1,
         atom 2 : lenght 2, etc... i am also assuming that dump_modify sort id was used so
         that the order of atoms is the  same for each step. this can be changed easily if
         not the case using the atom_types variable, but that will slow down the calc a little.
@@ -172,8 +165,11 @@ class sqw:
                     message = 'number of types in input file doesnt match simulation'
                     raise PSF_exception(message)
 
-            # look up scattering lengths/parameters to compute xray form factors.
-            self.xlengths_tools.map_types_to_data(invars,self)
+            # set up array of scattering lengths assuming atoms in the same order each time step
+            for atom in range(invars.num_atoms):
+                self.b_array[0,atom] = invars.b[self.atom_types[0,atom]-1]
+            self.b_array = np.tile(self.b_array[0,:].reshape(1,invars.num_atoms),
+                    reps=[self.block_steps,1])
 
             # box lengths read from traj file
             a = self.box_lengths[0]/invars.supercell[0] 
@@ -206,15 +202,10 @@ class sqw:
 
                 # the Qpoint to do
                 Q = Qpoints.Qpoints[qq,:].reshape((1,3)) # 1/Angstrom
-                self.Q_norm = np.sqrt(Q[0,0]**2+Q[0,1]**2+Q[0,2]**2)
-
-                # if xray, need to compute f(|Q|)
-                if invars.exp_type == 'xray':
-                    self.xlengths_tools.compute_xray_form_fact(self,invars)
 
                 # space FT by vectorized Q.r dot products and sum over atoms. (tile prepends new axes)
                 exp_iQr = np.tile(Q,reps=[self.block_steps,invars.num_atoms,1])*self.pos # Q.r
-                exp_iQr = np.exp(1j*exp_iQr.sum(axis=2))*self.xlengths # sum over x, y, z
+                exp_iQr = np.exp(1j*exp_iQr.sum(axis=2))*self.b_array # sum over x, y, z
                 exp_iQr = exp_iQr.sum(axis=1) # sum over atoms
 
                 # compute bragg intensity = |<rho(Q,t)>|**2

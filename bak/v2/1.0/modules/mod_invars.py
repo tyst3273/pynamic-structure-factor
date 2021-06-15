@@ -1,22 +1,19 @@
-#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#   !                                                                           !
-#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
-#   ! University of Colorado Boulder                                            !
-#   !                                                                           !
-#   ! This file is part of the pynamic-structure-factor (PSF) software.         !
-#   ! PSF is free software: you can redistribute it and/or modify it under      !
-#   ! the terms of the GNU General Public License as published by the           !
-#   ! Free software Foundation, either version 3 of the License, or             !
-#   ! (at your option) any later version. PSF is distributed in the hope        !
-#   ! that it will be useful, but WITHOUT ANY WARRANTY; without even the        !
-#   ! implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  !
-#   ! See the GNU General Public License for more details.                      !
-#   !                                                                           !
-#   ! A copy of the GNU General Public License should be available              !
-#   ! alongside this source in a file named gpl-3.0.txt. If not see             !
-#   ! <http://www.gnu.org/licenses/>.                                           !
-#   !                                                                           !
-#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                               !
+#   ! this file is part of the 'pynamic-structure-factor' code      !
+#   ! written by Ty Sterling at the University of Colorado          !
+#   ! Boulder, advised by Dmitry Reznik.                            !
+#   !                                                               !
+#   ! the software calculates inelastic neutron dynamic structure   !
+#   ! factors from molecular dynamics trajectories.                 !
+#   !                                                               !
+#   ! this is free software distrubuted under the GNU GPL v3 and    !
+#   ! with no warrantee or garauntee of the results. you should     !
+#   ! have recieved a copy of the new license with this software    !
+#   ! if you do find bugs or have questions, dont hesitate to       !
+#   ! write to the author at ty.sterling@colorado.edu               !
+#   !                                                               !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import os
 import numpy as np
@@ -51,9 +48,7 @@ class input_variables:
                           'lattice_vectors',
                           'unwrap_pos',
                           'recalculate_cell_lengths',
-                          'ins_xlengths',
-                          'types',
-                          'exp_type',
+                          'b',
                           'Qpoints_file',
                           'Qmin',
                           'Qmax',
@@ -86,9 +81,7 @@ class input_variables:
 
         self.unwrap_pos               = True    # unimpose minimum image convention
         self.recalculate_cell_lengths = True    # recalculate cell lens from box bounds in traj file
-        self.ins_xlengths                        = False #[4.1491]    # neutron scatt. lengths
-        self.types                    = ['Si']      # 1 per 'type' in the traj file. ignored if b is given
-        self.exp_type                 = 'ins'       # either ins or xray
+        self.b                        = [4.1491]    # neutron scatt. lengths
         self.Qpoints_file             = False       # read Q points from file (give name of file here)
         self.Qmin                     = [0,0,0]     # min of Q path to make 2d scan
         self.Qmax                     = [2,0,0]     # max of Q path to make 2d scan
@@ -147,11 +140,8 @@ class input_variables:
         self.unwrap_pos               = self._parse_bool('unwrap_pos',self.unwrap_pos)
         self.recalculate_cell_lengths = self._parse_bool('recalculate_cell_lengths',
                                                         self.recalculate_cell_lengths)
-
-        self.ins_xlengths   = self._parse_float_list('ins_xlengths',self.ins_xlengths)
-        self.types          = self._parse_str_list('types',self.types)
-        self.exp_type       = self._parse_str('exp_type',self.exp_type)
-
+        self.b         = self._parse_float_list('b',self.b)
+        self.num_types = len(self.b)
         self.Qpoints_file = self._parse_str('Qpoints_file',self.Qpoints_file)
         self.Qmin         = self._parse_float_list('Qmin',self.Qmin)
         self.Qmax         = self._parse_float_list('Qmax',self.Qmax)
@@ -162,8 +152,6 @@ class input_variables:
         self.compute_bragg   = self._parse_bool('compute_bragg',self.compute_bragg)
         self.compute_timeavg = self._parse_bool('compute_timeavg',self.compute_timeavg)
         self.compute_sqw     = self._parse_bool('compute_sqw',self.compute_sqw)
-
-        # ------------ do some checks on the variables ---------------
 
         # check that the lattice vectors make sense
         try:
@@ -186,23 +174,17 @@ class input_variables:
         message = f'reading trajectories from file \'{self.traj_file}\''
         print_stdout(message,msg_type='NOTE')
 
-        # check for user defined scattering lenghts (only for ins)
-        if self.ins_xlengths != False:
-            self.num_types = len(self.ins_xlengths)
-            message = 'using user specified scattering lengths (only works for ins, ignored for xray)'
-            print_stdout(message,msg_type='NOTE')
-        else:
-            self.num_types = len(self.types)
-            message = 'using scattering lengths from mod_xlengts'
-            print_stdout(message,msg_type='NOTE')
+        # print the scattering lengths to file
+        message = f' atom-type:  0    b: {self.b[0]: 2.4f}\n'
+        for bb in range(1,self.num_types):
+            message = message+f'  atom-type: {bb:2g}    b: {self.b[bb]: 2.4f}\n'
+        print_stdout(message,msg_type='scattering lengths (b) in femtometers')
 
-        # check experiment type
-        if self.exp_type not in ['xray','ins']:
-            message = 'experiment type should be either \'xray\' or \'ins\''
-            raise PSF_exception(message)
-        else:
-            message = f'the experiment type is \'{self.exp_type}\''
-            print_stdout(message,msg_type='NOTE')
+        # now convert b to Angstrom. 'intensities' are of order 1 this way. with FM, theyre 
+        # of order 1e16. this is purely for convenience and doesnt change the physics, since the 
+        # intensities are arbitrary units anyway
+        for bb in range(self.num_types):
+            self.b[bb] = self.b[bb]*1e-5
 
         # check that Q paths opts make sense
         if len(self.Qmin) != 3:
@@ -229,7 +211,7 @@ class input_variables:
                        ' or compute_bragg to 1 in the input file')
             raise PSF_exception(message)
 
-        # check if traj file open
+        # check if traj file opens
         if not os.path.exists(self.traj_file):
             message = f'file \'{self.traj_file}\' not found'
             raise PSF_exception(message)
@@ -365,24 +347,5 @@ class input_variables:
         return return_value
 
     # ------------------------------------------------------------------------------------------
-
-    def _parse_str_list(self,key_word,default):
-        """
-        get list of ints from file
-        """
-        return_value = default
-        for line in self.input_txt:
-            if line.split('=')[0].strip() == key_word:
-                return_value = line.split('=')[-1]
-                return_value = return_value.split('#')[0].strip()
-                return_value = return_value.split()
-                try:
-                    return_value = [str(x) for x in return_value]
-                except:
-                    message = f'key word \'{key_word}\' seems wrongs.'
-                    raise PSF_exception(message)
-        return return_value
-
-    # -----------------------------------------------------------------------------------------
 
 
