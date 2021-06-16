@@ -853,7 +853,7 @@ class scattering_lengths:
             if atom_dict['element'] == element:
                 return atom_dict['coh_b']
 
-        # only raises exception of element is not found
+        # only raises exception if element is not found
         message = (f'element \'{element}\' is not in the ins dictionary in mod_xlengths. check that the\n'
                     ' specified type is correct or add a new entry to mod_xlengths.ins_scattering_lengths')
         raise PSF_exception(message)
@@ -868,8 +868,8 @@ class scattering_lengths:
                         atom_dict['a3'],atom_dict['b3'],atom_dict['a4'],atom_dict['b4'],atom_dict['c']]
                 return data
 
-        # only raises exception of element is not found
-        message = (f'element \'{element}\' is not in the ins dictionary in mod_xlengths. check that the\n'
+        # only raises exception if element is not found
+        message = (f'element \'{element}\' is not in the xray dictionary in mod_xlengths. check that the\n'
                     ' specified type is correct or add a new entry to mod_xlengths.xray_form_fact')
         raise PSF_exception(message)
 
