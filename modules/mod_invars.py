@@ -146,12 +146,10 @@ class input_variables:
         self.lattice_vectors = self._parse_float_list('lattice_vectors',self.lattice_vectors)
         self.unwrap_pos               = self._parse_bool('unwrap_pos',self.unwrap_pos)
         self.recalculate_cell_lengths = self._parse_bool('recalculate_cell_lengths',
-                                                        self.recalculate_cell_lengths)
-
+                                                            self.recalculate_cell_lengths)
         self.ins_xlengths   = self._parse_float_list('ins_xlengths',self.ins_xlengths)
         self.types          = self._parse_str_list('types',self.types)
         self.exp_type       = self._parse_str('exp_type',self.exp_type)
-
         self.Qpoints_file = self._parse_str('Qpoints_file',self.Qpoints_file)
         self.Qmin         = self._parse_float_list('Qmin',self.Qmin)
         self.Qmax         = self._parse_float_list('Qmax',self.Qmax)
@@ -163,8 +161,15 @@ class input_variables:
         self.compute_timeavg = self._parse_bool('compute_timeavg',self.compute_timeavg)
         self.compute_sqw     = self._parse_bool('compute_sqw',self.compute_sqw)
 
-        # ------------ do some checks on the variables ---------------
+        # check that input variables are valid where applicable
+        self._check_variables()
 
+    # -----------------------------------------------------------------------------------------
+
+    def _check_variables(self):
+        """
+        where applicable, do some checks on input variables and exit if need be
+        """
         # check that the lattice vectors make sense
         try:
             self.lattice_vectors = np.array(self.lattice_vectors).reshape((3,3))
@@ -229,13 +234,13 @@ class input_variables:
                        ' or compute_bragg to 1 in the input file')
             raise PSF_exception(message)
 
-        # check if traj file open
+        # check if traj file opens
         if not os.path.exists(self.traj_file):
             message = f'file \'{self.traj_file}\' not found'
             raise PSF_exception(message)
 
     # =======================================================================================
-    # ------------------------------ private methods ----------------------------------------
+    # --------------------------- methods to parse file -------------------------------------
     # =======================================================================================
 
     def _check_file(self):
