@@ -28,6 +28,7 @@ class scattering_lengths:
     def __init__(self,num_types):
 
         self.xray_data = np.zeros((num_types,9)) # there are 9 parameters to calculate xray form factors
+        self.ins_xlengths = np.zeros(num_types) # the 'ins_data' are just the scattering lenghts below
 
         # these are from http://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php
         # which were taken from the International Tables for Crystallography.  I dont know what the units 
@@ -812,18 +813,35 @@ class scattering_lengths:
 
             if invars.ins_xlengths != False:
                 self.ins_xlengths = np.array(invars.ins_xlengths) # use the ones from the input file
-            else:                                     
-                self.ins_xlengths = np.zeros(invars.num_types)
+
+                if sqw.rank == 0:
+                    message = (f'there are {invars.num_types} atom types. their INS scattering lengths'
+                              ' (b) are (in fm):\n')
+                    for bb in range(invars.num_types):
+                        b = self.ins_xlengths[bb]
+                        message = message+f' [{bb+1}]:   element: user   b: {b: 2.4f}\n'
+                    print_stdout(message,msg_type='SCATTERING LENGHTS')
+
+            else:   
                 unique_types = np.unique(sqw.atom_types[0,:]) # returns SORTED array, which is good. 
                 for atom in range(invars.num_types): # look up b in dict above
                     atom_type = unique_types[atom] # integer type from lammps simulation in range [1,num_types]
                     element = invars.types[atom_type-1] # string giving element type
                     self.ins_xlengths[atom] = self._get_ins_xlength(element)
 
-            for atom in range(invars.num_atoms):
-                sqw.xlengths[:,atom] = self.ins_xlengths[sqw.atom_types[0,atom]-1]
+                if sqw.rank == 0:
+                    message = (f'there are {invars.num_types} atom types. their INS scattering lengths'
+                              ' (b) are (in fm):\n')
+                    for bb in range(invars.num_types):
+                        b = self.ins_xlengths[bb]
+                        element = invars.types[bb] # string giving element type
+                        message = message+f' [{bb+1}]:   element: {element}   b: {b: 2.4f}\n'
+                    print_stdout(message,msg_type='SCATTERING LENGHTS')
 
-        # for xrays, have to compute form factor f(|Q|) using the data.
+            for atom in range(invars.num_atoms):
+                sqw.xlengths[:,atom] = self.ins_xlengths[sqw.atom_types[0,atom]-1] # only use 1st time step
+
+        # for xrays, have to compute form factor f(|Q|) at each Q using the data fetched here.
         if invars.exp_type == 'xray':
             unique_types = np.unique(sqw.atom_types[0,:]) # returns SORTED array, which is good.
             for atom in range(invars.num_types): # look up b in dict above
@@ -831,17 +849,30 @@ class scattering_lengths:
                 element = invars.types[atom_type-1] # string giving element type
                 self.xray_data[atom,:] = self._get_xray_data(element)
 
+            if sqw.rank == 0:
+                message = f'there are {invars.num_types} atom types. their xray params are (units=???):\n'
+                for bb in range(invars.num_types):
+                    data = self.xray_data[bb,:] 
+                    element = invars.types[bb] # string giving element type
+                    message = message+(f' [{bb+1}]:   element: {element}'
+                      f'   a1: {data[0]: 2.4f}, b1: {data[1]: 2.4f}, a2: {data[2]: 2.4f}, b2: {data[3]: 2.4f},\n'
+                      f'                      a3: {data[4]: 2.4f}, b3: {data[5]: 2.4f}, a4: {data[6]: 2.4f},'
+                      f' b4: {data[7]: 2.4f}, c: {data[8]: 2.4f}\n')
+                print_stdout(message,msg_type='SCATTERING LENGHTS')
+
     # ------------------------------------------------------------------------------------------------
 
     def compute_xray_form_fact(self,sqw,invars): 
-        
+        """
+        compute xray form factor f(|Q|) using the data from the dictionary above.
+        f(|Q|) = c+sum_{i=(1,2,3,4)} ai*exp(-bi*(|Q|/4/pi)**2)
+        """
         for atom in range(invars.num_atoms):
             data = self.xray_data[sqw.atom_types[0,atom]-1,:]  
             sqw.xlengths[:,atom] = (data[0]*np.exp(-data[1]*(sqw.Q_norm/4/np.pi)**2)+
                                     data[2]*np.exp(-data[3]*(sqw.Q_norm/4/np.pi)**2)+
                                     data[4]*np.exp(-data[5]*(sqw.Q_norm/4/np.pi)**2)+
-                                    data[6]*np.exp(-data[7]*(sqw.Q_norm/4/np.pi)**2)+
-                                    +data[8])
+                                    data[6]*np.exp(-data[7]*(sqw.Q_norm/4/np.pi)**2)+data[8])
 
     # ================================================================================================
     # ------------------------------------- private methods ------------------------------------------

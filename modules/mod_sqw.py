@@ -51,7 +51,10 @@ class sqw:
 
         # tools to fill xlengths array for ins/xray scattering
         self.xlengths = np.zeros((self.block_steps,invars.num_atoms)) 
-        self.xlengths_tools = mod_xlengths.scattering_lengths(invars.num_types)
+        self.xlengths_tools = mod_xlengths.scattering_lengths(invars.num_types) # this is a class object
+
+        # "rescale" the intensity to make plotting easier.
+        self.common_rescale = 1e6
 
         # only create sqw array if requested. saves time to not do this if only bragg and/or timeavg
         if invars.compute_sqw:
@@ -172,7 +175,7 @@ class sqw:
                     message = 'number of types in input file doesnt match simulation'
                     raise PSF_exception(message)
 
-            # look up scattering lengths/parameters to compute xray form factors.
+            # look up ins scattering lengths OR parameters to compute xray form factors.
             self.xlengths_tools.map_types_to_data(invars,self)
 
             # box lengths read from traj file
@@ -208,7 +211,7 @@ class sqw:
                 Q = Qpoints.Qpoints[qq,:].reshape((1,3)) # 1/Angstrom
                 self.Q_norm = np.sqrt(Q[0,0]**2+Q[0,1]**2+Q[0,2]**2)
 
-                # if xray, need to compute f(|Q|)
+                # if xray, need to compute f(|Q|), which are placed in self.xlengths
                 if invars.exp_type == 'xray':
                     self.xlengths_tools.compute_xray_form_fact(self,invars)
 
@@ -219,15 +222,15 @@ class sqw:
 
                 # compute bragg intensity = |<rho(Q,t)>|**2
                 if invars.compute_bragg:
-                    self.bragg[qq] = self.bragg[qq]+np.abs((exp_iQr).mean())**2
+                    self.bragg[qq] = self.bragg[qq]+np.abs((exp_iQr).mean())**2/self.common_rescale
 
                 # compute timeavg intensity = <|rho(Q,t)|**2>
                 if invars.compute_timeavg:
-                    self.timeavg[qq] = self.timeavg[qq]+(np.abs(exp_iQr)**2).mean()
+                    self.timeavg[qq] = self.timeavg[qq]+(np.abs(exp_iQr)**2).mean()/self.common_rescale
 
                 # compute dynamical intensity = |rho(Q,w)|**2
                 if invars.compute_sqw:
-                    self.sqw[:,qq] = self.sqw[:,qq]+np.abs(fft(exp_iQr))**2/self.sqw_norm
+                    self.sqw[:,qq] = self.sqw[:,qq]+np.abs(fft(exp_iQr))**2/self.sqw_norm/self.common_rescale
 
             # -------------------------------------------------------------------------------------
 
