@@ -23,7 +23,7 @@ from mpi4py import MPI
 import numpy as np
 import sys
 
-mod_path = '/home/ty/research/projects/psf/modules'
+mod_path = '/home/ty/research/repos/pynamic-structure-factor/modules'
 sys.path.append(mod_path)
 
 import mod_invars
