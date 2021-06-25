@@ -1,0 +1,45 @@
+# '#' are comments
+
+# -------------- I/O options -----------------
+
+traj_file      = /home/ty/research/projects/pos/300K/pos_10_300K.hdf5
+output_dir     = sqw     
+outfile_prefix = bands_xray
+parse_custom   = 1
+
+#---------------- MD params ------------------
+
+dt              = 0.25     
+stride          = 200      
+total_steps     = 4000000  
+num_atoms       = 48000    
+supercell       = 20 20 10 
+
+# ----------------- calc option --------------------
+
+#Qpoints_file   = diffuse_Qpts 
+Qmin           = 2 -2 0      
+Qmax           = 2 2 0
+total_Qsteps   = 81
+num_blocks     = 40 
+blocks         = 0 1 2 3 4 5 6 7 8        
+
+# ---------- neutron scattering lengths --------
+types          = C N H H Pb I
+#types          = none none none none Pb I
+#types          = C N 2H 2H none none
+exp_type       = xray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
