@@ -195,8 +195,9 @@ class sqw:
                 Qpoints.reconvert_Q_points(lattice)     # convert Q to 1/A in new basis
 
             # --------------------- enter the loop over Qpoints -----------------------------------
-
+            
             if self.rank == 0:
+                Q_start_time = timer() # track time per Q not including the read/write time
                 message = ('printing progess for rank 0, which has >= the number of Q on other procs.\n'
                             ' -- now entering loop over Q -- ')
                 print_stdout(message,msg_type='NOTE')
@@ -235,17 +236,6 @@ class sqw:
 
             # -------------------------------------------------------------------------------------
 
-            # print timing to the log file
-            if self.rank == 0:
-                end_time = timer()
-
-                elapsed_time = (end_time-start_time)/60 # minutes
-                message = f' elapsed time for this block: {elapsed_time:2.3f} minutes'
-                print_stdout(message,msg_type='TIMING')
-
-                message = f' time per Q-point: {elapsed_time*60/Qpoints.Qsteps:2.3f} seconds'
-                print_stdout(message)
-
             # optionally save progress
             if invars.save_progress:
 
@@ -262,6 +252,25 @@ class sqw:
                     if invars.compute_timeavg:
                         f_name = invars.outfile_prefix+f'_TIMEAVG_P{self.rank}_B{block_index}.hdf5'
                         mod_io.save_timeavg(invars,Qpoints.reduced_Q,self.timeavg,f_name)
+
+            # print timing to the log file
+            if self.rank == 0:
+
+                end_time = timer()
+                elapsed_time = end_time-start_time
+                Q_time = end_time-Q_start_time
+                io_time = elapsed_time-Q_time
+
+                Q_time = Q_time/Qpoints.Qsteps # avg over all Q
+                message = f' avg time per Q-point:      {Q_time/Qpoints.Qsteps:2.3f} seconds'
+                print_stdout(message,msg_type='TIMING')
+
+                message = f' total io time:             {io_time:2.3f} seconds'
+                print_stdout(message)
+
+                message = (f' total time for this block: {elapsed_time:2.3f} seconds'
+                           f' ({elapsed_time/60:2.3f} minutes)')
+                print_stdout(message)
 
             self.counter = self.counter+1 # update the counter
 
