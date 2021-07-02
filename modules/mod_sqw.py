@@ -262,7 +262,7 @@ class sqw:
                 io_time = elapsed_time-Q_time
 
                 Q_time = Q_time/Qpoints.Qsteps # avg over all Q
-                message = f' avg time per Q-point:      {Q_time/Qpoints.Qsteps:2.3f} seconds'
+                message = f' avg time per Q-point:      {Q_time:2.3f} seconds'
                 print_stdout(message,msg_type='TIMING')
 
                 message = f' total io time:             {io_time:2.3f} seconds'
