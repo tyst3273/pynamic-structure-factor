@@ -820,7 +820,7 @@ class scattering_lengths:
                     for bb in range(invars.num_types):
                         b = self.ins_xlengths[bb]
                         message = message+f' [{bb+1}]:   element: user   b: {b: 2.4f}\n'
-                    print_stdout(message,msg_type='SCATTERING LENGHTS')
+                    print_stdout(message,msg_type='SCATTERING LENGTHS')
 
             else:   
                 unique_types = np.unique(sqw.atom_types[0,:]) # returns SORTED array, which is good. 

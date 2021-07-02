@@ -50,7 +50,7 @@ class sqw:
         self.counter = 1 
 
         # tools to fill xlengths array for ins/xray scattering
-        self.xlengths = np.zeros((self.block_steps,invars.num_atoms)) 
+        self.xlengths = np.zeros((self.block_steps,invars.num_atoms)) # this is an array
         self.xlengths_tools = mod_xlengths.scattering_lengths(invars.num_types) # this is a class object
 
         # "rescale" the intensity to make plotting easier.
@@ -230,7 +230,8 @@ class sqw:
 
                 # compute dynamical intensity = |rho(Q,w)|**2
                 if invars.compute_sqw:
-                    self.sqw[:,qq] = self.sqw[:,qq]+np.abs(fft(exp_iQr))**2/self.sqw_norm/self.common_rescale
+                    self.sqw[:,qq] = (self.sqw[:,qq]+np.abs(fft(exp_iQr))**2/
+                                                    self.sqw_norm/self.common_rescale)
 
             # -------------------------------------------------------------------------------------
 
