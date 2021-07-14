@@ -47,7 +47,7 @@ def print_herald(num_ranks):
     print author info etc to screen at startup
     """
     herald = """
- Pynamic Structure Factor, version 2.0
+ Pynamic Structure Factor, version 2.1
 
  Now with MPI support!
 

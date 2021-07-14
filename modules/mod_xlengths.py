@@ -850,14 +850,15 @@ class scattering_lengths:
                 self.xray_data[atom,:] = self._get_xray_data(element)
 
             if sqw.rank == 0:
-                message = f'there are {invars.num_types} atom types. their xray params are (units=???):\n'
+                message = f'there are {invars.num_types} atom types. their xray params are (units=?):\n'
                 for bb in range(invars.num_types):
                     data = self.xray_data[bb,:] 
                     element = invars.types[bb] # string giving element type
                     message = message+(f' [{bb+1}]:   element: {element}'
-                      f'   a1: {data[0]: 2.4f}, b1: {data[1]: 2.4f}, a2: {data[2]: 2.4f}, b2: {data[3]: 2.4f},\n'
-                      f'                      a3: {data[4]: 2.4f}, b3: {data[5]: 2.4f}, a4: {data[6]: 2.4f},'
-                      f' b4: {data[7]: 2.4f}, c: {data[8]: 2.4f}\n')
+                      f'   a1: {data[0]: 2.4f}, b1: {data[1]: 2.4f}, a2: {data[2]: 2.4f},'
+                      f' b2: {data[3]: 2.4f},\n                      a3: {data[4]: 2.4f},'
+                      f' b3: {data[5]: 2.4f}, a4: {data[6]: 2.4f}, b4: {data[7]: 2.4f},'
+                      f' c: {data[8]: 2.4f}\n')
                 print_stdout(message,msg_type='SCATTERING LENGHTS')
 
     # ------------------------------------------------------------------------------------------------
@@ -900,7 +901,7 @@ class scattering_lengths:
                 return data
 
         # only raises exception if element is not found
-        message = (f'element \'{element}\' is not in the xray dictionary in mod_xlengths. check that the\n'
+        message = (f'element \'{element}\' is not in the xray dict in mod_xlengths. check that the\n'
                     ' specified type is correct or add a new entry to mod_xlengths.xray_form_fact')
         raise PSF_exception(message)
 
