@@ -30,7 +30,10 @@ class scattering_lengths:
         self.xray_data = np.zeros((num_types,9)) # there are 9 parameters to calculate xray form factors
         self.ins_xlengths = np.zeros(num_types) # the 'ins_data' are just the scattering lenghts below
 
-        # these are from http://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php
+        # these are from:
+        # 
+        # http://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php
+        #
         # which were taken from the International Tables for Crystallography.  I dont know what the units 
         # are, it didnt say on the table... but it did mention that Q have units 1/Angstrom which is 
         # ultimately all I needed to know. 
@@ -457,7 +460,10 @@ class scattering_lengths:
                                {'element':'Cf', 'a1':36.9185, 'b1':0.437533, 'a2':25.1995, 'b2':3.00775,
                                 'a3':18.3317, 'b3':12.4044, 'a4':4.24391, 'b4':83.7881, 'c':13.2674}]
         
-        # these are from the NIST database at https://www.nist.gov/ncnr/neutron-scattering-lengths-list 
+        # these are from the NIST database at:
+        #
+        #   https://www.nist.gov/ncnr/neutron-scattering-lengths-list 
+        #
         # which are from Neutron News, Vol. 3, No. 3, 1992, pp. 29-37. coh_b is in fm
         self.ins_scattering_lengths = [{'element':'none', 'coh_b':0.00}, # invisisble to neutrons 
                                        {'element':'H', 'coh_b':-3.7390}, 
