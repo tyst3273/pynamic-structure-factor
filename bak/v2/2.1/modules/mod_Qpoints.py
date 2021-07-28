@@ -57,7 +57,7 @@ class Qpoints:
 
     # --------------------------------------------------------------------------------------------
 
-    def distribute_Q_over_procs(self,invars,num_ranks):
+    def distribute_Q_over_procs(self,num_ranks):
         """
         num_Q_per_proc is determined as the largest integer dividing the total_Qsteps number. 
         the remainder is placed on rank 0 (if there is a remainder...)

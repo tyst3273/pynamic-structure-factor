@@ -93,7 +93,7 @@ for input_file in input_files:
         Qpoints.generate_Qpoints(invars)
 
         # split Qpoints over procs
-        Qpoints.distribute_Q_over_procs(invars,num_ranks)
+        Qpoints.distribute_Q_over_procs(num_ranks)
 
         # distribute the vars over all procs
         for ii in range(1,num_ranks):
