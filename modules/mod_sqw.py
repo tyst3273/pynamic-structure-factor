@@ -243,6 +243,8 @@ class sqw:
                 proc.join()
 
             # -----------------------------------------------------------------------------------------
+            #                 ------------ end of multiprocessing part ----------------
+            # -----------------------------------------------------------------------------------------
 
             # optionally save progress
             if invars.save_progress:
@@ -268,7 +270,7 @@ class sqw:
             io_time = elapsed_time-Q_time
 
             # time per Qpoint
-            Q_time = Q_time/Qpoints.total_Qsteps # avg over all Q
+            Q_time = Q_time/len(Qpoints.Q_on_procs[0]) # avg over all Q
             message = f' avg time per Q-point:      {Q_time:2.3f} seconds'
             print_stdout(message,msg_type='TIMING')
 
@@ -294,17 +296,19 @@ class sqw:
         # get how many there are
         num_Q = len(Q_inds) 
 
-        # set up arrays to return. return dummy (None) if not requested
+        # return dummy (None) sqw array if not requested
         if invars.compute_sqw:
             sqw_pp = np.zeros((self.num_freq,num_Q))
         else:
             sqw_pp = None
 
+        # return dummy (None) bragg array if not requested
         if invars.compute_bragg:
             bragg_pp = np.zeros(num_Q)
         else:
             bragg_pp = None
 
+        # return dummy (None) timeavg array if not requested
         if invars.compute_timeavg:
             timeavg_pp = np.zeros(num_Q)
         else:
@@ -313,6 +317,7 @@ class sqw:
         # loop over the Q points
         for qq in range(num_Q):
 
+            # print status if on proc 0
             if proc == 0:
                 message = f' now on Q-point {qq+1} out of {num_Q}'
                 print_stdout(message)

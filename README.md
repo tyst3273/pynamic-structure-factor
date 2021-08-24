@@ -41,4 +41,5 @@ python code to calculate inelastic-neutron-scattering dynamic structure factor, 
 ### new in v3.0
 - converted to multiprocessing. 
   - it now uses multiprocessing instead of mpi4py. I was hoping to find a way to keep the pos data in shared memory, but I am not sure if that is possible yet, even with multiprocessing. i cleaned up the code to convert it to mp however and didnt want to go back. i also realized that concurrently reading the position file from each process was much slower than reading on 1 and broadcasting, so I am doing it the latter way now. 
-  - ** still needs to be debugged and tested **
+  - i tested it against the mpi4py version (v2.1) and the results are identical with a fairly good speed improvement and a very good memory footprint improvement. 
+  - memory improvement: it looks like linux doesn't copy any arrays that arent used. so, while we do copy the pos data to each process, the sqw, timavg, etc. arrays are NOT copied. instead, thier values at each Q are calculated per Q on each process and passed up to the main arrays. Also, reading the pos file from only 1 process results in saving a large amount of memory (it only 'spiked' before, it didnt' persist) when unwrapping the positions. before, each process read the positions and had to produce a copy to unwrap them. now, this is only done once.
