@@ -187,18 +187,6 @@ class sqw:
 
             # -----------------------------------------------------------------------------------------
             #                 ------------- multiprocessing part. -------------
-            #
-            # this seems to run much faster than how i was doing with mpi4py. i think that was slow 
-            # because each proc. was reading from the file concurrently. this way, we just read once
-            # and broadcast. I think this could be made to work with mpi4py too, but my hope with 
-            # multiprocessing is to put the pos array into shared memory to reduce the memory 
-            # footprint if possible
-            #
-            # note, doing it this way with the queue 'blocks' until the next processes adds to queue if
-            # it is empty. I dont know if this will freeze the whole calculation or just the background
-            # proc that is running the queue. anyway, everything with the queue has to be done before
-            # joining the procs or the data will corrupt/crash the program.
-            #
             # -----------------------------------------------------------------------------------------
             
             # a Queue to hold the retured SQW data
@@ -243,6 +231,8 @@ class sqw:
                 proc.join()
 
             # -----------------------------------------------------------------------------------------
+            #                 ------------ end of multiprocessing part ----------------
+            # -----------------------------------------------------------------------------------------
 
             # optionally save progress
             if invars.save_progress:
@@ -268,7 +258,7 @@ class sqw:
             io_time = elapsed_time-Q_time
 
             # time per Qpoint
-            Q_time = Q_time/Qpoints.total_Qsteps # avg over all Q
+            Q_time = Q_time/len(Qpoints.Q_on_procs[0]) # avg over all Q
             message = f' avg time per Q-point:      {Q_time:2.3f} seconds'
             print_stdout(message,msg_type='TIMING')
 
@@ -288,23 +278,31 @@ class sqw:
 
     def _loop_over_Q(self,proc,invars,Qpoints):
 
+        """
+        this target is passed to each mp Process. it loops over the Q points assigned to each 
+        process and puts the results into the Queue. a background process collects all of this and 
+        assembles to total S(Q,w), S(Q), etc. arrays. could be easily modified to work in serial.
+        """
+
         # get the inds of which Q to do
         Q_inds = Qpoints.Q_on_procs[proc]
 
         # get how many there are
         num_Q = len(Q_inds) 
 
-        # set up arrays to return. return dummy (None) if not requested
+        # return dummy (None) sqw array if not requested
         if invars.compute_sqw:
             sqw_pp = np.zeros((self.num_freq,num_Q))
         else:
             sqw_pp = None
 
+        # return dummy (None) bragg array if not requested
         if invars.compute_bragg:
             bragg_pp = np.zeros(num_Q)
         else:
             bragg_pp = None
 
+        # return dummy (None) timeavg array if not requested
         if invars.compute_timeavg:
             timeavg_pp = np.zeros(num_Q)
         else:
@@ -313,6 +311,7 @@ class sqw:
         # loop over the Q points
         for qq in range(num_Q):
 
+            # print status if on proc 0
             if proc == 0:
                 message = f' now on Q-point {qq+1} out of {num_Q}'
                 print_stdout(message)
@@ -394,10 +393,20 @@ class sqw:
     intensities are averaged as opposed to integrated and 2) to make it easier to handle the 
     dimensions: integrated over ENERGY doesn't have the same dimensions as integrating over
     FREQUENCY
-    - could parallelize over the blocks, already parallelized over Q. 
     - the space FT is all-ready highly vectorized. could probably be improved
     using some fancier LAPACK or BLAS functions to do vector products, but i dont think we can FFT
     the Q transform since its not on reduced q grid. maybe?
+    
+    this seems to run much faster than how i was doing with mpi4py. i think that was slow
+    because each proc. was reading from the file concurrently. this way, we just read once
+    and broadcast. I think this could be made to work with mpi4py too, but my hope with
+    multiprocessing is to put the pos array into shared memory to reduce the memory
+    footprint if possible
+            
+    - note on multiprocessing: doing it this way with the queue 'blocks' until the next processes 
+    adds to queue if it is empty. I dont know if this will freeze the whole calculation or just 
+    the background proc that is running the queue. anyway, everything with the queue has to be 
+    done before joining the procs or the data will corrupt/crash the program.
 
     """
 

@@ -89,7 +89,7 @@ for input_file in input_files:
     # setup calculator
     sqw = mod_sqw.sqw(invars,Qpoints)
 
-    # run the calculation
+    # ** run the calculation **
     sqw.calculate(invars,Qpoints,lattice,traj_file)
 
     # close the hdf5 files
@@ -126,7 +126,7 @@ for input_file in input_files:
 
     # calculate and print elapsed time to do this file
     inner_end = timer()
-    inner_time = (inner_end-inner_start)/60 #minutes
+    inner_time = (inner_end-inner_start)/60 # minutes
     message = f'elapsed time for this file: {inner_time:2.3f} minutes'
     mod_io.print_stdout(message,msg_type='TIMING')
 
@@ -134,7 +134,7 @@ for input_file in input_files:
 
 # calculate and print total elapsed time
 outer_end = timer()
-outer_time = (outer_end-outer_start)/60 #minutes
+outer_time = (outer_end-outer_start)/60 # minutes
 message = f'total elapsed time: {outer_time:2.3f} minutes'
 mod_io.print_stdout(message,msg_type='TIMING')
 
