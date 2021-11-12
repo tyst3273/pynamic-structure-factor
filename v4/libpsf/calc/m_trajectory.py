@@ -13,7 +13,7 @@ class c_trajectory:
     
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self,config,logger):
+    def __init__(self,config,logger,lattice):
 
         pass
 
