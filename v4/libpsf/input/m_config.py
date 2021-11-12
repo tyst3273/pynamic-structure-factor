@@ -27,15 +27,17 @@ class c_config:
 
         self.logger = logger
 
+        # ------------------------------------------------------------------------------------------
+        # set and get command line args
+        # ------------------------------------------------------------------------------------------
+
         cmd_parser = argparse.ArgumentParser(description='documentation for psf command line args')
 
-        # set command line args
         cmd_parser.add_argument('-i','--input_file',default=['psf.ini'],
                             help='input filename(s) for psf.py',nargs='+')
         cmd_parser.add_argument('-n','-np','--num_processes',default=1,type=int,
                             help='number of \'multiprocessing\' processes to use')
 
-        # get from sys.argv
         cmd_args = cmd_parser.parse_args()
 
         self.input_files = cmd_args.input_file
@@ -58,17 +60,33 @@ class c_config:
             msg = msg+f'\n  - {in_file:<}'       
             self.logger.console(msg)
 
-        # put all args in this list. code needs them to hack the stupid thing
-        self.kw = ['lattice_vectors','lattice_scale']
-    
+        # ------------------------------------------------------------------------------------------
+        # set config file opts. gotten later
+        # ------------------------------------------------------------------------------------------
+
+        # put all args in this list. order doesnt matter but theyre needed
+        self.kw = ['lattice_vectors','lattice_scale','box_vectors','box_scale']
+
         # now set up config file defaults. set a default for everything
         self.arg_parser = argparse.ArgumentParser('documentation for the input variables')
-        
-        self.arg_parser.add_argument('--lattice_vectors',required=True,nargs=9,type=float,
-                            help='lattice vectors of the crystal in angstrom. should be \n' \
-                                 ' given as row vectors')
-        self.arg_parser.add_argument('--lattice_scale',default=1.0,nargs=1,type=float,
-                            help='uniformly rescale all lattice vectors by this amount')
+
+        help_msg = 'lattice vectors of the crystal in angstrom. \n' \
+                    'should be given as row vectors'
+        self.arg_parser.add_argument('--lattice_vectors',nargs=9,type=float,help=help_msg,
+                            default=[1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0])
+
+        help_msg = 'homogeneous scaling for the lattice vectors' 
+        self.arg_parser.add_argument('--lattice_scale',default=5.431,nargs=1,type=float,
+                            help=help_msg)
+
+        help_msg = 'simulation box vectors. transformation from primitive cell vectors \n' \
+                   'is calculated from this.' 
+        self.arg_parser.add_argument('--box_vectors',nargs=9,type=float,help=help_msg,
+                            default=[1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0])
+
+        help_msg = 'homogeneous scaling for the box vectors' 
+        self.arg_parser.add_argument('--box_scale',default=5.431,nargs=1,type=float,
+                            help=help_msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -89,6 +107,7 @@ class c_config:
         read the whole text file in as one string. this thing is agnostic of the variable name
         """
         
+        # check if input file can be read
         try:
             with open(input_file,'r') as f_in:
                 read_lines = f_in.readlines()
@@ -109,12 +128,13 @@ class c_config:
         trimmed_line = []
         for arg in lines:
             arg = arg.strip('\'" \\n ')
-            if arg == '=':
+            if arg in ['=',':']:
                 continue
-            elif arg in self.kw:
+            elif arg.lower() in self.kw:
                 arg = '--'+arg
             trimmed_line.append(arg)
 
+        # now go and write the args from the arg parser to attributes of this class
         self._set_args(trimmed_line)
 
     # ----------------------------------------------------------------------------------------------

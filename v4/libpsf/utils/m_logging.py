@@ -118,6 +118,8 @@ class c_logger:
             os.remove(self.crash_path)
 
     # ----------------------------------------------------------------------------------------------
+    # other printing utilities
+    # ----------------------------------------------------------------------------------------------
 
     def print_bar(self,symbol='-',length=72):
 
@@ -136,7 +138,7 @@ class c_logger:
         ' affilition: University of Colorado Boulder \n' \
         ' email:      ty.sterling@colorado.edu \n\n' \
         ' license:    not yet ... \n' \
-        ' version:    4.0 ' \
+        ' version:    0.4 ' \
 
         self._print(herald)
         self.print_bar()
