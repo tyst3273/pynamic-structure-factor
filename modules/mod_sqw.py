@@ -211,6 +211,7 @@ class sqw:
             # get the stuff calculated on each proc
             for pp in range(invars.num_processes):
 
+                # i think this is FIFO
                 sqw_pp, bragg_pp, timeavg_pp, proc = self.mp_queue.get()
                 Q_inds = Qpoints.Q_on_procs[proc]
 
@@ -319,6 +320,8 @@ class sqw:
             # the Qpoint to do
             Q_ind = Q_inds[qq]
             Q = Qpoints.total_Qpoints[Q_ind,:].reshape((1,3)) # 1/Angstrom
+            
+            # TS: 10.13.2021: this line of code doesnt seemed to be used anywhere
             self.Q_norm = np.sqrt(Q[0,0]**2+Q[0,1]**2+Q[0,2]**2) # |Q|
 
             # if xray, need to compute f(|Q|), which are placed in self.xlengths
@@ -370,13 +373,13 @@ class sqw:
     (sortof). <rho(0),rho(t)> ==  F(Q,t). this is sometimes called the intermediate scattering 
     function. the dynamic scattering function is time-FT[F(Q,t)] = S(Q,w). since x(t) is (approximated
     as) classical, everything commutes. then we just use (sortof) the Wiener-Khinchin theorem 
-    to go directly from rho(t) to S(Q,w) = |time-FT[rho](Q,-w)|**2. The -w comes from the positive 
-    time in rho(-Q,t). see my notes in the doc directory. my code basically returns S(Q,-w), but the 
-    +/- w components are nearly identical. for refs, see Dove: "Lattice Dynamics," 
-    Allen: "Computer Simulation of Liquids," and Squires: "Theory of Thermal Neutron Scattering"
-
-    addendum) it also now can compute time averaged intensity and bragg (also timeaveraged) to 
-    analyze diffuse (total-bragg) intensity
+    to go directly from rho(t) to S(Q,w) = |time-FT[rho](Q,w)|**2.  for refs, see:
+        Dove: "Lattice Dynamics," 
+        Allen: "Computer Simulation of Liquids," 
+        and Squires: "Theory of Thermal Neutron Scattering"
+    (addendum) it also now can compute time averaged intensity and bragg intensity to analyze 
+    diffuse and bragg scattering. the bragg spectra is highly peaked at Q=G but the thermal 
+    disorder includes the debye waller contribution to the bragg peaks.
 
     validation:
 
@@ -386,22 +389,25 @@ class sqw:
     from phonopy in SNAXS, which computes S(Q,w) from the harmonic phonon expansion and my results
     match SNAXS **VERY** well. so i assert that this method is valid and accurate.
 
+    follow up: this code was used extensively to compare diffuse and inelastic scattering in single
+    crystal hybrid-perovskite CND_3PbI_3 (MAPI). if you want see if the code was accurate, take a 
+    look at the paper: INCLUDE CITATION WHEN PUBLISHED (spoiler alert: it did good).
+
     notes:
 
     - the SQW array is normalized so that the AVERAGE over all frequencies/energies is equal 
-    to the time averaged diffuse scattering intensity. this is because 1) the bragg/timeavg 
-    intensities are averaged as opposed to integrated and 2) to make it easier to handle the 
-    dimensions: integrated over ENERGY doesn't have the same dimensions as integrating over
-    FREQUENCY
+    to the time averaged diffuse scattering intensity. this is because the bragg/timeavg 
+    intensities are averaged as opposed to integrated 
+
     - the space FT is all-ready highly vectorized. could probably be improved
     using some fancier LAPACK or BLAS functions to do vector products, but i dont think we can FFT
-    the Q transform since its not on reduced q grid. maybe?
+    the Q transform since its not on reduced qpt grid. maybe?
     
-    this seems to run much faster than how i was doing with mpi4py. i think that was slow
+    - multiprocessing is faster than what i was doing with mpi4py. i think that was slow
     because each proc. was reading from the file concurrently. this way, we just read once
     and broadcast. I think this could be made to work with mpi4py too, but my hope with
     multiprocessing is to put the pos array into shared memory to reduce the memory
-    footprint if possible
+    footprint if possible: update ... i dont think its possible
             
     - note on multiprocessing: doing it this way with the queue 'blocks' until the next processes 
     adds to queue if it is empty. I dont know if this will freeze the whole calculation or just 
