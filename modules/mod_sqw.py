@@ -22,9 +22,9 @@ import multiprocessing as mp
 import numpy as np
 from timeit import default_timer as timer
 from scipy.fft import fft, fftfreq
-import mod_io 
-from mod_utils import print_stdout, PSF_exception
-import mod_xlengths
+import modules.mod_io as mod_io
+from modules.mod_utils import print_stdout, PSF_exception
+import modules.mod_xlengths as mod_xlenghts
 
 class sqw:
 

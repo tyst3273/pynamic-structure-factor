@@ -22,15 +22,16 @@ from timeit import default_timer as timer
 import numpy as np
 import sys
 
-mod_path = './modules'
-sys.path.append(mod_path)
+#mod_path = './modules'
+#$sys.path.append(mod_path)
 
-import mod_invars
-import mod_io
-import mod_lattice
-import mod_Qpoints
-import mod_sqw
-import mod_utils 
+
+import modules.mod_invars as mod_invars
+import modules.mod_io as mod_io
+import modules.mod_lattice as mod_lattice
+import modules.mod_Qpoints as mod_Qpoints
+import modules.mod_sqw as mod_sqw
+import modules.mod_utils  as mod_utils
 
 # --------------------------------------------------------------------------------
 

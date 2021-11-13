@@ -20,7 +20,7 @@
 
 import os
 import numpy as np
-from mod_utils import PSF_exception, print_stdout
+from modules.mod_utils import PSF_exception, print_stdout
 
 
 class input_variables:
