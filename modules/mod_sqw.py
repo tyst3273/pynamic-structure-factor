@@ -24,7 +24,7 @@ from timeit import default_timer as timer
 from scipy.fft import fft, fftfreq
 import modules.mod_io as mod_io
 from modules.mod_utils import print_stdout, PSF_exception
-import modules.mod_xlengths as mod_xlenghts
+import modules.mod_xlengths as mod_xlengths
 
 class sqw:
 
