@@ -22,10 +22,6 @@ from timeit import default_timer as timer
 import numpy as np
 import sys
 
-#mod_path = './modules'
-#$sys.path.append(mod_path)
-
-
 import modules.mod_invars as mod_invars
 import modules.mod_io as mod_io
 import modules.mod_lattice as mod_lattice
