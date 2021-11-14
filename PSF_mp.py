@@ -22,12 +22,12 @@ from timeit import default_timer as timer
 import numpy as np
 import sys
 
-import modules.mod_invars as mod_invars
-import modules.mod_io as mod_io
-import modules.mod_lattice as mod_lattice
-import modules.mod_Qpoints as mod_Qpoints
-import modules.mod_sqw as mod_sqw
-import modules.mod_utils  as mod_utils
+import libpsf.mod_invars as mod_invars
+import libpsf.mod_io as mod_io
+import libpsf.mod_lattice as mod_lattice
+import libpsf.mod_Qpoints as mod_Qpoints
+import libpsf.mod_sqw as mod_sqw
+import libpsf.mod_utils  as mod_utils
 
 # --------------------------------------------------------------------------------
 

@@ -19,7 +19,7 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
-from modules.mod_utils import print_stdout
+from libpsf.mod_utils import print_stdout
 
 class lattice:
 

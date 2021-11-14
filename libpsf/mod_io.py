@@ -21,7 +21,7 @@
 import numpy as np
 import os
 import h5py
-from modules.mod_utils import print_stdout, PSF_exception
+from libpsf.mod_utils import print_stdout, PSF_exception
 
 class traj_file:
 

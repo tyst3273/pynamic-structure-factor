@@ -19,7 +19,7 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
-from modules.mod_utils import print_stdout, PSF_exception
+from libpsf.mod_utils import print_stdout, PSF_exception
 
 class scattering_lengths:
 
