@@ -189,6 +189,9 @@ def read_sqw(f_name):
 
     """
     read the sqw data written with save_sqw
+
+    args: filename (str)
+    returns: energy (np.array), Qpts (np.array), sqw (np.array)
     """
 
     with h5py.File(f_name,'r') as db:
@@ -220,6 +223,9 @@ def read_bragg(f_name):
 
     """
     read the bragg data written with save_bragg
+
+    args: filename (str)
+    returns: Qpts (np.array), bragg (np.array)
     """
 
     with h5py.File(f_name,'r') as db:
@@ -250,6 +256,9 @@ def read_timeavg(f_name):
 
     """
     read the time averaged intensity written with save_timeavg
+
+    args: filename (str)
+    returns: Qpts (np.array), timeavg (np.array)
     """
 
     with h5py.File(f_name,'r') as db:
