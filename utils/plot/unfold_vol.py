@@ -5,9 +5,7 @@ import sys
 import h5py 
 from timeit import default_timer
 from scipy.interpolate import interpn
-
-sys.path.append('/home/ty/python_modules/pynamic-structure-factor')
-from mod_io import read_sqw, read_bragg, read_timeavg
+from libpsf.mod_io import read_sqw, read_bragg, read_timeavg
 
 # --------------------------------------------------------------------------------------------------
 class timer:

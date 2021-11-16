@@ -1,7 +1,7 @@
 import sys
 sys.path.append('/home/ty/research/repos/pynamic-structure-factor/modules')
 import matplotlib.pyplot as plt
-from mod_io import read_sqw
+from libpsf.mod_io import read_sqw
 
 #axis_lims = [0,60,1e-6,1e2]
 

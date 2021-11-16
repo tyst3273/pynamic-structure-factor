@@ -4,10 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.io import loadmat
 from matplotlib.image import imread
-import sys
-
-sys.path.append('/home/ty/python_modules/pynamic-structure-factor/')
-from mod_io import read_sqw, read_bragg, read_timeavg
+from libpsf.mod_io import read_sqw, read_bragg, read_timeavg
 
 # ---------------------------------------------------------------------
 

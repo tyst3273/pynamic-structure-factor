@@ -1,7 +1,7 @@
 import sys
 sys.path.append('./modules')
 import matplotlib.pyplot as plt
-from mod_io import read_sqw
+from libpsf.mod_io import read_sqw
 
 vlims = [None,None]
 vlims = [0,0.025]
