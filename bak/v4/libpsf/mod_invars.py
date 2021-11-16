@@ -97,17 +97,9 @@ class input_variables:
         self.types                    = ['Si']      # 1 per 'type' in the traj file. ignored if b is given
         self.exp_type                 = 'ins'       # either ins or xray
         self.Qpoints_file             = False       # read Q points from file (give name of file here)
-
-        # Qmin and Qmax can have any number of verticies such that len(Qmin)%3 == 0.
-        # for each vertex in Qmin, the corresponding vertex in Qmax is the end of that
-        # segement. for each segement, give a number of steps in total_Qsteps. 
-        # for example, to take a Qslice from 000 to 100 then from 100 to 101, you could use:
-        #   Qmin = 0 0 0  1 0 0 
-        #   Qmax = 0 0 1  1 0 1
-        #   total_Qsteps = 21 21 
         self.Qmin                     = [0,0,0]     # min of Q path to make 2d scan
         self.Qmax                     = [2,0,0]     # max of Q path to make 2d scan
-        self.total_Qsteps             = [17]          # number of steps in 2d scan
+        self.total_Qsteps             = 17          # number of steps in 2d scan
 
         # split the trajectory into 'blocks' and compute sqw for each. average the results of 
         # each block, sort of like an 'ensemble' average. can use unecessarily long trajectories
@@ -171,7 +163,7 @@ class input_variables:
         self.Qpoints_file = self._parse_str('Qpoints_file',self.Qpoints_file)
         self.Qmin         = self._parse_float_list('Qmin',self.Qmin)
         self.Qmax         = self._parse_float_list('Qmax',self.Qmax)
-        self.total_Qsteps = self._parse_int_list('total_Qsteps',self.total_Qsteps)
+        self.total_Qsteps = self._parse_int('total_Qsteps',self.total_Qsteps)
         self.num_blocks   = self._parse_int('num_blocks',self.num_blocks)
         self.blocks       = list(range(self.num_blocks)) 
         self.blocks       = self._parse_int_list('blocks',self.blocks) 
@@ -196,7 +188,6 @@ class input_variables:
         except:
             message = 'lattice vectors seem wrong. should be a list of 9 floats with no commas'
             raise PSF_exception(message)
-
         # check that lattice vectors are ortho
         # the issue is that positions etc. are in cartesian coords with ortho boxes. different lattice
         # vectors should work, but i haven't tested it yet. it will be necessary to convert Q in 1/A 
@@ -205,8 +196,7 @@ class input_variables:
         if (self.lattice_vectors[0,1] != 0 or self.lattice_vectors[0,2] != 0 or 
             self.lattice_vectors[1,0] != 0 or self.lattice_vectors[1,2] != 0  or
             self.lattice_vectors[2,0] != 0  or self.lattice_vectors[2,1] != 0): 
-            message = 'only ortho. lattice vectors are currently supported. \n' \
-                      ' contact the author at ty.sterling@colorado.edu if you need this feature'
+            message = 'only ortho. lattice vectors are currently supported. see comments in mod_invars'
             raise PSF_exception(message)
 
         # print the traj file
@@ -239,15 +229,11 @@ class input_variables:
             print_stdout(message,msg_type='NOTE')
 
         # check that Q paths opts make sense
-        if len(self.Qmin) % 3:
-            message = 'each vertex for the Q path should have 3 coords'
+        if len(self.Qmin) != 3:
+            message = f'variable Qmin should be a list of 3 floats'
             raise PSF_exception(message)
-        self.num_Qpath = len(self.Qmin)//3
-        if len(self.Qmin) != len(self.Qmax):
-            message = f'variable Qmin and Qmax should have same number of vertices'
-            raise PSF_exception(message)
-        if len(self.total_Qsteps) != self.num_Qpath:
-            message = 'number of steps should equal number of paths'
+        if len(self.Qmax) != 3:
+            message = f'variable Qmax should be a list of 3 floats'
             raise PSF_exception(message)
 
         # check that the requested blocks make sense

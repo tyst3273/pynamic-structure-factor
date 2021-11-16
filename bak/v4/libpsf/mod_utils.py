@@ -30,7 +30,7 @@ class PSF_exception(Exception):
 
     def __init__(self,message='an error occured. aborting',rank=0):
         if rank == 0:
-            print_stdout(message+'\n',msg_type='ERROR')
+            print_stdout(message,msg_type='ERROR')
 
 # -----------------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ def print_herald():
     """
 
     herald = """
- Pynamic Structure Factor, version 4.0
+ Pynamic Structure Factor, version 3.0
 
  Now with multiprocessing support!
 

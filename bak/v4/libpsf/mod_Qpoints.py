@@ -120,21 +120,11 @@ class Qpoints:
         easily exteneded to non-orthogonal case. 
         """
 
-        Qmin = np.array(invars.Qmin).reshape(invars.num_Qpath,3)
-        Qmax = np.array(invars.Qmax).reshape(invars.num_Qpath,3)
-
-        self.total_Qsteps = sum(invars.total_Qsteps)
+        self.total_Qsteps = invars.total_Qsteps
         self.total_reduced_Q = np.zeros((self.total_Qsteps,3))
-        
-        shift = 0
-        for ii in range(invars.num_Qpath):
-            self.total_reduced_Q[shift:shift+invars.total_Qsteps[ii],0] = \
-                np.linspace(Qmin[ii,0],Qmax[ii,0],invars.total_Qsteps[ii])
-            self.total_reduced_Q[shift:shift+invars.total_Qsteps[ii],1] = \
-                np.linspace(Qmin[ii,1],Qmax[ii,1],invars.total_Qsteps[ii])
-            self.total_reduced_Q[shift:shift+invars.total_Qsteps[ii],2] = \
-                np.linspace(Qmin[ii,2],Qmax[ii,2],invars.total_Qsteps[ii])
-            shift = shift+invars.total_Qsteps[ii]
+        self.total_reduced_Q[:,0] = np.linspace(invars.Qmin[0],invars.Qmax[0],invars.total_Qsteps)
+        self.total_reduced_Q[:,1] = np.linspace(invars.Qmin[1],invars.Qmax[1],invars.total_Qsteps)
+        self.total_reduced_Q[:,2] = np.linspace(invars.Qmin[2],invars.Qmax[2],invars.total_Qsteps)
 
     # ---------------------------------------------------------------------------------------------
 
