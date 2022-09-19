@@ -1,0 +1,39 @@
+# '#' are comments
+
+# -------------- I/O options -----------------
+
+traj_file       = /home/ty/research/projects/mapi_test/pos_data/pos_10.h5
+output_dir      = sqw
+outfile_prefix  = mp_ins
+
+#---------------- MD params ------------------
+
+dt              = 0.25     
+stride          = 200      
+total_steps     = 4000000  
+num_atoms       = 48000    
+supercell       = 20 20 10 
+
+# ----------------- calc option --------------------
+
+num_processes   = 4
+Qmin            = 0 0 0      
+Qmax            = 2 2 0
+total_Qsteps    = 41
+num_blocks      = 40
+blocks          = 0 2 4 6 8 10
+compute_sqw     = 1
+compute_bragg   = 1
+compute_timeavg = 1
+
+# ---------- neutron scattering lengths --------
+types           = C N 2H 2H Pb I            
+
+
+
+
+
+
+
+
+

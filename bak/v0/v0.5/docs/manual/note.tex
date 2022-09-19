@@ -1,0 +1,129 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[11pt,prb,aps,nofootinbib,superscriptaddress,floatfix]{revtex4-2} 
+\usepackage{graphicx}
+\usepackage{xcolor} 
+\usepackage{amsmath}
+\usepackage{amssymb} 
+\usepackage{natmove}
+\usepackage{natbib}
+\usepackage{hyperref} 
+\usepackage{bm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\title{Classical Molecular Dynamics Formulation of the Dynamic Structure Factor}
+
+\author{Tyler C. Sterling}
+\email{ty.sterling@colorado.edu}
+\affiliation{Department of Physics, University of Colorado at Boulder, Boulder, Colorado 80309, USA}
+
+\author{Dmitry Reznik}
+\affiliation{Department of Physics, University of Colorado at Boulder, Boulder, Colorado 80309, USA}
+\affiliation{Center for Experiments on Quantum Materials, University of Colorado at Boulder, Boulder, Colorado 80309, USA}
+
+
+\date{\today}
+
+\begin{abstract}
+aaa
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+In an inelastic neutron scattering (INS) or inelastic X-ray scattering (IXS) experiment, the doubly-differential cross section basically tells us the probability that a particle in the incident beam is scattered in a particular direction with a particular change in energy. The doubly-differential cross section is proportional to the the \emph{dynamic structure factor} $S(\bm{Q},\omega)$ \cite{dove1993introduction,squires1996introduction}. The wave-vector $\bm{Q}$ is the momentum transferred into the crystal and is directly related to the direction into which the incident particle scatters. $E=\hbar \omega$ is the energy transferred into the crystal by the particle. Neutron and X-ray scattering are the flag-ship methods for measuring atomic dynamics and structure in condensed matter, particularly for $\bm{Q} \neq 0$. We want to understand $S(\bm{Q},\omega)$ in detail. 
+
+If we can calculate $S(\bm{Q},\omega)$, we can directly model a scattering experiment. Usually we want to do this because we have measured the atomic dynamics in a crystal and found an interesting signal, but are having a hard time understanding what is going on. $S(\bm{Q},\omega)$ is a thermal-average of the atomic dynamics \cite{dove1993introduction}, so deducing what is going on at the microscopic level is an \emph{inverse problem} (i.e. it's hard). A sucessful method to attack the inverse problem is reverse Monte-Carlo (RMC) \cite{morganRmcdiscordReverseMonte2021}. We guess a configuration of the atoms and calculate the Boltzmann weight to deduce its likely hood. This is done for many configurations and they are averaged. If our guesses produce the right scattering intensity, then maybe we know what configurations produce the signal we care about. Still RMC is based on ensemble averaging, so we can really only probe the static microscopic structure: e.g. diffuse and Bragg scattering. This is analogous to the situation in Monte-Carlo atomic simulation methods where we lose information about the \emph{dynamics} that lead to a physical observable by averaging over configurations on different phase-space trajectories. If knowing the dynamics is important, one often uses \emph{molecular dynamics} (MD) simulations instead \cite{allen2017computer}. So we need to know how to calculate $S(\bm{Q},\omega)$ from MD.
+
+In this note, we derive an approximate expression for $S(\bm{Q},\omega)$ that can be used with classical molecular dynamics simulations to model scattering spectra from arbitrary materials; the formulation is applicable to gases, liquids, and crystals. 
+
+\section{The Classical Dynamic Structure Factor}
+The density of atoms as \emph{seen} by an incident beam of particles (X-rays or neutrons) is \cite{dove1993introduction}
+\begin{equation}
+    \hat{\rho}(\bm{r},t)=\sum_i^N f_i(Q) \delta(\bm{r}-\hat{\bm{r}}_i(t)).
+    \label{eq:rho}
+\end{equation}
+$\bm{r}$ and $t$ are parameters, but $\hat{\bm{r}}_i(t)$ is a quantum mechanical position operator, so $\hat{\rho}(\bm{r},t)$ is an operator too. If the incident beam is neutrons, $f_i(Q)\equiv b_i$ is the $Q-$independent neutron scattering length. If the incident beam is X-rays, then $f_i(Q)$ is the $Q$-dependent atomic form factor which can be approximated by a sum of Gaussians
+\begin{equation}
+    f_i(Q)=\sum_j^4 p_j \exp \left(-q_j \left( \frac{Q}{4\pi}\right)^2\right)+s.
+    \label{eq:fQ}
+\end{equation}
+The parameters $p_j$, $q_j$, and $s$ for X-rays and the scattering lengths $b_i$ for neutrons have already been determined and can be looked up. \cite{hazemann2005high,brown2006intensity}. The index $i$ runs over all atoms in the compound and $f_i(Q)$ is different for different atoms. $Q$ is the (magnitude of- ) momentum transferred from the incident (mono-chromatic) beam into the sample (it is \emph{not} to be confused with the many wave vectors $\bm{Q}'$, $\bm{Q}''$, ... used as dummy variables below).
+
+The \emph{dynamic structure factor} is defined as
+\begin{equation}
+    \begin{split}
+    S(\bm{Q},\omega) & =\int \int \langle  \hat{\rho}(\bm{r}+\bm{r}',t+t') \hat{\rho}(\bm{r}',t') \rangle \exp(i(\bm{Q}\cdot \bm{r}-\omega t)) dt d\bm{r} \\
+    & \equiv \int G(\bm{r},t) \exp (i(\bm{Q} \cdot \bm{r}-\omega t)) dt d\bm{r} \\
+    & \equiv \int F(\bm{Q},t) \exp (-i \omega t) dt
+    \end{split}
+    \label{eq:dsf}
+\end{equation}
+Eq. \ref{eq:dsf} is the time- and space-Fourier transform of the density-density correlation function (also called the \emph{Van Hove} function \cite{van1954correlations}), $G(\bm{r},t)$. This makes sense: the probability of a (free-)particle with wave length $\lambda \sim 1/Q$ and energy $E=\hbar \omega$ scattering off the crystal ought to be large if there are fluctuations in the crystal with the same wave length and frequency. 
+
+Positions do not commute at different times $t$, $t'$ so evaulating eq. \ref{eq:dsf} is difficult. To simplify the notation, we neglect writing the time dependence of $\hat{\bm{r}}$ explicitly except where it is needed. The usual method to evaluate eq. \ref{eq:dsf} for crystals is to expand the position operators, $\hat{\bm{r}}$ in eq. \ref{eq:rho}, in terms of the phonon creation and annihilation operators \cite{squires1996introduction}. This works well when the harmonic approximation is accurate, but at high-temperatures and particularly in molecular crystal where the molecules rotate almost freely, this is not adequate. Instead, we approximate the positions as classical coordinates so that $\hat{\rho} \equiv \rho$ is classical and the classical positions $\bm{r}(t)$ can be determined using e.g. molecular dynamics simulations\footnote{Obviously ab-initio molecular dynamics works too since the atomic trajectories are classical.}. Importantly we have made no assumptions about the equilibrium configuration of the material, so this computational technique is valid for liquids, disordered compounds, molecular crystals, etc. The classical approximation, while good at high temperature, does not satisfy the principle of detailed balance \cite{squires1996introduction,dove1993introduction,harrelson2021computing}. We mention that it is possible to add corrections that include quantum mechanical effects \cite{harrelson2021computing}; however, we do not pursue this here. 
+
+For classical (i.e. commuting) positions, eq. \ref{eq:dsf} can be simplified. With
+\begin{equation}
+    \delta(\bm{r}-\bm{r}_i)=\int{\exp(-i\bm{Q}'\cdot(\bm{r}-\bm{r}_i))}\frac{d\bm{Q}'}{(2\pi)^3}
+\end{equation}
+we can write $\rho(\bm{r},t)$ as
+\begin{equation}
+    \rho(\bm{r},t)=\sum_i^N f_i(Q)\int{\exp(-i\bm{Q}'\cdot(\bm{r}-\bm{r}_i))} \frac{d\bm{Q}'}{(2\pi)^3}.
+    \label{eq:rho_r}
+\end{equation}
+The classical expression for the Van Hove function, G($\bm{r},t$) in eq. \ref{eq:dsf}, is
+\begin{equation}
+    G(\bm{r},t) = \langle \rho (\bm{r}+\bm{r}',t+t') \rho (\bm{r}',t') \rangle = \int \int \rho (\bm{r}+\bm{r}',t+t') \rho (\bm{r}',t') d\bm{r}'dt'.
+    \label{eq:Grt_1}
+\end{equation}
+Inserting eq. \ref{eq:rho_r} into eq. \ref{eq:Grt_1} and carrying out the integrals, we find
+\begin{equation}
+    G(\bm{r},t)=\sum_i^N \sum_j^N f_i(Q) f_j(Q) \int  \delta(\bm{r}- \left[ \bm{r}_i(t+t')-\bm{r}_j(t') \right] ) dt' .
+    \label{eq:Grt}
+\end{equation}
+Similarly, inserting eq. \ref{eq:Grt} into $F(\bm{Q},t)$, we find:
+\begin{equation}
+    F(\bm{Q},t) = \sum_i^N \sum_j^N f_i(Q) f_j(Q) \int \exp (i\bm{Q}\cdot \left[ \bm{r}_i(t+t')-\bm{r}_j(t') \right] ) dt'.
+    \label{eq:FQt}
+\end{equation}
+
+Next, we can rewrite $\exp(i\bm{Q}\cdot\bm{r}(t))$ as
+\begin{equation}
+    \exp(i\bm{Q}\cdot\bm{r}(t))=\int \exp(i\bm{Q}\cdot\bm{r}(\tau)) \delta(\tau-t)d\tau.
+    \label{eq:exp_tau}
+\end{equation}
+Combining equations \ref{eq:FQt} and \ref{eq:exp_tau} with eq. \ref{eq:dsf}, we can do all the integrals over exponentials:
+\begin{equation}
+    \begin{split}
+    S(\bm{Q},\omega) = \sum_i^N \sum_j^N f_i(Q) f_j(Q) \int \int & \exp (i(\bm{Q}\cdot \bm{r}_i(\tau)-\omega\tau))  \times  \\
+    & \exp (-i(\bm{Q}\cdot \bm{r}_j(\tau')-\omega\tau')) d\tau d\tau' .
+    %& = \left| \sum_i^N f_i(Q) \int \exp (-i(\bm{Q}\cdot \bm{r}_i(\tau)-\omega\tau)) d\tau \right|^2
+    \end{split}
+    \label{eq:SQw}
+\end{equation}
+Finally, with $E\equiv\hbar\omega$ and $\tau\equiv t$, we can rewrite this as
+\begin{equation}
+    S(\bm{Q},E) = \Big \lvert \sum_i^N f_i(Q)\int \exp \left(i \left( \bm{Q}\cdot \bm{r}_i(t)-\frac{E}{\hbar}t \right) \right)dt \Big \rvert^2.
+    \label{eq:A_SQE_MD}
+\end{equation}
+Equation \ref{eq:A_SQE_MD} can be straightforwardly evaluated from molecular dynamics trajectories, $\bm{r}_i(t)$.
+
+\section{Scattering}
+{\color{red} Derive Bragg and diffuse intensity from eq. \ref{eq:A_SQE_MD}.}
+
+\section{Discussion}
+An expression similar to eq. \ref{eq:SQw}, but valid for homogenous crystals (i.e. only a single atom type), has been used with MD to study silicon nano-wires and nano-membranes in the past \cite{zushi2015effect,xiong2017native}\footnote{The expressions in these references appear not to be ``squared" as they should be; probably just a typo.}.
+
+
+\section{Acknowledgments}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliography{ref}
+
+\end{document}

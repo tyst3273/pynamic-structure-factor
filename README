@@ -1,0 +1,17 @@
+
+the input options suppose that calculations are done with LAMMPS using an orthorhombic simulation box. 
+the consequences of these assumptions are as follows: 
+
+    (1) 'atom_types' below is a list of strings that are mapped to the 'atom types' in 
+        the LAMMPS simulation. the atoms in 'atom_types' should be given in the same order 
+        as used in the simulation. 
+
+    (2) the orthorhombic simulation box is assumed since all that is written using the hdf5 
+        dump method of lammps is the box lengths. so to calculate the box size dynamically, 
+        we have to use these data which imposes an orhtorhombic simulation box. dervied from 
+        this requirement is that the 'lattice_vectors' must also be orthorhombic. in most cases, 
+        this isnt an overly restrictive requirement since you can just pick a conventional cell 
+        that is orhto. make sure to convert the real Q-vectors you want to study to the new basis!
+        NOTE: this restriction can be (fairly) easily reversed later on.
+
+
