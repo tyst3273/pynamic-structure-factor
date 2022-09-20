@@ -1,4 +1,9 @@
 
+import psf.m_lattice as m_lattice
+import psf.m_Qpoints as m_Qpoints
+import psf.m_timing as m_timing
+import psf.m_scattering_lengths as m_scattering_lengths
+
 
 class c_communicator:
 
@@ -22,15 +27,14 @@ class c_communicator:
         """
 
         # lattice and reciprocal lattice vectors
-        self.lattice = m_lattice.c_lattice(self.config,self.comm)
+        self.lattice = m_lattice.c_lattice(self.config,self)
 
         # Q-points created using one of numerous methods specified in config
-        self.Qpoints = m_Qpoints.c_Qpoints(self.config,self.comm,self.timers)
+        self.Qpoints = m_Qpoints.c_Qpoints(self.config,self.timers,self)
         self.Qpoints.generate_Qpoints()
 
         # scattering lengths for the S(Q,w) calculation
-        self.xlengths = m_scattering_lengths.c_scattering_lengths(self.config,self.comm)
-
+        self.xlengths = m_scattering_lengths.c_scattering_lengths(self.config,self)
 
     # ----------------------------------------------------------------------------------------------
 

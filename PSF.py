@@ -7,10 +7,7 @@ all kinds of stuff in here... but for now, its just the main script.
 
 import psf.m_communicator as m_communicator
 import psf.m_config as m_config
-import psf.m_lattice as m_lattice
-import psf.m_Qpoints as m_Qpoints
 import psf.m_timing as m_timing
-import psf.m_scattering_lengths as m_scattering_lengths
 
 preamble = '\n\n#######################################################################\n'
 preamble += 'Pynamic Structure Factors \n'
@@ -20,7 +17,6 @@ preamble += 'affil: Physics Dept., University of Colorado Boulder\n'
 preamble += '  Neurtron Scattering and Raman Spectroscopy Lab\n'
 preamble += '#######################################################################\n'
 print(preamble)
-
 
 
 # timers
