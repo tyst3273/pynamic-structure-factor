@@ -62,7 +62,6 @@ class c_scattering_lengths:
         
         print(msg)
 
-
     # ----------------------------------------------------------------------------------------------
 
     def _get_neutron_scattering_lengths(self):
