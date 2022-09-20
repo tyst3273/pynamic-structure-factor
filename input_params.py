@@ -2,7 +2,8 @@
 
 # options for where to get data/preprocessing
 trajectory_format = 'lammps_hdf5' 
-trajectory_file = '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/tmp/pos.h5'
+trajectory_file = \
+        '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/tmp/pos.h5'
 unwrap_trajectory = True
 recalculate_box_lengths = True
 
@@ -32,7 +33,7 @@ experiment_type = 'neutrons' # 'neutrons' or 'xrays'
 
 
 # options for how to generate Q-points for calculation
-Qpoints_option = 'file' # mesh, file, or path
+Qpoints_option = 'path' # mesh, file, or path
 
 # 'Qpoints_option' == 'mesh'
 Q_mesh_symmetry = True # used for 'mesh' option; requires spglib !!
@@ -46,9 +47,9 @@ Q_file = 'Qpts.dat'
 
 # 'Qpoints_option' == 'path'
 Q_path_start = [[0,0,0], 
-               [2,0,0]]
+               [-2,0,0]]
 Q_path_end = [[2,0,0],
-             [2,0,2]]
+             [25,0,-2]]
 Q_path_steps = [21,21]
 
 # number of processes to split Q-point parallelization over

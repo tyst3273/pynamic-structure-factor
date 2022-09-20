@@ -11,23 +11,20 @@ class c_multi_processing:
 
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self,utils,comm):
+    def __init__(self,comm):
 
         """
         tools for parallelism using multiprocessing
         """
 
-        self.utils = utils
-        self.comm = comm
-
         # number of processes to use for kpt parallelization
-        self.num_kpt_procs = utils.config.num_kpt_procs
-        if self.num_kpt_procs == 1:
+        self.num_Qpoint_procs = utils.config.num_Qpoint_procs
+        if self.num_Qpoint_procs == 1:
             self.use_kpt_parallelism = False
             msg = 'parallism over k-points is disabled\n'
         else:
             self.use_kpt_parallelism = True    
-            msg = f'number of processes for k-point parallelism: {self.num_kpt_procs}\n'
+            msg = f'number of processes for k-point parallelism: {self.num_Qpoint_procs}\n'
 
         # number of processes to use for bond calc. parallelization
         self.num_bond_procs = utils.config.num_bond_procs
@@ -49,77 +46,33 @@ class c_multi_processing:
         distribute the kpts over processes "round-robin" style
         """
 
-        _num_kpts = self.comm.k_points.num_kpts
-        _num_procs = self.num_kpt_procs
+        _num_Qpts = self.comm.k_points.num_kpts
+        _num_procs = self.num_Qpoint_procs
 
         # the indices of the kpts on each process
-        self.kpts_on_proc, self.num_kpts_per_proc = \
+        self.kpts_on_proc, self.num_Qpts_per_proc = \
             self._distribute_round_robin(_num_kpts,_num_procs)
 
-        msg_1 = 'number of k-points on each k-point process:'
-        for ii in range(self.num_kpt_procs):
+        msg = 'number of Q-points on each Q-point process:'
+        for ii in range(self.num_Qpoint_procs):
 
-            _nk = self.num_kpts_per_proc[ii]
-
-            _ = f'proc[{ii}]:'
-            msg_1 = msg_1+f'\n  {_:9} {_nk}'
-
-        # check if it will work
-        if np.any(self.num_kpts_per_proc == 0):
-            self.utils.log.crash('at least one process will treat 0 k-points!\n'\
-                           ' decrease num_kpt_procs or use more k-points')
-
-        # print wassup
-        self.max_num_kpts_over_procs = self.num_kpts_per_proc.max()
-        msg_2 = 'max number of k-points over all k-point processes:' \
-                f' {self.max_num_kpts_over_procs}' 
-        self.utils.log.info(msg_2,msg_label='k-point parallelism')
-
-        if self.utils.config.verbosity > 0:
-            self.utils.log.info(msg_1)
-
-    # -----------------------------------------------------------------------------------------------
-
-    def distribute_bonds_over_procs(self):
-
-        """
-        distribute the bonds over processes "round-robin" style
-        """
-
-        _num_hop = self.comm.hopping.num_bonds_to_calc
-        _num_ovlp = self.comm.overlap.num_bonds_to_calc
-        _num_procs = self.num_bond_procs
-
-        # the indices of the hopping integrals on each process
-        self.hop_on_proc, self.num_hop_per_proc = \
-            self._distribute_round_robin(_num_hop,_num_procs)
-
-        # the indices of the overlap integrals on each process
-        self.ovlp_on_proc, self.num_ovlp_per_proc = \
-            self._distribute_round_robin(_num_ovlp,_num_procs)
-
-        msg_1 = 'number of integrals on each bond process:'
-        for ii in range(_num_procs):
-
-            _nh = self.num_hop_per_proc[ii]
-            _no = self.num_ovlp_per_proc[ii]
+            _nk = self.num_Qpts_per_proc[ii]
 
             _ = f'proc[{ii}]:'
-            msg_1 = msg_1+f'\n  {_:9}  hopping: {_nh}, overlap: {_no}'
+            msg = msg+f'\n  {_:9} {_nk}'
 
         # check if it will work
-        if np.any(self.num_hop_per_proc == 0) or np.any(self.num_ovlp_per_proc == 0):
-            self.utils.log.crash('at least one process will treat 0 bonds!\n'\
-                           ' decrease num_bond_procs')
+        if np.any(self.num_Qpts_per_proc == 0):
+            self.utils.log.crash('at least one process will treat 0 Q-points!\n'\
+                           ' decrease num_Qpoint_procs or use more Q-points')
 
         # print wassup
-        self.max_num_bonds_over_procs = max(self.num_hop_per_proc.max(),
-                        self.num_ovlp_per_proc.max())
-        msg_2 = f'max number of bonds over all bond processes: {self.max_num_bonds_over_procs}'
-        self.utils.log.info(msg_2,msg_label='bond parallelism')
+        self.max_num_Qpts_on_procs = self.num_Qpts_per_proc.max()
+        msg = 'max number of Q-points over all processes:' \
+                f' {self.max_num_Qpts_on_procs}' 
 
-        if self.utils.config.verbosity > 0:
-            self.utils.log.info(msg_1)
+        print('\n*** Q-point parallelism ***')
+        print(msg)
 
     # -----------------------------------------------------------------------------------------------
 

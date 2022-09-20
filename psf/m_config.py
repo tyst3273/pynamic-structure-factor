@@ -57,7 +57,6 @@ class c_config:
         """
 
         allowed = vars(self.defaults).keys()
-        print(allowed)
 
         # load input file
         self.input = m_import.import_module_from_path(self.input_file)
@@ -73,44 +72,243 @@ class c_config:
 
         # now get the variables
         self._set_verbosity()
-
         self._set_lattice_vectors()
         self._set_atom_types()
         self._set_basis_positions()
-
         self._set_trajectory_format()
         self._set_trajectory_file()
         self._set_unwrap_trajectory()
         self._set_recalculate_box_lengths()
-
         self._set_calc_bragg()
         self._set_calc_timeavg()
         self._set_calc_sqw()
-        self._set_output_directory('./out/')
+        self._set_output_directory()
         self._set_output_prefix()
-
         self._set_md_time_step()
         self._set_md_num_steps()
         self._set_md_num_atoms()
         self._set_md_supercell_reps()
-
         self._set_experiment_type() 
-        self._set_Qpoints_option() 
-        self._set_Q_mesh_symmetry()
-        self._set_Q_mesh() 
-#        self._set_Q_mesh_H()
-#        self._set_Q_mesh_K()
-#        self._set_Q_mesh_L()
-#        self._set_Q_file() 
-#        self._set_Q_path_start()
-#        self._set_Q_path_end()
-#        self._set_Q_path_steps()
-   
         self._set_num_Qpoint_procs()
+        self._set_Qpoints_option() 
 
+        # could just read all of this stuff; this is just to make it lightweight 
+        if self.Qpoints_option == 'mesh':
+            self._set_Q_mesh_symmetry()
+            self._set_Q_mesh() 
+            self._set_Q_mesh_H()
+            self._set_Q_mesh_K()
+            self._set_Q_mesh_L()
+        elif self.Qpoints_option == 'text_file' \
+                or self.Qpoints_option == 'mesh_file' \
+                or self.Qpoints_option == 'write_file':
+            self._set_Q_file() 
+        elif self.Qpoints_option == 'path':
+            self._set_Q_path_start()
+            self._set_Q_path_end()
+            self._set_Q_path_steps()
+   
         # --- add new variables parsers here ---
         # ...
         # ...
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_Q_path_steps(self,Q_path_steps=None):
+
+        """
+        get the attribute
+        """
+
+        if Q_path_steps is None:
+            self.Q_path_steps = self._get_attr('Q_path_steps')
+        else:
+            self.Q_path_steps = Q_path_steps
+
+        msg = 'Q_path_steps seems wrong\n'
+        try:
+            self.Q_path_steps = np.array(self.Q_path_steps,dtype=int)
+        except:
+            crash(msg)
+
+        if len(self.Q_path_steps.shape) != 1:
+            crash(msg)
+
+        # error check
+        msg = 'Q_path_steps, Q_path_start, and Q_path_end all should have same number of paths\n'
+        self.num_Q_paths = self.Q_path_steps.size
+        if self.Q_path_start.shape[0] != self.num_Q_paths:
+            crash(msg)
+        if self.Q_path_end.shape[0] != self.num_Q_paths:
+            crash(msg)
+        
+        # print to screen
+        msg = 'Q_path:\n' \
+         '  ---------- [start] -------       --------- [end] ----------   [steps]'
+        for ii in range(self.num_Q_paths):
+            msg = msg+f'\n  {self.Q_path_start[ii,0]:8.5f} {self.Q_path_start[ii,1]: 8.5f}' \
+                      f' {self.Q_path_start[ii,2]:8.5f}  ==>  '
+            msg = msg+f'{self.Q_path_end[ii,0]:8.5f} {self.Q_path_end[ii,1]:8.5f}' \
+                      f' {self.Q_path_end[ii,2]:8.5f}    {self.Q_path_steps[ii]:3g}'
+        print(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_Q_path_end(self,Q_path_end=None):
+
+        """
+        get the attribute
+        """
+
+        if Q_path_end is None:
+            self.Q_path_end = self._get_attr('Q_path_end')
+        else:
+            self.Q_path_end = Q_path_end
+
+        msg = 'Q_path_end seems wrong\n'
+        try:
+            self.Q_path_end = np.array(self.Q_path_end,dtype=float)
+        except:
+            crash(msg)
+
+        if self.Q_path_end.shape[1] != 3:
+            crash(msg)
+
+        # info is printed in _set_Q_path_steps()
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_Q_path_start(self,Q_path_start=None):
+
+        """
+        get the attribute
+        """
+
+        if Q_path_start is None:
+            self.Q_path_start = self._get_attr('Q_path_start')
+        else:
+            self.Q_path_start = Q_path_start
+        
+        msg = 'Q_path_start seems wrong\n'
+        try:
+            self.Q_path_start = np.array(self.Q_path_start,dtype=float)
+        except:
+            crash(msg)
+
+        if self.Q_path_start.shape[1] != 3:
+            crash(msg)
+
+        # info is printed in _set_Q_path_steps()
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_Q_file(self,Q_file=None):
+
+        """
+        get the attribute
+        """
+
+        if Q_file is None:
+            self.Q_file = self._get_attr('Q_file')
+        else:
+            self.Q_file = Q_file
+        self.Q_file = str(self.Q_file)
+        self.Q_file = os.path.abspath(self.Q_file)
+
+        # check if file exists
+        check_file(self.Q_file,warn=True)
+
+        print(f'Q_file:\n  {self.Q_file}')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_Q_mesh_K(self,Q_mesh_K=None):
+
+        """
+        get the attribute
+        """
+
+        if Q_mesh_K is None:
+            self.Q_mesh_K = self._get_attr('Q_mesh_K')
+        else:
+            self.Q_mesh_K = Q_mesh_K
+
+        msg = 'Q_mesh_K seems wrong\n'
+        try:
+            self.Q_mesh_K = np.array(self.Q_mesh_K,dtype=float)
+        except:
+            crash(msg)
+        if self.Q_mesh_K.size > 2:
+            crash(msg)
+
+        # if only 1 num, make it indexibl
+        if self.Q_mesh_K.size == 1:
+            self.Q_mesh_K = self.Q_mesh_K.reshape(1,)
+
+        msg = 'Q_mesh_K:\n  '
+        for ii in range(self.Q_mesh_K.size):
+            msg = msg+f'{self.Q_mesh_K[ii]} '
+        print(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_Q_mesh_L(self,Q_mesh_L=None):
+
+        """
+        get the attribute
+        """
+
+        if Q_mesh_L is None:
+            self.Q_mesh_L = self._get_attr('Q_mesh_L')
+        else:
+            self.Q_mesh_L = Q_mesh_L
+
+        msg = 'Q_mesh_L seems wrong\n'
+        try:
+            self.Q_mesh_L = np.array(self.Q_mesh_L,dtype=float)
+        except:
+            crash(msg)
+        if self.Q_mesh_L.size > 2:
+            crash(msg)
+
+        # if only 1 num, make it indexibl
+        if self.Q_mesh_L.size == 1:
+            self.Q_mesh_L = self.Q_mesh_L.reshape(1,)
+
+        msg = 'Q_mesh_L:\n  '
+        for ii in range(self.Q_mesh_L.size):
+            msg = msg+f'{self.Q_mesh_L[ii]} '
+        print(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_Q_mesh_H(self,Q_mesh_H=None):
+
+        """ 
+        get the attribute 
+        """
+
+        if Q_mesh_H is None:
+            self.Q_mesh_H = self._get_attr('Q_mesh_H')
+        else:
+            self.Q_mesh_H = Q_mesh_H
+
+        msg = 'Q_mesh_H seems wrong\n'
+        try:
+            self.Q_mesh_H = np.array(self.Q_mesh_H,dtype=float)
+        except:
+            crash(msg)
+        if self.Q_mesh_H.size > 2:
+            crash(msg)
+
+        # if only 1 num, make it indexibl
+        if self.Q_mesh_H.size == 1:
+            self.Q_mesh_H = self.Q_mesh_H.reshape(1,)
+
+        msg = 'Q_mesh_H:\n  '
+        for ii in range(self.Q_mesh_H.size):
+            msg = msg+f'{self.Q_mesh_H[ii]} '
+        print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -372,7 +570,7 @@ class c_config:
         self.trajectory_file = os.path.abspath(self.trajectory_file)
 
         # check if file exists
-        check_file(self.trajectory_file)
+        check_file(self.trajectory_file,warn=True)
 
         print(f'trajectory_file:\n  {self.trajectory_file}')
 

@@ -35,15 +35,18 @@ def crash(msg=None,exception=None):
 
 # --------------------------------------------------------------------------------------------------
 
-def check_file(file_path):
+def check_file(file_path,warn=False):
 
     """
     check if a file is missing
     """
 
     if not os.path.exists(file_path):
-        msg = f'the file:\n  \'{file_path}\'\n is missing\n'
-        crash(msg)
+        msg = f'the file:\n  \'{file_path}\'\nis missing'
+        if warn:
+            print('\n*** warning! ***\n'+msg+'\n\ncontinuing but might crash!\n')
+        else:
+            crash(msg+'\n')
 
 # --------------------------------------------------------------------------------------------------
 
