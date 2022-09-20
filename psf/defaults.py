@@ -6,7 +6,7 @@ verbosity = 1
 trajectory_format = 'lammps_hdf5' 
 trajectory_file = 'pos.h5'
 unwrap_trajectory = True
-recalculate_box_lengths = True
+recalculate_box_lengths = False
 
 # options for writing results
 output_directory = None

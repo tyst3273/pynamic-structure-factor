@@ -13,6 +13,13 @@ class c_lattice:
         holds lattice and reciprocal lattice vectors
         """
 
+        self.ortho_lattice_vectors = config.ortho_lattice_vectors
+        
+        if config.recalculate_box_lengths:
+            msg = '\nlattice vectors will be dynamically recalculate using data\n' \
+                  'from the trajectory file!'
+            print(msg)
+
         self.set_lattice_vectors(config.lattice_vectors)
 
     # ----------------------------------------------------------------------------------------------
@@ -25,17 +32,10 @@ class c_lattice:
 
         self.lattice_vectors = lattice_vectors
 
-        for ii in range(3):
-            for jj in range(3):
-                if ii == jj:
-                    continue
-                else:
-                    if np.round(self.lattice_vectors[ii,jj],6) != 0.0:
-                        msg = 'only orthogonal (i.e. diagonal) lattice_vectors allowed for now\n'
-                        msg = msg+f'if this functionality is really needed, contact the author'
-                        msg = msg+' at\n --- ty.sterling@colorado.edu\n'
-                        crash(msg)
+        # check if numericall orthorhombic
+        self._check_ortho()
 
+        # get reciprocal lattice vectors
         self._get_reciprocal_lattice()
 
         msg = '\n*** lattice ***\n'
@@ -50,6 +50,28 @@ class c_lattice:
             for jj in range(3):
                 msg += f'{self.reciprocal_lattice_vectors[ii,jj]: 8.5f} '
         print(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _check_ortho(self):
+
+        """
+        check if lattice vectors are numerically orthorhombic 
+        """
+        
+        for ii in range(3):
+            for jj in range(3):
+                if ii == jj:
+                    continue
+                else:
+                    if np.round(self.lattice_vectors[ii,jj],6) != 0.0:
+                        self.ortho_lattice_vectors = False
+                        
+        if not self.ortho_lattice_vectors:
+            msg = 'only orthogonal (i.e. diagonal) lattice_vectors allowed for now\n'
+            msg += f'if this functionality is really needed, contact the author'
+            msg += ' at\n --- ty.sterling@colorado.edu\n'
+            crash(msg)
 
     # ----------------------------------------------------------------------------------------------
 

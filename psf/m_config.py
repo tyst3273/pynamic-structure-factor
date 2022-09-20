@@ -72,9 +72,6 @@ class c_config:
 
         # now get the variables
         self._set_verbosity()
-        self._set_lattice_vectors()
-        self._set_atom_types()
-        self._set_basis_positions()
         self._set_trajectory_format()
         self._set_trajectory_file()
         self._set_unwrap_trajectory()
@@ -82,6 +79,8 @@ class c_config:
         self._set_calc_bragg()
         self._set_calc_timeavg()
         self._set_calc_sqw()
+        self._set_lattice_vectors()
+        self._set_atom_types()
         self._set_output_directory()
         self._set_output_prefix()
         self._set_md_time_step()
@@ -99,6 +98,10 @@ class c_config:
             self._set_Q_mesh_H()
             self._set_Q_mesh_K()
             self._set_Q_mesh_L()
+
+            if self.Q_mesh_symmetry:
+                self._set_basis_positions()
+
         elif self.Qpoints_option == 'text_file' \
                 or self.Qpoints_option == 'mesh_file' \
                 or self.Qpoints_option == 'write_file':
@@ -107,6 +110,7 @@ class c_config:
             self._set_Q_path_start()
             self._set_Q_path_end()
             self._set_Q_path_steps()
+
    
         # --- add new variables parsers here ---
         # ...
@@ -537,7 +541,15 @@ class c_config:
         else:
             self.recalculate_box_lengths = recalculate_box_lengths
         self.recalculate_box_lengths = bool(self.recalculate_box_lengths)
-        print(f'recalculate_box_lengths:\n  {self.recalculate_box_lengths}')
+
+        # --- devloper stuff ---
+        if self.recalculate_box_lengths:
+            msg = '\'recalculate_box_lengths\' is disabled right now. if you need this\n' \
+                  'functionality, contact the author at --- ty.sterling@colorado.edu ---\n'
+            crash(msg)
+        # ----------------------
+
+        #print(f'recalculate_box_lengths:\n  {self.recalculate_box_lengths}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -618,12 +630,31 @@ class c_config:
         else:
             self.lattice_vectors.shape = [3,3]
 
+        # check if lattice vectors are numerically orthorhombic
+        self.ortho_lattice_vectors = True
+        for ii in range(3):
+            for jj in range(3):
+                if ii == jj:
+                    continue
+                else:
+                    if np.round(self.lattice_vectors[ii,jj],6) != 0.0:
+                        self.ortho_lattice_vectors = False
+
+        if self.ortho_lattice_vectors:
+            msg = f'orthorhombic_lattice_vectors:\n  {self.ortho_lattice_vectors}'
+            print(msg)
+        else:
+            msg = 'only orthogonal (i.e. diagonal) lattice_vectors allowed for now\n'
+            msg += f'if this functionality is really needed, contact the author'
+            msg += ' at\n --- ty.sterling@colorado.edu\n'
+            crash(msg)
+
         # echo to the info file
         msg = f'lattice_vectors: (Angstrom)'
         for ii in range(3):
-            msg = msg+'\n'
+            msg += '\n'
             for jj in range(3):
-                msg = msg+f'{self.lattice_vectors[ii,jj]: 10.6f} '
+                msg += f'{self.lattice_vectors[ii,jj]: 10.6f} '
         print(msg)
 
     # ----------------------------------------------------------------------------------------------

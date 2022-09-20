@@ -5,7 +5,7 @@ trajectory_format = 'lammps_hdf5'
 trajectory_file = \
         '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/tmp/pos.h5'
 unwrap_trajectory = True
-recalculate_box_lengths = True
+recalculate_box_lengths = False
 
 # options for writing results
 output_directory = None
