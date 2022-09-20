@@ -7,6 +7,7 @@ all kinds of stuff in here... but for now, its just the main script.
 
 import psf.m_config as m_config
 import psf.m_lattice as m_lattice
+import psf.m_Qpoints as m_Qpoints
 
 preamble = '\n\n#######################################################################\n'
 preamble += 'Pynamic Structure Factors \n'
@@ -21,6 +22,9 @@ config = m_config.c_config()
 config.get_args_from_file()
 
 lattice = m_lattice.c_lattice(config)
+
+
+#Qpts = m_Qpoints.c_Qpoints(config,lattice)
 
 
 
