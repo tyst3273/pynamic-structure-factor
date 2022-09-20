@@ -37,7 +37,7 @@ experiment_type = 'xrays' # 'neutrons' or 'xrays'
 # options for how to generate Q-points for calculation
 Qpoints_option = 'path' # mesh, mesh_file, write_mesh, text_file, or path
 
-# 'Qpoints_option' == 'mesh' ; note, only works with plane centered on Q=(0,0,0) right now
+# 'Qpoints_option' == 'mesh' ; note, symmetry only works with plane centered on Q=(0,0,0) right now
 Q_mesh_symmetry = False # used for 'mesh' option; requires spglib !!
 Q_mesh_H = [-2,2,40]
 Q_mesh_K = [-2,2,40]
