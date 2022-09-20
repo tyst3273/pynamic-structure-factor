@@ -10,6 +10,8 @@ import psf.m_import as m_import
 from psf.m_error import check_file, crash
 
 
+eps = 0.0001
+
 class c_config:
 
     # ----------------------------------------------------------------------------------------------
@@ -71,7 +73,6 @@ class c_config:
         print('echoing input args to the screen!\n')
 
         # now get the variables
-        self._set_verbosity()
         self._set_trajectory_format()
         self._set_trajectory_file()
         self._set_unwrap_trajectory()
@@ -94,7 +95,6 @@ class c_config:
         # could just read all of this stuff; this is just to make it lightweight 
         if self.Qpoints_option == 'mesh':
             self._set_Q_mesh_symmetry()
-            self._set_Q_mesh() 
             self._set_Q_mesh_H()
             self._set_Q_mesh_K()
             self._set_Q_mesh_L()
@@ -104,7 +104,7 @@ class c_config:
 
         elif self.Qpoints_option == 'text_file' \
                 or self.Qpoints_option == 'mesh_file' \
-                or self.Qpoints_option == 'write_file':
+                or self.Qpoints_option == 'write_mesh':
             self._set_Q_file() 
         elif self.Qpoints_option == 'path':
             self._set_Q_path_start()
@@ -147,8 +147,7 @@ class c_config:
             crash(msg)
         
         # print to screen
-        msg = 'Q_path:\n' \
-         '  ---------- [start] -------       --------- [end] ----------   [steps]'
+        msg = 'Q_path:' 
         for ii in range(self.num_Q_paths):
             msg = msg+f'\n  {self.Q_path_start[ii,0]:8.5f} {self.Q_path_start[ii,1]: 8.5f}' \
                       f' {self.Q_path_start[ii,2]:8.5f}  ==>  '
@@ -175,6 +174,9 @@ class c_config:
         except:
             crash(msg)
 
+        if self.Q_path_end.size == 3:
+            self.Q_path_end.shape = [1,3]
+
         if self.Q_path_end.shape[1] != 3:
             crash(msg)
 
@@ -198,6 +200,9 @@ class c_config:
             self.Q_path_start = np.array(self.Q_path_start,dtype=float)
         except:
             crash(msg)
+
+        if self.Q_path_start.size == 3:
+            self.Q_path_start.shape = [1,3]
 
         if self.Q_path_start.shape[1] != 3:
             crash(msg)
@@ -242,16 +247,18 @@ class c_config:
             self.Q_mesh_K = np.array(self.Q_mesh_K,dtype=float)
         except:
             crash(msg)
-        if self.Q_mesh_K.size > 2:
+        if not self.Q_mesh_K.size in [1,3]:
             crash(msg)
+        if self.Q_mesh_K.size == 3:
+            if self.Q_mesh_K[2] < 1:
+                crash(msg)
 
-        # if only 1 num, make it indexibl
+        # if only 1 num, print it
         if self.Q_mesh_K.size == 1:
-            self.Q_mesh_K = self.Q_mesh_K.reshape(1,)
-
-        msg = 'Q_mesh_K:\n  '
-        for ii in range(self.Q_mesh_K.size):
-            msg = msg+f'{self.Q_mesh_K[ii]} '
+            msg = f'Q_mesh_K:\n  {self.Q_mesh_K: 8.5f}'
+        else:
+            msg = 'Q_mesh_K:\n  '
+            msg += f'{self.Q_mesh_K[0]: 8.5f} {self.Q_mesh_K[1]: 8.5f} {self.Q_mesh_K[2]:3g}'
         print(msg)
 
     # ----------------------------------------------------------------------------------------------
@@ -272,16 +279,18 @@ class c_config:
             self.Q_mesh_L = np.array(self.Q_mesh_L,dtype=float)
         except:
             crash(msg)
-        if self.Q_mesh_L.size > 2:
+        if not self.Q_mesh_L.size in [1,3]:
             crash(msg)
+        if self.Q_mesh_L.size == 3:
+            if self.Q_mesh_L[2] < 1:
+                crash(msg)
 
-        # if only 1 num, make it indexibl
+        # if only 1 num, print it
         if self.Q_mesh_L.size == 1:
-            self.Q_mesh_L = self.Q_mesh_L.reshape(1,)
-
-        msg = 'Q_mesh_L:\n  '
-        for ii in range(self.Q_mesh_L.size):
-            msg = msg+f'{self.Q_mesh_L[ii]} '
+            msg = f'Q_mesh_L:\n  {self.Q_mesh_L: 8.5f}'
+        else:
+            msg = 'Q_mesh_L:\n  '
+            msg += f'{self.Q_mesh_L[0]: 8.5f} {self.Q_mesh_L[1]: 8.5f} {self.Q_mesh_L[2]:3g}'
         print(msg)
 
     # ----------------------------------------------------------------------------------------------
@@ -302,16 +311,18 @@ class c_config:
             self.Q_mesh_H = np.array(self.Q_mesh_H,dtype=float)
         except:
             crash(msg)
-        if self.Q_mesh_H.size > 2:
+        if not self.Q_mesh_H.size in [1,3]:
             crash(msg)
+        if self.Q_mesh_H.size == 3:
+            if self.Q_mesh_H[2] < 1:
+                crash(msg)
 
-        # if only 1 num, make it indexibl
+        # if only 1 num, print it
         if self.Q_mesh_H.size == 1:
-            self.Q_mesh_H = self.Q_mesh_H.reshape(1,)
-
-        msg = 'Q_mesh_H:\n  '
-        for ii in range(self.Q_mesh_H.size):
-            msg = msg+f'{self.Q_mesh_H[ii]} '
+            msg = f'Q_mesh_H:\n  {self.Q_mesh_H: 8.5f}'
+        else:
+            msg = 'Q_mesh_H:\n  '
+            msg += f'{self.Q_mesh_H[0]: 8.5f} {self.Q_mesh_H[1]: 8.5f} {self.Q_mesh_H[2]:3g}'
         print(msg)
 
     # ----------------------------------------------------------------------------------------------
@@ -329,7 +340,7 @@ class c_config:
         self.Qpoints_option = str(self.Qpoints_option)
 
         msg = 'Qpoints_option seems wrong\n'
-        if self.Qpoints_option not in ['file','path','mesh']:
+        if self.Qpoints_option not in ['text_file','mesh_file','write_mesh','mesh','path']:
             crash(msg)
 
         print(f'Qpoints_option:\n  {self.Qpoints_option}')
@@ -742,34 +753,6 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_Q_mesh(self,Q_mesh=None):
-
-        """
-        get the attribute
-        """
-
-        if Q_mesh is None:
-            self.Q_mesh = self._get_attr('Q_mesh')
-        else:
-            self.Q_mesh = Q_mesh
-
-        # check the shape
-        msg = f'\'Q_mesh\' should be 3 integers > 0\n'
-        try:
-            self.Q_mesh = np.array(self.Q_mesh,dtype=int)
-        except:
-            crash(msg)
-        if self.Q_mesh.size != 3:
-            crash(msg)
-        if np.any(self.Q_mesh < 1):
-            crash(msg)
-
-        # echo to the info file
-        msg = f'Q_mesh:\n  {self.Q_mesh[0]:g} {self.Q_mesh[1]:g} {self.Q_mesh[2]:g}'
-        print(msg)
-
-    # ----------------------------------------------------------------------------------------------
-
     def _set_Q_mesh_symmetry(self,Q_mesh_symmetry=None):
 
         """
@@ -816,33 +799,6 @@ class c_config:
 
         # echo to the info file
         msg = f'num_Qpoint_procs:\n  {self.num_Qpoint_procs:g}'
-        print(msg)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def _set_verbosity(self,verbosity=None):
-
-        """
-        get the attribute
-        """
-
-        if verbosity is None:
-            self.verbosity = self._get_attr('verbosity')
-        else:
-            self.verbosity = verbosity
-
-        # check if allowed
-        try:
-            self.verbosity = int(self.verbosity)
-        except:
-            msg = f'\'verbosity\' must 0, 1, or 2'
-            crash(msg)
-        if self.verbosity not in [0,1,2]:
-            msg = f'\'verbosity\' must 0, 1, or 2'
-            crash(msg)
-
-        # echo to the info file
-        msg = f'verbosity:\n  {self.verbosity:g}'
         print(msg)
 
     # ----------------------------------------------------------------------------------------------

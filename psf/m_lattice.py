@@ -7,11 +7,15 @@ class c_lattice:
     
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self,config):
+    def __init__(self,config,comm):
 
         """
         holds lattice and reciprocal lattice vectors
         """
+
+        # copy refs to stuff
+        self.comm = comm
+        self.config = config
 
         self.ortho_lattice_vectors = config.ortho_lattice_vectors
         
@@ -82,7 +86,13 @@ class c_lattice:
         as arg
         """
 
-        pass
+        _res = np.zeros(vecs.shape,dtype=float)
+        _num = vecs.shape[0]
+        
+        for ii in range(_num):
+            _res[ii,:] = vecs[ii,0]*matrix[0,:]+vecs[ii,1]*matrix[1,:]+vecs[ii,2]*matrix[2,:]
+
+        return _res
 
     # ----------------------------------------------------------------------------------------------
 

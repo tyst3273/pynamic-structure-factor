@@ -29,7 +29,8 @@ def crash(msg=None,exception=None):
         print(msg)
 
     if not exception is None:
-        print(exception)
+        print('*** exception ***')
+        print(str(exception)+'\n')
 
     kill()
 

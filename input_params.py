@@ -1,5 +1,4 @@
 
-
 # options for where to get data/preprocessing
 trajectory_format = 'lammps_hdf5' 
 trajectory_file = \
@@ -25,32 +24,34 @@ lattice_vectors = [[4.593,0.000,0.000], # angstroms
                    [0.000,4.593,0.000],
                    [0.000,0.000,2.959]]
 atom_types = ['Ti','Ti','O','O','O','O']
-basis_positions = None
-
+basis_positions = [[0.5000000000000000,  0.5000000000000000,  0.5000000000000000],
+                   [0.0000000000000000,  0.0000000000000000,  0.0000000000000000],
+                   [0.1953400114833092,  0.8046599885166907,  0.5000000000000000],
+                   [0.8046599885166907,  0.1953400114833092,  0.5000000000000000],
+                   [0.3046599885166907,  0.3046599885166907,  0.0000000000000000],
+                   [0.6953400114833093,  0.6953400114833093,  0.0000000000000000]]
 
 # experiment info
-experiment_type = 'neutrons' # 'neutrons' or 'xrays'
-
+experiment_type = 'xrays' # 'neutrons' or 'xrays'
 
 # options for how to generate Q-points for calculation
-Qpoints_option = 'path' # mesh, file, or path
+Qpoints_option = 'path' # mesh, mesh_file, write_mesh, text_file, or path
 
-# 'Qpoints_option' == 'mesh'
-Q_mesh_symmetry = True # used for 'mesh' option; requires spglib !!
-Q_mesh = [48,48,1] 
-Q_mesh_H = [-3,3]
-Q_mesh_K = [-3,3]
-Q_mesh_L = 1
+# 'Qpoints_option' == 'mesh' ; note, only works with plane centered on Q=(0,0,0) right now
+Q_mesh_symmetry = False # used for 'mesh' option; requires spglib !!
+Q_mesh_H = [-2,2,40]
+Q_mesh_K = [-2,2,40]
+Q_mesh_L = 2
 
 # 'Qpoints_option' == 'file'
 Q_file = 'Qpts.dat'
 
 # 'Qpoints_option' == 'path'
-Q_path_start = [[0,0,0], 
-               [-2,0,0]]
-Q_path_end = [[2,0,0],
-             [25,0,-2]]
-Q_path_steps = [21,21]
+Q_path_start = [[0,0,0],
+                [1,0,2]]
+Q_path_end = [[1,0,2],
+              [3,0,2]]
+Q_path_steps = [20,20]
 
 # number of processes to split Q-point parallelization over
 num_Qpoint_procs = 1
