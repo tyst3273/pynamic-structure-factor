@@ -23,24 +23,17 @@ print(preamble)
 
 
 
-comm = m_communicator.c_communicator()
-
+# timers
 timers = m_timing.c_timers()
 timers.start_timer('PSF',units='m')
 
+# options for the calculation
 config = m_config.c_config()
 config.get_args_from_file()
 
-
-comm.lattice = m_lattice.c_lattice(config,comm)
-
-
-comm.Qpoints = m_Qpoints.c_Qpoints(config,comm,timers)
-comm.Qpoints.generate_Qpoints()
-
-
-comm.xlengths = m_scattering_lengths.c_scattering_lengths(config,comm)
-
+# 'communicator' to conveniently pass objects in/out of stuff
+comm = m_communicator.c_communicator(config,timers)
+comm.setup_calculation()
 
 timers.stop_timer('PSF')
 timers.print_timing()
