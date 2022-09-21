@@ -88,6 +88,8 @@ class c_config:
         self._set_md_num_steps()
         self._set_md_num_atoms()
         self._set_md_supercell_reps()
+        self._set_num_trajectory_blocks()
+        self._set_trajectory_blocks()
         self._set_experiment_type() 
         self._set_num_Qpoint_procs()
         self._set_Qpoints_option() 
@@ -115,6 +117,63 @@ class c_config:
         # --- add new variables parsers here ---
         # ...
         # ...
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_num_trajectory_blocks(self,num_trajectory_blocks=None):
+
+        """
+        get the attribute
+        """
+
+        if num_trajectory_blocks is None:
+            self.num_trajectory_blocks = self._get_attr('num_trajectory_blocks')
+        else:
+            self.num_trajectory_blocks = num_trajectory_blocks
+        try:
+            self.num_trajectory_blocks = int(self.num_trajectory_blocks)
+        except:
+            msg = 'num_trajectory_blocks must be an int'
+            crash(msg)
+
+        msg = 'num_trajectory_blocks must be >= 1'
+        if self.num_trajectory_blocks <= 1:
+            crash(msg)
+    
+        print(f'num_trajectory_blocks:\n  {self.num_trajectory_blocks}')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_trajectory_blocks(self,trajectory_blocks=None):
+
+        """
+        get the attribute
+        """
+
+        if trajectory_blocks is None:
+            self.trajectory_blocks = self._get_attr('trajectory_blocks')
+        else:
+            self.trajectory_blocks = trajectory_blocks
+
+        msg = 'trajectory_blocks must be a list of ints'
+        try:
+            self.trajectory_blocks = np.array(self.trajectory_blocks,dtype=int)
+        except:
+            crash(msg)
+
+        if len(self.trajectory_blocks.shape) != 1:
+            crash(msg)
+
+        # check that it makes sense
+        self.num_block_avg = self.trajectory_blocks.size
+        if self.trajectory_blocks.min() < 0 \
+            or self.trajectory_blocks.max() >= self.num_trajectory_blocks:
+            crash(msg)
+
+        msg = 'trajectory_blocks:\n  '
+        for ii in range(self.num_block_avg):
+            msg += f'{self.trajectory_blocks[ii]:g} '
+        print(msg)
 
     # ----------------------------------------------------------------------------------------------
 

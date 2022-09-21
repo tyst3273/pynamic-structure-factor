@@ -3,6 +3,7 @@ import psf.m_lattice as m_lattice
 import psf.m_Qpoints as m_Qpoints
 import psf.m_timing as m_timing
 import psf.m_scattering_lengths as m_scattering_lengths
+import psf.m_trajectory as m_trajectory
 
 
 class c_communicator:
@@ -35,6 +36,9 @@ class c_communicator:
 
         # scattering lengths for the S(Q,w) calculation
         self.xlengths = m_scattering_lengths.c_scattering_lengths(self.config,self)
+
+        # find trajectory file and set up for block-averaging
+        self.traj = m_trajectory.c_trajectory(self.config,self.timers,self)
 
     # ----------------------------------------------------------------------------------------------
 

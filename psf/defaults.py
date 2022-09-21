@@ -7,6 +7,10 @@ trajectory_file = \
 unwrap_trajectory = True
 recalculate_box_lengths = False
 
+# options for splitting up trajectory
+num_trajectory_blocks = 10
+trajectory_blocks = [0,1,2,3,4,5,6,7,8,9]
+
 # options for writing results
 output_directory = None
 output_prefix = 'psf'
