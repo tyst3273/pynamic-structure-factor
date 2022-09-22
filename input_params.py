@@ -2,13 +2,14 @@
 # options for where to get data/preprocessing
 trajectory_format = 'lammps_hdf5' 
 trajectory_file = \
-        '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/tmp/pos.h5'
+ '/home/ty/research/projects/psf_data/pos.h5'
+# '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/tmp/pos.h5'
 unwrap_trajectory = True
 recalculate_box_lengths = False
 
 # options for splitting up trajectory
-num_trajectory_blocks = 11
-trajectory_blocks = [0,1,2,3,4,5,6,7,8,9] 
+num_trajectory_blocks = 1
+trajectory_blocks = None #[0,1,2,3,4,5,6,7] 
 
 # options for writing results
 output_directory = None
@@ -18,8 +19,8 @@ calc_timeavg = True
 calc_sqw = True
 
 # simulation options
-md_time_step = 16 # femtoseconds
-md_num_steps = 6250
+md_time_step = 16 # femtoseconds; time step IN FILE, not used in simulation
+md_num_steps = 625
 md_num_atoms = 6480
 md_supercell_reps = [6,6,30] 
 
@@ -36,7 +37,7 @@ basis_positions = [[0.5000000000000000,  0.5000000000000000,  0.5000000000000000
                    [0.6953400114833093,  0.6953400114833093,  0.0000000000000000]]
 
 # experiment info
-experiment_type = 'xrays' # 'neutrons' or 'xrays'
+experiment_type = 'neutrons' # 'neutrons' or 'xrays'
 
 # options for how to generate Q-points for calculation
 Qpoints_option = 'path' # mesh, mesh_file, write_mesh, text_file, or path
@@ -58,7 +59,7 @@ Q_path_end = [[1,0,2],
 Q_path_steps = [20,20]
 
 # number of processes to split Q-point parallelization over
-num_Qpoint_procs = 1
+num_Qpoint_procs = 4
 
 
 

@@ -7,7 +7,7 @@ class c_Qpoints:
     
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self,config,timers,comm):
+    def __init__(self,config,comm,timers):
 
         """
         holds lattice and reciprocal lattice vectors

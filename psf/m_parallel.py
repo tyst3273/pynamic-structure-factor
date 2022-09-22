@@ -5,71 +5,59 @@ import multiprocessing as mp
 import itertools
 
 # custom modules
-
+from psf.m_error import crash
 
 class c_multi_processing:
 
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self,comm):
+    def __init__(self,config,comm):
 
         """
         tools for parallelism using multiprocessing
         """
 
+        self.config = config
+        self.comm = comm
+
         # number of processes to use for kpt parallelization
-        self.num_Qpoint_procs = utils.config.num_Qpoint_procs
-        if self.num_Qpoint_procs == 1:
-            self.use_kpt_parallelism = False
-            msg = 'parallism over k-points is disabled\n'
-        else:
-            self.use_kpt_parallelism = True    
-            msg = f'number of processes for k-point parallelism: {self.num_Qpoint_procs}\n'
+        self.num_Qpoint_procs = config.num_Qpoint_procs
 
         # number of processes to use for bond calc. parallelization
-        self.num_bond_procs = utils.config.num_bond_procs
-        if self.num_bond_procs == 1:
-            self.use_bond_parallelism = False
-            msg = msg+' parallism over bond calculations disabled'
-        else:
-            self.use_bond_parallelism = True
-            msg = msg+f' number of processes for bond parallelism: {self.num_bond_procs}'
-
-        self.utils.log.console(msg)
-        self.utils.log.info(msg,msg_label='parallelism')
+        self.distribute_Q_over_procs()
 
     # ----------------------------------------------------------------------------------------------
 
-    def distribute_k_over_procs(self):
+    def distribute_Q_over_procs(self):
 
         """
         distribute the kpts over processes "round-robin" style
         """
 
-        _num_Qpts = self.comm.k_points.num_kpts
+        _num_Qpts = self.comm.Qpoints.num_Q
         _num_procs = self.num_Qpoint_procs
 
         # the indices of the kpts on each process
-        self.kpts_on_proc, self.num_Qpts_per_proc = \
-            self._distribute_round_robin(_num_kpts,_num_procs)
-
-        msg = 'number of Q-points on each Q-point process:'
-        for ii in range(self.num_Qpoint_procs):
-
-            _nk = self.num_Qpts_per_proc[ii]
-
-            _ = f'proc[{ii}]:'
-            msg = msg+f'\n  {_:9} {_nk}'
+        self.Qpts_on_proc, self.num_Qpts_per_proc = \
+            self._distribute_round_robin(_num_Qpts,_num_procs)
 
         # check if it will work
         if np.any(self.num_Qpts_per_proc == 0):
-            self.utils.log.crash('at least one process will treat 0 Q-points!\n'\
-                           ' decrease num_Qpoint_procs or use more Q-points')
+            crash('at least one process will treat 0 Q-points!\n'\
+                  'decrease num_Qpoint_procs or use more Q-points\n')
 
         # print wassup
+
         self.max_num_Qpts_on_procs = self.num_Qpts_per_proc.max()
         msg = 'max number of Q-points over all processes:' \
-                f' {self.max_num_Qpts_on_procs}' 
+                f' {self.max_num_Qpts_on_procs}\n'
+
+        msg += 'number of Q-points on each Q-point process:'
+        for ii in range(self.num_Qpoint_procs):
+
+            _nQ = self.num_Qpts_per_proc[ii]
+            _ = f'proc[{ii}]:'
+            msg = msg+f'\n  {_:9} {_nQ}'
 
         print('\n*** Q-point parallelism ***')
         print(msg)

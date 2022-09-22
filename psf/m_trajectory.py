@@ -19,11 +19,22 @@ class c_trajectory:
         self.timers = timers
 
         # the trajectory file
+        self.num_atoms = self.config.md_num_atoms
+        self.trajectory_format = self.config.trajectory_format
         self.trajectory_file = self.config.trajectory_file
+        self.md_time_step = self.config.md_time_step
+
+        self.unwrap_trajectory = self.config.unwrap_trajectory
 
         # set up the 'blocks' of indices for calculating on
         self._get_block_inds()
-       
+
+        # get atom types once and for all
+        self._read_types_lammps_hdf5()
+
+        # WRAPPED positions in cartesian coords in Angstrom
+        self.pos = np.zeros((self.num_steps,self.num_atoms,3))
+
      # ----------------------------------------------------------------------------------------------
 
     def _get_block_inds(self):
@@ -62,4 +73,172 @@ class c_trajectory:
         print(msg)
 
     # ----------------------------------------------------------------------------------------------
+
+    def get_atom_types(self):
+
+        """
+        get an array that holds types of atom. only do for 1st step ...
+
+        it is MANDATORY that data are sorted in the exact same way each timestep... the
+        code assumes the order of the types of atoms doesnt change over time, so only calculates
+        the scattering info at the first timestep
+        """
+
+        if self.trajectory_format == 'lammps_hdf5':
+            self._read_types_lammps_hdf5(_inds)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def read_trajectory_block(self,block_index=0):
+
+        """
+        get a block of trajectory data from the file and preprocess it as much as possible
+        """
+
+        _inds = self.block_inds[block_index]
+
+        if self.trajectory_format == 'lammps_hdf5':
+            self._read_pos_lammps_hdf5(_inds)            
+
+        if self.unwrap_trajectory:
+            self._unwrap_positions()
+
+     # ----------------------------------------------------------------------------------------------
+
+    def _unwrap_positions(self):
+
+        """
+        un-apply minimum image convention so that positions dont jump discontinuously
+        by a full box length. this wont be memory effecient but should be fast... ish
+
+        the issue is that, if the positions are written out 'wrapped' (e.g. lammps
+        x y z instead of xu yu zu), then atoms that cross the box boundary are wrapped
+        back to the other side of the box. in that case, atoms near the box boundary will
+        occasionally jump discontinously by a full-box length. i did some checking and this
+        screws up the debye waller factor at low Q (i.e. wave-length ~ the box). it was
+        only a minor effect, but this takes care of it and isn't super expensive.
+
+        the solution is to 'un-impose' the minimum image convention. i.e. treat every
+        atom as the center of the cell at t=0 and at all other times t', if the atom has
+        deviated by half a box length (i.e. outside the cell since the atom is at the
+        center), shift it back. See e.g. Allen: "Computer Simulation of Liquids".
+
+        NOTE: this methods assumes lattice vectors and coordinates in traj file are in Angstrom!
+        it also assumes that the simulationcell and underlying unitcell are orthorhombic. this 
+        last restriction isnt super important and can be fixed by using the simulation box vectors
+        to go to reduced coordinates in the simulation cell. then unwrapping is as easy as shifting
+        along each cartesian axis by +- 1. 
+
+        the crystal lattice vectors don't really need to be orthorhombic at all... they are used
+        to get Q in cartesian coords, at which point scattering for any simulation cell can be 
+        calculated by summing over positions. the reason it is enforced is so that lx,ly,lz can
+        be calculated like below ...
+
+        """
+
+        self.timers.start_timer('unwrap_positions',units='s')
+
+        msg = '\nunwrapping positions!\n'
+        print(msg)
+
+        # get box lengths... assumes the simulation cell and underlying unitcell are orthorhombic
+        lx = self.comm.lattice.lattice_vectors[0,0]*self.config.md_supercell_reps[0]
+        ly = self.comm.lattice.lattice_vectors[1,1]*self.config.md_supercell_reps[1]
+        lz = self.comm.lattice.lattice_vectors[2,2]*self.config.md_supercell_reps[2]
+
+        # build an array to be added to the positions to shift them 
+        shift = self.pos-np.tile(self.pos[0,:,:].reshape((1,self.num_atoms,3)),
+                reps=[self.block_steps,1,1])
+
+        # check whether to shift atoms in the x direction     
+        dr = -lx*(shift[:,:,0] > lx/2).astype(int)
+        dr = dr+lx*(shift[:,:,0] <= -lx/2).astype(int)
+        shift[:,:,0] = np.copy(dr)
+
+        # check whether to shift atoms in the y direction  
+        dr = -ly*(shift[:,:,1] > ly/2).astype(int)
+        dr = dr+ly*(shift[:,:,1] <= -ly/2).astype(int)
+        shift[:,:,1] = np.copy(dr)
+
+        # check whether to shift atoms in the z direction   
+        dr = -lz*(shift[:,:,2] > lz/2).astype(int)
+        dr = dr+lz*(shift[:,:,2] <= -lz/2).astype(int)
+        shift[:,:,2] = np.copy(dr)
+
+        # apply the shift    
+        self.pos = self.pos+shift
+
+        self.timers.stop_timer('unwrap_positions')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _read_types_lammps_hdf5(self):
+
+        """
+        get from lammps *.h5 file. the data should have been written using commands like:
+            dump            POSITIONS all h5md ${dt_dump} pos.h5 position species
+            dump_modify     POSITIONS sort id
+        """
+
+        self.types = np.zeros(self.num_atoms,dtype=int)
+
+        try:
+
+            import h5py
+            with h5py.File(self.trajectory_file,'r') as in_db:
+
+                # it is assumed that the types are consecutive integers starting at 1
+                # so that 1 is subtracted to match the python index starting at 0 ...
+                self.types[:] = in_db['particles']['all']['species']['value'][0,:]-1
+
+            # error check
+            if self.num_atoms != self.types.size:
+                msg = 'number of atoms in file dont match the input info.'
+                msg += 'correct the configuration or check your trajectory file!\n'
+                crash(msg)
+
+        except Exception as _ex:
+            msg = f'the hdf5 file\n  \'{self.trajectory_file}\'\ncould not be read!\n'
+            msg += 'check the h5py installation and the file then try again.\n'
+            crash(msg,_ex)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _read_pos_lammps_hdf5(self,_inds):
+
+        """
+        get from lammps *.h5 file. the data should have been written using commands like:
+            dump            POSITIONS all h5md ${dt_dump} pos.h5 position species
+            dump_modify     POSITIONS sort id
+        """
+
+        self.timers.start_timer('read_lammps_hdf5',units='s')
+
+        try:
+
+            import h5py
+            with h5py.File(self.trajectory_file,'r') as in_db:
+
+                # not currently used ...
+                """
+                self.box_lengths[0] = np.mean(
+                    in_db['particles']['all']['box']['edges']['value'][inds[0]:inds[1],0],axis=0)
+                self.box_lengths[1] = np.mean(
+                    in_db['particles']['all']['box']['edges']['value'][inds[0]:inds[1],1],axis=0)
+                self.box_lengths[2] = np.mean(
+                    in_db['particles']['all']['box']['edges']['value'][inds[0]:inds[1],2],axis=0)
+                """
+                # read positions
+                self.pos[:,:,:] = in_db['particles']['all']['position']['value'] \
+                                    [_inds[0]:_inds[1],:,:]
+
+        except Exception as _ex:
+            msg = f'the hdf5 file\n  \'{self.trajectory_file}\'\ncould not be read!\n'
+            msg += 'check the h5py installation and the file then try again.\n'
+            crash(msg,_ex)
+
+        self.timers.stop_timer('read_lammps_hdf5')
+
+    # ----------------------------------------------------------------------------------------------
+
 

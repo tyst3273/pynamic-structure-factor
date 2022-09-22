@@ -23,15 +23,95 @@ class c_scattering_lengths:
         self.num_types = self.config.num_types
         self.unique_types = self.config.unique_types
 
-        # get data depending on exp type
-        if self.config.experiment_type == 'neutrons':
-            self._get_neutron_scattering_lengths()
-        if self.config.experiment_type == 'xrays':
-            self._get_xray_scattering_params()
-  
+        self.experiment_type = self.config.experiment_type
+
+        # read depending on exp type
+        if self.experiment_type == 'neutrons':
+            self._read_neutron_scattering_lengths()
+        if self.experiment_type == 'xrays':
+            self._read_xray_scattering_params()
+
+        # now go an use data for stuff
+        self.get_scattering_data()
+
     # ----------------------------------------------------------------------------------------------
 
-    def _get_xray_scattering_params(self):
+    def get_scattering_data(self):
+        
+        """
+        set up the scattering 'data' i.e. either scattering lengths or xray form factors
+        calculate on Q-point grid if xrays since form factors depend on Q
+        """
+
+        if self.experiment_type == 'xrays':
+            msg = '\nthe experiment is using xrays!\n'
+            print(msg)
+            self._get_xray_form_factors()
+
+        if self.experiment_type == 'neutrons':
+            msg = '\nthe experiment is using neutrons!\n'
+            print(msg)
+            self._get_neutron_scattering_lengths()
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _get_xray_form_factors(self):
+
+        """
+        calculate x-ray from factors on Q-points
+
+        compute xray form factor f(|Q|) using the data from the params dictionary.
+        f(|Q|) = c+sum_{i=(1,2,3,4)} ai*exp(-bi*(|Q|/4/pi)**2)
+        """
+
+        print('\n*** warning! ***\ni need to double check that |Q| should/shouldnt have a 2*pi\n')
+
+        _num_atoms = self.comm.traj.num_atoms
+        _num_Q = self.comm.Qpoints.num_Q
+        _params = self.scattering_params
+        _num_types = self.config.num_types
+        _types = self.comm.traj.types
+        
+        self.form_factors = np.zeros((_num_atoms,_num_Q))
+
+        _form_facs = np.zeros(_num_types)
+        for ii in range(_num_Q):
+            
+            # get the form factors for each atom type
+            for jj in range(_num_types):
+                _form_facs[jj] = _params[jj][8]+ \
+                _params[jj][0]*np.exp(-_params[jj][1])+ \
+                _params[jj][2]*np.exp(-_params[jj][3])+ \
+                _params[jj][4]*np.exp(-_params[jj][5])+ \
+                _params[jj][6]*np.exp(-_params[jj][7])
+
+            # assign form factors to all atoms
+            for jj in range(_num_atoms):
+                _type = _types[jj]
+                self.form_factors[jj,ii] = _form_facs[_type]
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _get_neutron_scattering_lengths(self):
+
+        """
+        set up the scattering 'data' i.e. either scattering lengths or xray form factors
+        calculate on Q-point grid if xrays since form factors depend on Q
+        """
+
+        _num_atoms = self.comm.traj.num_atoms
+        _types = self.comm.traj.types
+        _xlens = self.neutron_scattering_lengths
+
+        self.scattering_lengths = np.zeros(_num_atoms)
+        for ii in range(_num_atoms):
+                
+            _type = _types[ii] 
+            self.scattering_lengths[ii] = _xlens[_type]
+        
+    # ----------------------------------------------------------------------------------------------
+
+    def _read_xray_scattering_params(self):
 
         """
         lookup xray scattering params
@@ -64,7 +144,7 @@ class c_scattering_lengths:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _get_neutron_scattering_lengths(self):
+    def _read_neutron_scattering_lengths(self):
 
         """
         lookup neutron scattering lengths
@@ -72,7 +152,7 @@ class c_scattering_lengths:
 
         eps = 0.0001
         
-        self.scattering_lengths = np.zeros(self.num_types)
+        self.neutron_scattering_lengths = np.zeros(self.num_types)
 
         _xlens = import_module('psf.scattering_data.neutron_scattering_lengths')
 
@@ -87,7 +167,7 @@ class c_scattering_lengths:
                      'i will discard the imaginary part but the results\nmay not be sensible ...\n\n'
                 print(msg)
             _x = np.real(_x)
-            self.scattering_lengths[ii] = _x
+            self.neutron_scattering_lengths[ii] = _x
 
             msg += f'  {self.unique_types[ii]:4}  {_x:8.4f}\n'  
 

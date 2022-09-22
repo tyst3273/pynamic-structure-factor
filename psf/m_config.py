@@ -137,7 +137,7 @@ class c_config:
             crash(msg)
 
         msg = 'num_trajectory_blocks must be >= 1'
-        if self.num_trajectory_blocks <= 1:
+        if self.num_trajectory_blocks < 1:
             crash(msg)
     
         print(f'num_trajectory_blocks:\n  {self.num_trajectory_blocks}')
@@ -155,11 +155,14 @@ class c_config:
         else:
             self.trajectory_blocks = trajectory_blocks
 
-        msg = 'trajectory_blocks must be a list of ints'
-        try:
-            self.trajectory_blocks = np.array(self.trajectory_blocks,dtype=int)
-        except:
-            crash(msg)
+        if self.trajectory_blocks is None:
+            self.trajectory_blocks = np.arange(self.num_trajectory_blocks)
+        else:
+            msg = 'trajectory_blocks must be a list of ints'
+            try:
+                self.trajectory_blocks = np.array(self.trajectory_blocks,dtype=int)
+            except:
+                crash(msg)
 
         if len(self.trajectory_blocks.shape) != 1:
             crash(msg)

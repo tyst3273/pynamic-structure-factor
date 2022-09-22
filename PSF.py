@@ -31,6 +31,8 @@ config.get_args_from_file()
 comm = m_communicator.c_communicator(config,timers)
 comm.setup_calculation()
 
+comm.traj.read_trajectory_block(block_index=0)
+
 timers.stop_timer('PSF')
 timers.print_timing()
 
