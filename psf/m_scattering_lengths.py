@@ -43,13 +43,14 @@ class c_scattering_lengths:
         calculate on Q-point grid if xrays since form factors depend on Q
         """
 
+        msg = '*** experiment type ***\n'
         if self.experiment_type == 'xrays':
-            msg = '\nthe experiment is using xrays!\n'
+            msg += 'the experiment is using xrays!\n'
             print(msg)
             self._get_xray_form_factors()
 
         if self.experiment_type == 'neutrons':
-            msg = '\nthe experiment is using neutrons!\n'
+            msg += 'the experiment is using neutrons!'
             print(msg)
             self._get_neutron_scattering_lengths()
 
@@ -68,22 +69,25 @@ class c_scattering_lengths:
 
         _num_atoms = self.comm.traj.num_atoms
         _num_Q = self.comm.Qpoints.num_Q
+        _Q = self.comm.Qpoints.Q_len
         _params = self.scattering_params
         _num_types = self.config.num_types
         _types = self.comm.traj.types
-        
+
         self.form_factors = np.zeros((_num_atoms,_num_Q))
 
         _form_facs = np.zeros(_num_types)
         for ii in range(_num_Q):
+
+            _Q4pi = (_Q[ii]/4/np.pi)**2
             
             # get the form factors for each atom type
             for jj in range(_num_types):
                 _form_facs[jj] = _params[jj][8]+ \
-                _params[jj][0]*np.exp(-_params[jj][1])+ \
-                _params[jj][2]*np.exp(-_params[jj][3])+ \
-                _params[jj][4]*np.exp(-_params[jj][5])+ \
-                _params[jj][6]*np.exp(-_params[jj][7])
+                _params[jj][0]*np.exp(-_params[jj][1]*_Q4pi)+ \
+                _params[jj][2]*np.exp(-_params[jj][3]*_Q4pi)+ \
+                _params[jj][4]*np.exp(-_params[jj][5]*_Q4pi)+ \
+                _params[jj][6]*np.exp(-_params[jj][7]*_Q4pi)
 
             # assign form factors to all atoms
             for jj in range(_num_atoms):

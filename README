@@ -15,3 +15,28 @@ the consequences of these assumptions are as follows:
         NOTE: this restriction can be (fairly) easily reversed later on.
 
 
+note about unwrapping:
+
+        the issue is that, if the positions are written out 'wrapped' (e.g. lammps
+        x y z instead of xu yu zu), then atoms that cross the box boundary are wrapped
+        back to the other side of the box. in that case, atoms near the box boundary will
+        occasionally jump discontinously by a full-box length. i did some checking and this
+        screws up the debye waller factor at low Q (i.e. wave-length ~ the box). it was
+        only a minor effect, but this takes care of it and isn't super expensive.
+
+        the solution is to 'un-impose' the minimum image convention. i.e. treat every
+        atom as the center of the cell at t=0 and at all other times t', if the atom has
+        deviated by half a box length (i.e. outside the cell since the atom is at the
+        center), shift it back. See e.g. Allen: "Computer Simulation of Liquids".
+
+        NOTE: this methods assumes lattice vectors and coordinates in traj file are in Angstrom!
+        it also assumes that the simulationcell and underlying unitcell are orthorhombic. this
+        last restriction isnt super important and can be fixed by using the simulation box vectors
+        to go to reduced coordinates in the simulation cell. then unwrapping is as easy as shifting
+        along each cartesian axis by +- 1.
+
+        the crystal lattice vectors don't really need to be orthorhombic at all... they are used
+        to get Q in cartesian coords, at which point scattering for any simulation cell can be
+        calculated by summing over positions. the reason it is enforced is so that lx,ly,lz can
+        be calculated like below ...
+

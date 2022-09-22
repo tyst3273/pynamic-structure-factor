@@ -33,7 +33,7 @@ class c_trajectory:
         self._read_types_lammps_hdf5()
 
         # WRAPPED positions in cartesian coords in Angstrom
-        self.pos = np.zeros((self.num_steps,self.num_atoms,3))
+        self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
 
      # ----------------------------------------------------------------------------------------------
 
@@ -56,20 +56,23 @@ class c_trajectory:
             msg += 'discarding the extra timesteps\n'
             print(msg)
 
-        _blocks = self.config.trajectory_blocks
+        self.blocks = self.config.trajectory_blocks
         
         _rem = _md_steps % _num_blocks
         self.num_block_avg = self.config.num_block_avg
-        self.num_steps = _md_steps-_rem
-        self.block_steps = self.num_steps // _num_blocks
+        self.num_steps_used = _md_steps-_rem
+        self.num_block_steps = self.num_steps_used // _num_blocks
 
         # lo/hi inds to index the blocks from the trajectory file 
-        self.block_inds = np.zeros((self.num_block_avg,2),dtype=int)
-        self.block_inds[:,0] = _blocks*self.num_steps
-        self.block_inds[:,1] = (_blocks+1)*self.num_steps
+        # note that full trajectory is indexed and only the blocks that are 
+        # requested are used
+        _blocks = np.arange(_num_blocks)
+        self.block_inds = np.zeros((_num_blocks,2),dtype=int)
+        self.block_inds[:,0] = _blocks*self.num_block_steps
+        self.block_inds[:,1] = (_blocks+1)*self.num_block_steps
 
         msg = f'\n*** blocks ***\nnum_block_avg: {self.num_block_avg}\n'
-        msg += f'block_steps: {self.block_steps}\n'
+        msg += f'num_block_steps: {self.num_block_steps}'
         print(msg)
 
     # ----------------------------------------------------------------------------------------------
@@ -111,29 +114,7 @@ class c_trajectory:
         un-apply minimum image convention so that positions dont jump discontinuously
         by a full box length. this wont be memory effecient but should be fast... ish
 
-        the issue is that, if the positions are written out 'wrapped' (e.g. lammps
-        x y z instead of xu yu zu), then atoms that cross the box boundary are wrapped
-        back to the other side of the box. in that case, atoms near the box boundary will
-        occasionally jump discontinously by a full-box length. i did some checking and this
-        screws up the debye waller factor at low Q (i.e. wave-length ~ the box). it was
-        only a minor effect, but this takes care of it and isn't super expensive.
-
-        the solution is to 'un-impose' the minimum image convention. i.e. treat every
-        atom as the center of the cell at t=0 and at all other times t', if the atom has
-        deviated by half a box length (i.e. outside the cell since the atom is at the
-        center), shift it back. See e.g. Allen: "Computer Simulation of Liquids".
-
-        NOTE: this methods assumes lattice vectors and coordinates in traj file are in Angstrom!
-        it also assumes that the simulationcell and underlying unitcell are orthorhombic. this 
-        last restriction isnt super important and can be fixed by using the simulation box vectors
-        to go to reduced coordinates in the simulation cell. then unwrapping is as easy as shifting
-        along each cartesian axis by +- 1. 
-
-        the crystal lattice vectors don't really need to be orthorhombic at all... they are used
-        to get Q in cartesian coords, at which point scattering for any simulation cell can be 
-        calculated by summing over positions. the reason it is enforced is so that lx,ly,lz can
-        be calculated like below ...
-
+        see 'note about unwrapping' in the README
         """
 
         self.timers.start_timer('unwrap_positions',units='s')
@@ -148,7 +129,7 @@ class c_trajectory:
 
         # build an array to be added to the positions to shift them 
         shift = self.pos-np.tile(self.pos[0,:,:].reshape((1,self.num_atoms,3)),
-                reps=[self.block_steps,1,1])
+                reps=[self.num_block_steps,1,1])
 
         # check whether to shift atoms in the x direction     
         dr = -lx*(shift[:,:,0] > lx/2).astype(int)

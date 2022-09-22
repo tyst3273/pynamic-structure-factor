@@ -15,7 +15,7 @@ trajectory_blocks = [0,1,2,3,4,5,6,7,8,9]
 output_directory = None
 output_prefix = 'psf'
 calc_bragg = True
-calc_timeavg = True
+calc_diffuse = True
 calc_sqw = True
 
 # simulation options
@@ -39,7 +39,9 @@ experiment_type = 'neutrons' # 'neutrons' or 'xrays'
 # options for how to generate Q-points for calculation
 Qpoints_option = 'mesh' # mesh, mesh_file, write_mesh, text_file, or path
 
-# 'Qpoints_option' == 'mesh' ; note, only works with plane centered on Q=(0,0,0) right now
+# for 'Qpoints_option' == 'mesh' ;
+# note, symmetry only works with plane centered on Q=(0,0,0) right now
+# and requires spglib !!
 Q_mesh_symmetry = True # used for 'mesh' option; requires spglib !!
 Q_mesh_H = [-3,3,41]
 Q_mesh_K = [-3,3,41]

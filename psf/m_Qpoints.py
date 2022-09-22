@@ -33,8 +33,6 @@ class c_Qpoints:
 
         """
 
-        self.timers.start_timer('generate_Qpoints',units='ms')
-
         if self.Qpoints_option == 'text_file':
 
             """
@@ -95,8 +93,6 @@ class c_Qpoints:
                     f'{self.Q_cart[ii,2]: 8.5f}'
         print(msg)
 
-        self.timers.stop_timer('generate_Qpoints')
-
     # ----------------------------------------------------------------------------------------------
 
     def _get_Q_along_paths(self):
@@ -133,6 +129,7 @@ class c_Qpoints:
 
         self.Q_cart = self.comm.lattice.convert_coords(self.Q_rlu,
                 self.comm.lattice.reciprocal_lattice_vectors)
+        self.Q_len = np.sqrt(np.sum(self.Q_cart**2,axis=1))
 
     # ----------------------------------------------------------------------------------------------
 

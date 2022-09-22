@@ -78,7 +78,7 @@ class c_config:
         self._set_unwrap_trajectory()
         self._set_recalculate_box_lengths()
         self._set_calc_bragg()
-        self._set_calc_timeavg()
+        self._set_calc_diffuse()
         self._set_calc_sqw()
         self._set_lattice_vectors()
         self._set_atom_types()
@@ -287,7 +287,7 @@ class c_config:
         self.Q_file = os.path.abspath(self.Q_file)
 
         # check if file exists
-        check_file(self.Q_file,warn=True)
+        check_file(self.Q_file)
 
         print(f'Q_file:\n  {self.Q_file}')
 
@@ -573,18 +573,18 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_calc_timeavg(self,calc_timeavg=None):
+    def _set_calc_diffuse(self,calc_diffuse=None):
 
         """
         get the attribute
         """
 
-        if calc_timeavg is None:
-            self.calc_timeavg = self._get_attr('calc_timeavg')
+        if calc_diffuse is None:
+            self.calc_diffuse = self._get_attr('calc_diffuse')
         else:
-            self.calc_timeavg = calc_timeavg
-        self.calc_timeavg = bool(self.calc_timeavg)
-        print(f'calc_timeavg:\n  {self.calc_timeavg}')
+            self.calc_diffuse = calc_diffuse
+        self.calc_diffuse = bool(self.calc_diffuse)
+        print(f'calc_diffuse:\n  {self.calc_diffuse}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -655,7 +655,7 @@ class c_config:
         self.trajectory_file = os.path.abspath(self.trajectory_file)
 
         # check if file exists
-        check_file(self.trajectory_file,warn=True)
+        check_file(self.trajectory_file)
 
         print(f'trajectory_file:\n  {self.trajectory_file}')
 
