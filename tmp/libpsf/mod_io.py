@@ -183,6 +183,9 @@ def save_sqw(invars,Qpts,energy,sqw,f_name='SQW.hdf5'):
         db_Qpts[:,:] = Qpts[:,:]
         db_sqw[:,:] = sqw[:,:]
 
+    sqw = np.append(energy.reshape(num_e,1),sqw,axis=1)
+    np.savetxt('old_sqw',sqw,fmt='%9.4f')
+
 # --------------------------------------------------------------------------------------------
 
 def read_sqw(f_name):
@@ -217,6 +220,8 @@ def save_bragg(invars,Qpts,bragg,f_name='BRAGG.hdf5'):
         db_Qpts[:,:] = Qpts[:,:]
         db_bragg[:] = bragg[:]
 
+    np.savetxt('bragg',bragg,fmt='%9.4f')
+
 # --------------------------------------------------------------------------------------------
 
 def read_bragg(f_name):
@@ -249,6 +254,8 @@ def save_timeavg(invars,Qpts,timeavg,f_name='TIMEAVG.hdf5'):
         db_timeavg = db.create_dataset('time_averaged',[num_Q])
         db_Qpts[:,:] = Qpts[:,:]
         db_timeavg[:] = timeavg[:]
+
+    np.savetxt('timeavg',timeavg,fmt='%9.4f')
 
 # --------------------------------------------------------------------------------------------
 

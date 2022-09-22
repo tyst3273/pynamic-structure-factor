@@ -9,7 +9,7 @@ recalculate_box_lengths = False
 
 # options for splitting up trajectory
 num_trajectory_blocks = 5
-trajectory_blocks = None #[0,2,4] 
+trajectory_blocks = None 
 
 # options for writing results
 output_directory = None

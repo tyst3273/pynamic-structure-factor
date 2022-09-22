@@ -2,32 +2,34 @@
 
 # -------------- I/O options -----------------
 
-traj_file       = /home/ty/research/projects/mapi_test/pos_data/pos_10.h5
-output_dir      = sqw
-outfile_prefix  = mp_ins
+traj_file       = /home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/tmp/pos.h5
+output_dir      = old
+outfile_prefix  = old
 
 #---------------- MD params ------------------
 
-dt              = 0.25     
-stride          = 200      
-total_steps     = 4000000  
-num_atoms       = 48000    
-supercell       = 20 20 10 
+dt              = 1     
+stride          = 16      
+total_steps     = 10000  
+num_atoms       = 6480 
+supercell       = 6 6 30
+
+lattice_vectors = 4.593 0 0  0 4.593 0  0 0 2.259
+unwrap_pos = 1
+recalculate_cell_lengths = 0
 
 # ----------------- calc option --------------------
 
-num_processes   = 4
-Qmin            = 0 0 0      
-Qmax            = 2 2 0
-total_Qsteps    = 41
-num_blocks      = 40
-blocks          = 0 2 4 6 8 10
+num_processes   = 1
+Qpoints_file = ../Qpts.dat
+num_blocks      = 5
 compute_sqw     = 1
 compute_bragg   = 1
 compute_timeavg = 1
 
 # ---------- neutron scattering lengths --------
-types           = C N 2H 2H Pb I            
+exp_type = ins
+types           = Ti O            
 
 
 

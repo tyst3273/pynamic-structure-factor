@@ -106,19 +106,22 @@ class c_structure_factors:
             _block_timer.stop()
             _block_timer.print_timing()
 
-        # divide by number of blocks 
+        # divide by number of blocks and number of atoms (to normalize vs system size)
+        _num_atoms = self.comm.traj.num_atoms
         if self.calc_bragg:
-            self.sq_bragg /= _num_blocks
+            self.sq_bragg /= _num_blocks #*_num_atoms
         if self.calc_diffuse:
-            self.sq_bragg /= _num_blocks
+            self.sq_bragg /= _num_blocks #*_num_atoms
         if self.calc_sqw:
-            self.sq_bragg /= _num_blocks
+            self.sq_bragg /= _num_blocks #*_num_atoms
 
         # scratch way to write for now!
         np.savetxt('sq_bragg',self.sq_bragg,fmt='%9.4f')
         np.savetxt('fqt_sq',self.fqt_sq,fmt='%9.4f')
         np.savetxt('sq_diffuse',self.sq_diffuse,fmt='%9.4f')
-        np.savetxt('sqw',self.sqw,fmt='%9.4f')
+
+        sqw = np.append(self.energy.reshape(1,self.num_energy),self.sqw,axis=0)
+        np.savetxt('sqw',sqw,fmt='%9.4f')
 
         self.timers.stop_timer('calc_strufacs')
 

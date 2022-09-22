@@ -57,7 +57,7 @@ class sqw:
         self.xlengths_tools = mod_xlengths.scattering_lengths(invars.num_types) # this is a class
 
         # "rescale" the intensity to make plotting easier.
-        self.common_rescale = 1e6
+        self.common_rescale = 1 #1e6
 
         # only create sqw array if requested. saves time to not do this if only bragg and/or timeavg
         if invars.compute_sqw:
@@ -71,7 +71,7 @@ class sqw:
             self.meV = fftfreq(self.num_freq,self.dt_eff)*4.13567
             self.df = self.meV[1]-self.meV[0]
             self.max_freq = self.meV.max()
-            self.sqw_norm = self.num_freq # change this to change how time FT is normalized
+            self.sqw_norm = 1 #self.num_freq # change this to change how time FT is normalized
 
             # print the energy resolution, max, etc
             message = (f'max freq: {self.max_freq:2.3f} meV\n'
@@ -320,6 +320,7 @@ class sqw:
             # the Qpoint to do
             Q_ind = Q_inds[qq]
             Q = Qpoints.total_Qpoints[Q_ind,:].reshape((1,3)) # 1/Angstrom
+            print(Q)
             
             # TS: 10.13.2021: this line of code doesnt seemed to be used anywhere
             self.Q_norm = np.sqrt(Q[0,0]**2+Q[0,1]**2+Q[0,2]**2) # |Q|
