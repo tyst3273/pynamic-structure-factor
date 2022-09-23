@@ -65,8 +65,6 @@ class c_scattering_lengths:
         f(|Q|) = c+sum_{i=(1,2,3,4)} ai*exp(-bi*(|Q|/4/pi)**2)
         """
 
-        print('\n*** warning! ***\ni need to double check that |Q| should/shouldnt have a 2*pi\n')
-
         _num_atoms = self.comm.traj.num_atoms
         _num_Q = self.comm.Qpoints.num_Q
         _Q = self.comm.Qpoints.Q_len
@@ -83,11 +81,11 @@ class c_scattering_lengths:
             
             # get the form factors for each atom type
             for jj in range(_num_types):
-                _form_facs[jj] = _params[jj][8]+ \
-                _params[jj][0]*np.exp(-_params[jj][1]*_Q4pi)+ \
-                _params[jj][2]*np.exp(-_params[jj][3]*_Q4pi)+ \
-                _params[jj][4]*np.exp(-_params[jj][5]*_Q4pi)+ \
-                _params[jj][6]*np.exp(-_params[jj][7]*_Q4pi)
+                _form_facs[jj] = _params[jj]['c']+ \
+                _params[jj]['a1']*np.exp(-_params[jj]['b1']*_Q4pi)+ \
+                _params[jj]['a2']*np.exp(-_params[jj]['b2']*_Q4pi)+ \
+                _params[jj]['a3']*np.exp(-_params[jj]['b3']*_Q4pi)+ \
+                _params[jj]['a4']*np.exp(-_params[jj]['b4']*_Q4pi)
 
             # assign form factors to all atoms
             for jj in range(_num_atoms):
@@ -112,7 +110,7 @@ class c_scattering_lengths:
                 
             _type = _types[ii] 
             self.scattering_lengths[ii] = _xlens[_type]
-        
+
     # ----------------------------------------------------------------------------------------------
 
     def _read_xray_scattering_params(self):
@@ -121,24 +119,28 @@ class c_scattering_lengths:
         lookup xray scattering params
         """
 
-        self.scattering_params = np.zeros((self.num_types,9)) # 9 params per type
+        self.scattering_params = [] #np.zeros((self.num_types,9)) # 9 params per type
 
         _params = import_module('psf.scattering_data.xray_scattering_params')
 
         msg = '\n*** xray scattering params ***\n'
         msg += ' (type)   (a1)   (b1)   (a2)   (b2)   (a3)   (b3)   (a4)   (b4)   (c)  \n'
         for ii in range(self.num_types):
+
+            _ = {}
             
             _x = _params.scattering_params[self.unique_types[ii]]
-            self.scattering_params[ii,0] = _x['a1']
-            self.scattering_params[ii,1] = _x['b1']
-            self.scattering_params[ii,2] = _x['a2']
-            self.scattering_params[ii,3] = _x['b2']
-            self.scattering_params[ii,4] = _x['a3']
-            self.scattering_params[ii,5] = _x['b3']
-            self.scattering_params[ii,6] = _x['a4']
-            self.scattering_params[ii,7] = _x['b4']
-            self.scattering_params[ii,8] = _x['c']
+            _['a1'] = _x['a1']
+            _['b1'] = _x['b1']
+            _['a2'] = _x['a2']
+            _['b2'] = _x['b2']
+            _['a3'] = _x['a3']
+            _['b3'] = _x['b3']
+            _['a4'] = _x['a4']
+            _['b4'] = _x['b4']
+            _['c'] = _x['c']
+
+            self.scattering_params.append(_)
 
             msg += f'  {self.unique_types[ii]:4}  {_x["a1"]:6.2f} {_x["b1"]:6.2f}' \
                 f' {_x["a2"]:6.2f} {_x["b2"]:6.2f} {_x["a3"]:6.2f} {_x["b3"]:6.2f}' \

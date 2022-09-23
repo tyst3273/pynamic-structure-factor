@@ -14,7 +14,7 @@ total_steps     = 10000
 num_atoms       = 6480 
 supercell       = 6 6 30
 
-lattice_vectors = 4.593 0 0  0 4.593 0  0 0 2.259
+lattice_vectors = 4.593 0 0  0 4.593 0  0 0 2.959
 unwrap_pos = 1
 recalculate_cell_lengths = 0
 
@@ -23,12 +23,13 @@ recalculate_cell_lengths = 0
 num_processes   = 1
 Qpoints_file = ../Qpts.dat
 num_blocks      = 5
+blocks          = 0
 compute_sqw     = 1
 compute_bragg   = 1
 compute_timeavg = 1
 
 # ---------- neutron scattering lengths --------
-exp_type = ins
+exp_type = xray
 types           = Ti O            
 
 

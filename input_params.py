@@ -9,7 +9,7 @@ recalculate_box_lengths = False
 
 # options for splitting up trajectory
 num_trajectory_blocks = 5
-trajectory_blocks = None 
+trajectory_blocks = [0] #None 
 
 # options for writing results
 output_directory = None
@@ -37,7 +37,7 @@ basis_positions = [[0.5000000000000000,  0.5000000000000000,  0.5000000000000000
                    [0.6953400114833093,  0.6953400114833093,  0.0000000000000000]]
 
 # experiment info
-experiment_type = 'xrays' #'neutrons' # 'neutrons' or 'xrays'
+experiment_type = 'xrays' # 'neutrons' or 'xrays'
 
 # options for how to generate Q-points for calculation
 Qpoints_option = 'text_file' # mesh, mesh_file, write_mesh, text_file, or path

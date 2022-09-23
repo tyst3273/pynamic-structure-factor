@@ -56,9 +56,6 @@ class sqw:
         self.xlengths = np.zeros((self.block_steps,invars.num_atoms)) # this is an array
         self.xlengths_tools = mod_xlengths.scattering_lengths(invars.num_types) # this is a class
 
-        # "rescale" the intensity to make plotting easier.
-        self.common_rescale = 1 #1e6
-
         # only create sqw array if requested. saves time to not do this if only bragg and/or timeavg
         if invars.compute_sqw:
 
@@ -71,7 +68,6 @@ class sqw:
             self.meV = fftfreq(self.num_freq,self.dt_eff)*4.13567
             self.df = self.meV[1]-self.meV[0]
             self.max_freq = self.meV.max()
-            self.sqw_norm = 1 #self.num_freq # change this to change how time FT is normalized
 
             # print the energy resolution, max, etc
             message = (f'max freq: {self.max_freq:2.3f} meV\n'
@@ -320,7 +316,6 @@ class sqw:
             # the Qpoint to do
             Q_ind = Q_inds[qq]
             Q = Qpoints.total_Qpoints[Q_ind,:].reshape((1,3)) # 1/Angstrom
-            print(Q)
             
             # TS: 10.13.2021: this line of code doesnt seemed to be used anywhere
             self.Q_norm = np.sqrt(Q[0,0]**2+Q[0,1]**2+Q[0,2]**2) # |Q|
@@ -331,20 +326,21 @@ class sqw:
 
             # space FT by vectorized Q.r dot products and sum over atoms. (tile prepends new axes)
             exp_iQr = np.tile(Q,reps=[self.block_steps,invars.num_atoms,1])*self.pos # Q.r
-            exp_iQr = np.exp(1j*exp_iQr.sum(axis=2))*self.xlengths # sum over x, y, z
+            exp_iQr = exp_iQr.sum(axis=2)
+            exp_iQr = np.exp(1j*exp_iQr)*self.xlengths # sum over x, y, z
             exp_iQr = exp_iQr.sum(axis=1) # sum over atoms
 
             # compute bragg intensity = |<rho(Q,t)>|**2
             if invars.compute_bragg:
-                bragg_pp[qq] = np.abs((exp_iQr).mean())**2/self.common_rescale
+                bragg_pp[qq] = np.abs((exp_iQr).mean())**2
 
             # compute timeavg intensity = <|rho(Q,t)|**2>
             if invars.compute_timeavg:
-                timeavg_pp[qq] = (np.abs(exp_iQr)**2).mean()/self.common_rescale
+                timeavg_pp[qq] = (np.abs(exp_iQr)**2).mean()
 
             # compute dynamical intensity = |rho(Q,w)|**2
             if invars.compute_sqw:
-                sqw_pp[:,qq] = np.abs(fft(exp_iQr))**2/self.sqw_norm/self.common_rescale
+                sqw_pp[:,qq] = np.abs(fft(exp_iQr))**2
 
         # put this stuff into the 'Queue' so that some other process can put it into the main arrays
         self.mp_queue.put([sqw_pp,bragg_pp,timeavg_pp,proc])

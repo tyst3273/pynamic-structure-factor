@@ -115,14 +115,6 @@ class c_structure_factors:
         if self.calc_sqw:
             self.sq_bragg /= _num_blocks #*_num_atoms
 
-        # scratch way to write for now!
-        np.savetxt('sq_bragg',self.sq_bragg,fmt='%9.4f')
-        np.savetxt('fqt_sq',self.fqt_sq,fmt='%9.4f')
-        np.savetxt('sq_diffuse',self.sq_diffuse,fmt='%9.4f')
-
-        sqw = np.append(self.energy.reshape(1,self.num_energy),self.sqw,axis=0)
-        np.savetxt('sqw',sqw,fmt='%9.4f')
-
         self.timers.stop_timer('calc_strufacs')
 
     # ----------------------------------------------------------------------------------------------
@@ -214,13 +206,14 @@ class c_structure_factors:
                 print(msg)
 
             _Q = _Qpts[ii,:].reshape(1,3)
-            _ind = _Qpt_inds[ii]
+            _Q_ind = _Qpt_inds[ii]
 
-            # get this for neutrons once and for all
+            # depends on Q for xrays, but calculate earlier
             if _exp_type == 'xrays':
-                _x = self.comm.xlengths.form_factors[:,_ind]
+                _x = self.comm.xlengths.form_factors[:,_Q_ind]
 
             # vectorized Q.r dot product, sum over atoms gives space FT
+            _x = np.tile(_x.reshape(1,_num_atoms),reps=(_num_steps,1))
             _exp_iQr = np.tile(_Q,reps=(_num_steps,_num_atoms,1))
             _exp_iQr = np.sum(_exp_iQr*self.comm.traj.pos,axis=2)
             _exp_iQr = np.exp(1j*_exp_iQr)*_x
