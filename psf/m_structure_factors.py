@@ -19,7 +19,7 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
-from scipy.fft import fft
+from scipy.fft import fft, ifft
 import multiprocessing as mp
 from psf.m_timing import _timer
 from psf.m_error import crash
@@ -45,13 +45,14 @@ class c_structure_factors:
         self.calc_sqw = config.calc_sqw
         self.calc_diffuse = config.calc_diffuse
         self.calc_bragg = config.calc_bragg
+        self.calc_rho_squared = config.calc_rho_squared
 
         # set stuff up
         if self.calc_sqw:
             self._setup_energies()
             self.sqw = np.zeros((self.comm.Qpoints.num_Q,self.num_energy),dtype=float)
 
-            msg = '\n*** dynamic structure factor ***\ncalculating S(Q,E) ~ |rho(Q,E)|**2 \n'
+            msg = '\n*** dynamic structure factor ***\n'
             msg += f'num_energy: {self.num_energy}\n'
             msg += f'energy_step:\n {self.energy_step: 8.6f} (meV)\n'
             msg += f' {self.energy_step/_thz2meV: 8.6f} (tHz)\n'
@@ -59,19 +60,26 @@ class c_structure_factors:
             msg += f' {self.energy_max/_thz2meV: 8.4f} (tHz)'
             print(msg)
 
+        if self.calc_rho_squared:
+            self.rho_sq = np.zeros((self.comm.Qpoints.num_Q, \
+                        self.comm.traj.num_block_steps),dtype=float)
+
+            msg = '\n*** rho squared ***\ncalculating \'rho squared\'\n'
+            msg += '  |exp(iQ.r(t))|**2'
+            print(msg)
+
         if self.calc_diffuse:   
-            self.fqt_sq = np.zeros((self.comm.Qpoints.num_Q,self.comm.traj.num_block_steps),dtype=float)
             self.sq_diffuse = np.zeros(self.comm.Qpoints.num_Q,dtype=float)
 
-            msg = '\n*** diffuse intensity ***\ncalculating diffuse |F(Q,t)|**2 and \n'
-            msg += '  S(Q) ~ <|F(Q,t)|**2> '
+            msg = '\n*** diffuse intensity ***\ncalculating diffuse intensity \n'
+            msg += '  <|exp(iQ.r(t))|**2> '
             print(msg)
 
         if self.calc_bragg:
             self.sq_bragg = np.zeros(self.comm.Qpoints.num_Q,dtype=float)
 
             msg = '\n*** bragg intensity ***\ncalculating bragg intensity\n'
-            msg += '  I(Q) ~ |<F(Q),t)>|**2 '
+            msg += '  |<exp(iQ.r(t))>|**2 '
             print(msg)
 
     # ----------------------------------------------------------------------------------------------
@@ -140,6 +148,28 @@ class c_structure_factors:
 
     # ----------------------------------------------------------------------------------------------
 
+    def _get_res_list(self,proc):
+
+        """
+        parse the 'results' list returned by _proc_loop_on_Q(); put the data in appropriate
+        arrays
+        """
+
+        res = [proc]
+        if self.calc_bragg:
+            res.append(self._sq_bragg)
+        if self.calc_rho_squared:
+            res.append(self._rho_sq)
+        if self.calc_diffuse:
+            res.append(self._sq_diffuse)
+        if self.calc_sqw:
+            res.append(self._sqw)
+        res.append(self.timers.timers['loop_on_Q'])
+
+        return res
+
+    # ----------------------------------------------------------------------------------------------
+
     def _get_arrays_from_res(self,res):
 
         """
@@ -158,9 +188,10 @@ class c_structure_factors:
         if self.calc_bragg:
             self.sq_bragg[Q_inds] += res[0]
             res.pop(0)
-        if self.calc_diffuse:
-            self.fqt_sq[Q_inds,:] += res[0]
+        if self.calc_rho_squared:
+            self.rho_sq[Q_inds,:] += res[0]
             res.pop(0)
+        if self.calc_diffuse:
             self.sq_diffuse[Q_inds] += res[0]
             res.pop(0)
         if self.calc_sqw:
@@ -223,10 +254,53 @@ class c_structure_factors:
 
     # ----------------------------------------------------------------------------------------------
 
+    def _get_strufac_arrays(self,_nQ,proc=0):
+
+        """
+        get empty arrays that are used repeatedly to keep from having to allocate/reallocate
+        """
+
+        _num_steps = self.comm.traj.num_block_steps
+        _num_energy = self.num_energy
+        
+        if self.calc_sqw:
+            self._sqw = np.zeros((_nQ,_num_energy),dtype=float)
+
+        if self.calc_diffuse or self.calc_rho_squared:
+            self._rho_sq = np.zeros((_nQ,_num_steps),dtype=float)
+
+        if self.calc_diffuse:
+            self._sq_diffuse = np.zeros(_nQ,dtype=float)
+
+        if self.calc_bragg:
+            self._sq_bragg = np.zeros(_nQ,dtype=float)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _calc_strufacs(self,exp_iQr,ind):
+
+        """
+        calculate whatever was requested ... sorry for the spaghetti logic
+        """
+
+        if self.calc_bragg:
+            self._sq_bragg[ind] = np.abs((exp_iQr).mean())**2
+
+        if self.calc_diffuse or self.calc_rho_squared:
+            self._rho_sq[ind,:] = np.abs(exp_iQr)**2
+
+        if self.calc_diffuse:
+            self._sq_diffuse[ind] = self._rho_sq[ind,:].mean()
+
+        if self.calc_sqw:
+            self._sqw[ind,:] = np.abs(fft(exp_iQr))**2
+
+    # ----------------------------------------------------------------------------------------------
+
     def _proc_loop_on_Q(self,proc=0):
 
         """
-        loops over the Q-points assinged to the proc, calcs S(Q,E) etc, the puts data in queue
+        loops over the Q-points assinged to the proc, calcs S(Q,E) etc, then puts data in queue
         """
 
         self.timers.start_timer('loop_on_Q',units='s')
@@ -235,26 +309,20 @@ class c_structure_factors:
         _exp_type = self.comm.xlengths.experiment_type
         _num_steps = self.comm.traj.num_block_steps
         _num_atoms = self.comm.traj.num_atoms
-        _num_energy = self.num_energy
 
         # get the Q-points that this proc is supposed do
         _Qpt_inds = self.comm.paral.Qpts_on_proc[proc]
         _Qpts = self.comm.Qpoints.Q_cart[_Qpt_inds,:]
         _nQ = _Qpts.shape[0]
 
-        # set stuff up
-        if self.calc_sqw:
-            _sqw = np.zeros((_nQ,_num_energy),dtype=float)
-        if self.calc_diffuse:
-            _fqt_sq = np.zeros((_nQ,_num_steps),dtype=float)
-            _sq_diffuse = np.zeros(_nQ,dtype=float)
-        if self.calc_bragg:
-            _sq_bragg = np.zeros(_nQ,dtype=float)
+        # get empty arrays
+        self._get_strufac_arrays(_nQ)
 
         # get this for neutrons once and for all
         if _exp_type == 'neutrons':
             _x = self.comm.xlengths.scattering_lengths
 
+        # only print info for proc-0
         if proc == 0:
             msg = f'there are {_nQ} Q-points to do ...'
             print(msg)
@@ -274,34 +342,19 @@ class c_structure_factors:
                 _x = self.comm.xlengths.form_factors[:,_Q_ind]
 
             # vectorized Q.r dot product, sum over atoms gives space FT
-            _x = np.tile(_x.reshape(1,_num_atoms),reps=(_num_steps,1))
+            _x_tile = np.tile(_x.reshape(1,_num_atoms),reps=(_num_steps,1))
             _exp_iQr = np.tile(_Q,reps=(_num_steps,_num_atoms,1))
             _exp_iQr = np.sum(_exp_iQr*self.comm.traj.pos,axis=2)
-            _exp_iQr = np.exp(1j*_exp_iQr)*_x
+            _exp_iQr = np.exp(1j*_exp_iQr)*_x_tile
             _exp_iQr = np.sum(_exp_iQr,axis=1)
 
-            # calculate whatever was requested
-            if self.calc_bragg:
-                _sq_bragg[ii] = np.abs((_exp_iQr).mean())**2
-            if self.calc_diffuse:
-                _fqt_sq[ii,:] = np.abs(_exp_iQr)**2
-                _sq_diffuse[ii] = _fqt_sq[ii,:].mean()
-            if self.calc_sqw:
-                _sqw[ii,:] = np.abs(fft(_exp_iQr))**2
+            # get different arrays depending on what is requested
+            self._calc_strufacs(_exp_iQr,ii)
 
-        
         self.timers.stop_timer('loop_on_Q')
 
         # return list of results
-        res = [proc]
-        if self.calc_bragg:
-            res.append(_sq_bragg)
-        if self.calc_diffuse:
-            res.append(_fqt_sq)
-            res.append(_sq_diffuse)
-        if self.calc_sqw:
-            res.append(_sqw)
-        res.append(self.timers.timers['loop_on_Q'])
+        res = self._get_res_list(proc)
 
         # put results in queue to be passed to main proc
         self.queue.put(res)

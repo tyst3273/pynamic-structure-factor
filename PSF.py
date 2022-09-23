@@ -40,6 +40,8 @@ class c_PSF:
         main class that holds 'macros' to do stuff
         """
 
+        self.print_preamble()
+
         # timers
         self.timers = m_timing.c_timers()
 
@@ -78,7 +80,7 @@ class c_PSF:
 
         self.timers.print_timing()
 
-        goodbye = '\n\n#######################################################################\n'
+        goodbye = '#######################################################################\n'
         goodbye += 'the calculation finished willy-nilly\n' 
         goodbye += 'as always, check the results carefully\n'
         goodbye += 'bye!\n'
@@ -125,7 +127,6 @@ if __name__ == '__main__':
     """
 
     PSF = c_PSF()
-    PSF.print_preamble()
     PSF.standard_run()
     PSF.print_goodbye()
 

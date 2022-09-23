@@ -40,3 +40,12 @@ note about unwrapping:
         calculated by summing over positions. the reason it is enforced is so that lx,ly,lz can
         be calculated like below ...
 
+
+new features ...
+
+    can pretty easily calculate van-hove function. if we calculate S(Q,w) on uniform grid spanning
+    large enough part of reciprocal space (large enough that intensity falls off ~> 0 for large Q)
+    then we can inverse space FT to get G(r,t) (i.e. the green function). 
+    HAS to be done on mesh tho
+
+

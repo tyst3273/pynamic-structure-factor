@@ -96,6 +96,7 @@ class c_config:
         self._set_trajectory_file()
         self._set_unwrap_trajectory()
         self._set_recalculate_box_lengths()
+        self._set_calc_rho_squared()
         self._set_calc_bragg()
         self._set_calc_diffuse()
         self._set_calc_sqw()
@@ -569,6 +570,21 @@ class c_config:
             self.output_directory = os.path.abspath(self.output_directory)
 
         print(f'output_directory:\n  {self.output_directory}')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_calc_rho_squared(self,calc_rho_squared=None):
+
+        """
+        get the attribute
+        """
+
+        if calc_rho_squared is None:
+            self.calc_rho_squared = self._get_attr('calc_rho_squared')
+        else:
+            self.calc_rho_squared = calc_rho_squared
+        self.calc_rho_squared = bool(self.calc_rho_squared)
+        print(f'calc_rho_squared:\n  {self.calc_rho_squared}')
 
     # ----------------------------------------------------------------------------------------------
 

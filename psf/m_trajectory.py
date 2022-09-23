@@ -42,11 +42,14 @@ class c_trajectory:
         self.trajectory_format = self.config.trajectory_format
         self.trajectory_file = self.config.trajectory_file
         self.md_time_step = self.config.md_time_step
-
+    
         self.unwrap_trajectory = self.config.unwrap_trajectory
 
         # set up the 'blocks' of indices for calculating on
         self._get_block_inds()
+    
+        # the times for time correlation functions
+        self.time = np.arange(0,self.num_block_steps,self.md_time_step)
 
         # get atom types once and for all
         self._read_types_lammps_hdf5()

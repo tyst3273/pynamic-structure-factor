@@ -33,6 +33,7 @@ trajectory_blocks = [0,1,2,3,4,5,6,7,8,9]
 output_directory = None
 output_prefix = 'psf'
 calc_bragg = True
+calc_rho_squared = True
 calc_diffuse = True
 calc_sqw = True
 

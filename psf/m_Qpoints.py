@@ -238,7 +238,7 @@ class c_Qpoints:
             _0_centered = True
         else:
             _0_centered = False
-        
+
         # try to grid using symmetry to reduce number of points
         if self.Q_mesh_symmetry:
             if not _0_centered:
@@ -262,6 +262,8 @@ class c_Qpoints:
         """
         make Q-point mesh on full grid without using spglib
         """
+
+        print('\n!!!!!!!!!!!!!!!!!\n')
 
         _H, _K, _L = np.meshgrid(self.H,self.K,self.L,indexing='ij')
         _H = _H.flatten(); _K = _K.flatten(); _L = _L.flatten()
@@ -322,6 +324,16 @@ class c_Qpoints:
         msg += 'numer of Q-point in irreducible part:\n'
         msg += f'  {self.num_Q:g}\n'
         print(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def put_on_mesh(self):
+
+        """
+        put data onto Q-point on 'mesh'
+        """
+
+        pass
 
     # ----------------------------------------------------------------------------------------------
 
