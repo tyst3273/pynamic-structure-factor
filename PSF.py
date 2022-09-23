@@ -76,6 +76,8 @@ class c_PSF:
         self explanatory ...
         """
 
+        self.timers.print_timing()
+
         goodbye = '\n\n#######################################################################\n'
         goodbye += 'the calculation finished willy-nilly\n' 
         goodbye += 'as always, check the results carefully\n'
@@ -107,7 +109,6 @@ class c_PSF:
 
         self.timers.stop_timer('standard_run')
         self.timers.stop_timer('PSF')
-        self.timers.print_timing()
 
     # ----------------------------------------------------------------------------------------------
 
