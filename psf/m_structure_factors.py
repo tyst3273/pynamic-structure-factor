@@ -1,8 +1,28 @@
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                                           !
+#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
+#   ! University of Colorado Boulder                                            !
+#   !                                                                           !
+#   ! This file is part of the pynamic-structure-factor (PSF) software.         !
+#   ! PSF is free software: you can redistribute it and/or modify it under      !
+#   ! the terms of the GNU General Public License as published by the           !
+#   ! Free software Foundation, either version 3 of the License, or             !
+#   ! (at your option) any later version. PSF is distributed in the hope        !
+#   ! that it will be useful, but WITHOUT ANY WARRANTY; without even the        !
+#   ! implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  !
+#   ! See the GNU General Public License for more details.                      !
+#   !                                                                           !
+#   ! A copy of the GNU General Public License should be available              !
+#   ! alongside this source in a file named gpl-3.0.txt. If not see             !
+#   ! <http://www.gnu.org/licenses/>.                                           !
+#   !                                                                           !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
 from scipy.fft import fft
 import multiprocessing as mp
 from psf.m_timing import _timer
+from psf.m_error import crash
 
 
 _thz2meV = 4.13566553853599
@@ -287,4 +307,26 @@ class c_structure_factors:
         self.queue.put(res)
         
     # ---------------------------------------------------------------------------------------------- 
+
+    def put_on_mesh(self):
+
+        """
+        convenience methods that put S(Q,w) on unordered list of Q onto cartesian grid of Q-points
+        for symmetry reduced Q-points, it also unfolds into full reciprocal space
+
+        this calls methods from c_Qpoints
+        """
+
+        _use_mesh = self.comm.Qpoints.use_mesh
+        if not _use_mesh:
+            msg = 'a Qpoint-mesh was not requested, i.e. cannot be unfolded!\n' \
+                  'use \'Qpoints_option\' = \'mesh\' or \'write_mesh\' \n'
+            crash(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+
+
+
+
 

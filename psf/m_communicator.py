@@ -1,3 +1,22 @@
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                                           !
+#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
+#   ! University of Colorado Boulder                                            !
+#   !                                                                           !
+#   ! This file is part of the pynamic-structure-factor (PSF) software.         !
+#   ! PSF is free software: you can redistribute it and/or modify it under      !
+#   ! the terms of the GNU General Public License as published by the           !
+#   ! Free software Foundation, either version 3 of the License, or             !
+#   ! (at your option) any later version. PSF is distributed in the hope        !
+#   ! that it will be useful, but WITHOUT ANY WARRANTY; without even the        !
+#   ! implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  !
+#   ! See the GNU General Public License for more details.                      !
+#   !                                                                           !
+#   ! A copy of the GNU General Public License should be available              !
+#   ! alongside this source in a file named gpl-3.0.txt. If not see             !
+#   ! <http://www.gnu.org/licenses/>.                                           !
+#   !                                                                           !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import psf.m_lattice as m_lattice
 import psf.m_Qpoints as m_Qpoints
@@ -6,6 +25,7 @@ import psf.m_scattering_lengths as m_scattering_lengths
 import psf.m_trajectory as m_trajectory
 import psf.m_structure_factors as m_structure_factors
 import psf.m_parallel as m_parallel
+import psf.m_io as m_io
 
 
 class c_communicator:
@@ -47,6 +67,9 @@ class c_communicator:
 
         # setup object to hold structure factors, calculate stuff, etc.
         self.strufacs = m_structure_factors.c_structure_factors(self.config,self,self.timers)
+
+        # setup io object to write files
+        self.io = m_io.c_io(self.config,self)
 
     # ----------------------------------------------------------------------------------------------
 

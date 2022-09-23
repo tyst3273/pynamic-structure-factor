@@ -1,5 +1,25 @@
 #!/home/ty/anaconda3/bin/python3
 
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                                           !
+#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
+#   ! University of Colorado Boulder                                            !
+#   !                                                                           !
+#   ! This file is part of the pynamic-structure-factor (PSF) software.         !
+#   ! PSF is free software: you can redistribute it and/or modify it under      !
+#   ! the terms of the GNU General Public License as published by the           !
+#   ! Free software Foundation, either version 3 of the License, or             !
+#   ! (at your option) any later version. PSF is distributed in the hope        !
+#   ! that it will be useful, but WITHOUT ANY WARRANTY; without even the        !
+#   ! implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  !
+#   ! See the GNU General Public License for more details.                      !
+#   !                                                                           !
+#   ! A copy of the GNU General Public License should be available              !
+#   ! alongside this source in a file named gpl-3.0.txt. If not see             !
+#   ! <http://www.gnu.org/licenses/>.                                           !
+#   !                                                                           !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 """
 'driver' script for psf code. gonna put 'tasks' in here, i.e. macros for calculating 
 all kinds of stuff in here... but for now, its just the main script.
@@ -9,37 +29,106 @@ import psf.m_communicator as m_communicator
 import psf.m_config as m_config
 import psf.m_timing as m_timing
 
-preamble = '\n\n#######################################################################\n'
-preamble += 'Pynamic Structure Factors \n'
-preamble += 'author: Tyler C. Sterling\n'
-preamble += 'email: ty.sterling@colorado.edu\n'
-preamble += 'affil: Physics Dept., University of Colorado Boulder\n'
-preamble += '  Neurtron Scattering and Raman Spectroscopy Lab\n'
-preamble += '#######################################################################\n'
-print(preamble)
+
+class c_PSF:
+
+    # ----------------------------------------------------------------------------------------------
+    
+    def __init__(self):
+
+        """
+        main class that holds 'macros' to do stuff
+        """
+
+        # timers
+        self.timers = m_timing.c_timers()
+
+        # options for the calculation
+        self.config = m_config.c_config()
+        self.config.get_args_from_file()
+
+        # 'communicator' to conveniently pass objects in/out of stuff
+        self.comm = m_communicator.c_communicator(self.config,self.timers)
+        self.comm.setup_calculation()
+
+    # ----------------------------------------------------------------------------------------------
+
+    def print_preamble(self):
+
+        """
+        self explanatory ...
+        """
+
+        preamble = '\n\n#######################################################################\n'
+        preamble += 'Pynamic Structure Factors \n'
+        preamble += 'author: Tyler C. Sterling\n'
+        preamble += 'email: ty.sterling@colorado.edu\n'
+        preamble += 'affil: Physics Dept., University of Colorado Boulder\n'
+        preamble += '  Neurtron Scattering and Raman Spectroscopy Lab\n'
+        preamble += '#######################################################################\n'
+        print(preamble)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def print_goodbye(self):
+
+        """
+        self explanatory ...
+        """
+
+        goodbye = '\n\n#######################################################################\n'
+        goodbye += 'the calculation finished willy-nilly\n' 
+        goodbye += 'as always, check the results carefully\n'
+        goodbye += 'bye!\n'
+        goodbye += '#######################################################################\n'
+        print(goodbye)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def standard_run(self):
+
+        """
+        the usual way to run the code. it reads the config file, does what was requested, 
+        writes the results, the exits.
+        """
+
+        self.timers.start_timer('PSF',units='m')
+        self.timers.start_timer('standard_run',units='m')
+
+        # this loops over all blocks, calculating errything
+        self.comm.strufacs.calculate_structure_factors()
+
+        # unfold mesh onto full reciprocal space 
+        if self.comm.Qpoints.use_mesh:
+            self.comm.strufacs.put_on_mesh()
+
+        # write output files
+        self.comm.io.write_structure_factors()
+
+        self.timers.stop_timer('standard_run')
+        self.timers.stop_timer('PSF')
+        self.timers.print_timing()
+
+    # ----------------------------------------------------------------------------------------------
 
 
-# timers
-timers = m_timing.c_timers()
-timers.start_timer('PSF',units='m')
 
-# options for the calculation
-config = m_config.c_config()
-config.get_args_from_file()
+# --------------------------------------------------------------------------------------------------
 
-# 'communicator' to conveniently pass objects in/out of stuff
-comm = m_communicator.c_communicator(config,timers)
-comm.setup_calculation()
+if __name__ == '__main__':
 
-#comm.traj.read_trajectory_block(block_index=0)
+    """
+    if not being imported as a module, perform a 'standard' calculation by reading config file
+    (file path is read from cmd-line or defaults in c_config), doing what is requested, then
+    writing the results and exiting
+    """
 
-# this loops over all blocks, calculating errything
-comm.strufacs.calculate_structure_factors()
+    PSF = c_PSF()
+    PSF.print_preamble()
+    PSF.standard_run()
+    PSF.print_goodbye()
 
-
-timers.stop_timer('PSF')
-timers.print_timing()
-
+# --------------------------------------------------------------------------------------------------
 
 
 

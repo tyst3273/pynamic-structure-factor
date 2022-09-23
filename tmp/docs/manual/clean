@@ -1,3 +1,0 @@
-#!/bin/bash
-
-rm *.log *.aux *.toc *.dvi *.bbl *.blg *.lof *.out *Notes.bib *.lot

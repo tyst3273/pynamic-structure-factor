@@ -1,3 +1,22 @@
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                                           !
+#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
+#   ! University of Colorado Boulder                                            !
+#   !                                                                           !
+#   ! This file is part of the pynamic-structure-factor (PSF) software.         !
+#   ! PSF is free software: you can redistribute it and/or modify it under      !
+#   ! the terms of the GNU General Public License as published by the           !
+#   ! Free software Foundation, either version 3 of the License, or             !
+#   ! (at your option) any later version. PSF is distributed in the hope        !
+#   ! that it will be useful, but WITHOUT ANY WARRANTY; without even the        !
+#   ! implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  !
+#   ! See the GNU General Public License for more details.                      !
+#   !                                                                           !
+#   ! A copy of the GNU General Public License should be available              !
+#   ! alongside this source in a file named gpl-3.0.txt. If not see             !
+#   ! <http://www.gnu.org/licenses/>.                                           !
+#   !                                                                           !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # system modules
 import numpy as np
@@ -112,7 +131,6 @@ class c_config:
             self._set_Q_path_start()
             self._set_Q_path_end()
             self._set_Q_path_steps()
-
    
         # --- add new variables parsers here ---
         # ...
@@ -528,7 +546,7 @@ class c_config:
             self.output_prefix = self._get_attr('output_prefix')
         else:
             self.output_prefix = output_prefix
-        self.output_prefix = str(self.output_prefix+'_')
+        self.output_prefix = str(self.output_prefix)
         print(f'output_prefix:\n  {self.output_prefix}')
 
     # ----------------------------------------------------------------------------------------------
@@ -549,10 +567,6 @@ class c_config:
             self.output_directory = os.getcwd()
         else:
             self.output_directory = os.path.abspath(self.output_directory)
-
-        # make it if it doesnt exist
-        if not os.path.exists(self.output_directory):
-            os.mkdir(self.output_directory)
 
         print(f'output_directory:\n  {self.output_directory}')
 
