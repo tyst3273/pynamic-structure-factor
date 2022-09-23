@@ -8,7 +8,7 @@ unwrap_trajectory = True
 recalculate_box_lengths = False
 
 # options for splitting up trajectory
-num_trajectory_blocks = 5
+num_trajectory_blocks = 1
 trajectory_blocks = [0] #None 
 
 # options for writing results
@@ -40,14 +40,14 @@ basis_positions = [[0.5000000000000000,  0.5000000000000000,  0.5000000000000000
 experiment_type = 'xrays' # 'neutrons' or 'xrays'
 
 # options for how to generate Q-points for calculation
-Qpoints_option = 'text_file' # mesh, mesh_file, write_mesh, text_file, or path
+Qpoints_option = 'mesh' # mesh, mesh_file, write_mesh, text_file, or path
 
 # for 'Qpoints_option' == 'mesh' ; 
 # note, symmetry only works with plane centered on Q=(0,0,0) right now
 # and requires spglib !!
 Q_mesh_symmetry = False 
-Q_mesh_H = [-2,2,40]
-Q_mesh_K = [-2,2,40]
+Q_mesh_H = [-2,2,24]
+Q_mesh_K = [-2,2,24]
 Q_mesh_L = 2
 
 # 'Qpoints_option' == 'file'
@@ -61,7 +61,7 @@ Q_path_end = [[1,0,2],
 Q_path_steps = [20,20]
 
 # number of processes to split Q-point parallelization over
-num_Qpoint_procs = 1
+num_Qpoint_procs = 16
 
 
 

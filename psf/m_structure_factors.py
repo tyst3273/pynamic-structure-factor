@@ -1,6 +1,7 @@
 
 import numpy as np
 from scipy.fft import fft
+import multiprocessing as mp
 from psf.m_timing import _timer
 
 
@@ -119,6 +120,40 @@ class c_structure_factors:
 
     # ----------------------------------------------------------------------------------------------
 
+    def _get_arrays_from_res(self,res):
+
+        """
+        parse the 'results' list returned by _proc_loop_on_Q(); put the data in appropriate
+        arrays
+        """
+
+        # get the proc
+        proc = res[0]
+        res.pop(0)
+
+        # get the Q-point indices this proc did
+        Q_inds = self.comm.paral.Qpts_on_proc[proc]
+
+        # get the data and put on correct Qpts
+        if self.calc_bragg:
+            self.sq_bragg[Q_inds] += res[0]
+            res.pop(0)
+        if self.calc_diffuse:
+            self.fqt_sq[Q_inds,:] += res[0]
+            res.pop(0)
+            self.sq_diffuse[Q_inds] += res[0]
+            res.pop(0)
+        if self.calc_sqw:
+            self.sqw[Q_inds,:] += res[0]
+            res.pop(0)
+
+        _timer = res[0]
+        res.pop(0)
+
+        return _timer
+
+    # ----------------------------------------------------------------------------------------------
+
     def _calculate_on_block(self,_block):
 
         """
@@ -128,35 +163,41 @@ class c_structure_factors:
 
         self.timers.start_timer('calc_on_block',units='m')
 
+        # get stuff for parallelization
+        _num_procs = self.comm.paral.num_Qpoint_procs
+
         # get the trajectory from the file
         self.comm.traj.read_trajectory_block(_block)
 
-        # place holder until i set up multiprocessing here!
+        # Queue for passing data between procs
+        self.queue = mp.Queue()
 
-        if True:
+        _procs = []
+        for _proc in range(_num_procs):
+            _procs.append(mp.Process(target=self._proc_loop_on_Q,args=[_proc]))
 
-            # get the results
-            res = self._proc_loop_on_Q(proc=0) 
+        # start execution
+        for _proc in _procs:
+            _proc.start()
 
-            # get the proc
-            proc = res[0]
-            res.pop(0)
+        # get the results from queue
+        _timers = []
+        for _proc in range(_num_procs):
+            _res = self.queue.get()
+            _timer = self._get_arrays_from_res(_res)
+            _timers.append(_timer)
 
-            # get the Q-point indices this proc did
-            Q_inds = self.comm.paral.Qpts_on_proc[proc]
+        # close queue, kill it
+        self.queue.close()
+        self.queue.join_thread()
 
-            # get the data and put on correct Qpts
-            if self.calc_bragg:
-                self.sq_bragg[Q_inds] += res[0]
-                res.pop(0)
-            if self.calc_diffuse:
-                self.fqt_sq[Q_inds,:] += res[0]
-                res.pop(0)
-                self.sq_diffuse[Q_inds] += res[0]
-                res.pop(0)
-            if self.calc_sqw:
-                self.sqw[Q_inds,:] += res[0]
-                res.pop(0)
+        # blocking; wait for all procs to finish before moving on
+        for _proc in _procs:
+            _proc.join()
+            _proc.close()
+
+        # this 'collects' the timers from all processes and tallys thier timing
+        self.timers.collect_timers(_timers)
 
         self.timers.stop_timer('calc_on_block')
 
@@ -228,6 +269,9 @@ class c_structure_factors:
             if self.calc_sqw:
                 _sqw[ii,:] = np.abs(fft(_exp_iQr))**2
 
+        
+        self.timers.stop_timer('loop_on_Q')
+
         # return list of results
         res = [proc]
         if self.calc_bragg:
@@ -237,10 +281,10 @@ class c_structure_factors:
             res.append(_sq_diffuse)
         if self.calc_sqw:
             res.append(_sqw)
+        res.append(self.timers.timers['loop_on_Q'])
 
-        self.timers.stop_timer('loop_on_Q')
+        # put results in queue to be passed to main proc
+        self.queue.put(res)
         
-        return res
-
     # ---------------------------------------------------------------------------------------------- 
 

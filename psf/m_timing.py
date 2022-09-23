@@ -128,7 +128,7 @@ class c_timers:
             # add up data over timers
             self.timers[timer.label].lap_time = timer.lap_time
             self.timers[timer.label].total_time += timer.total_time
-            self.timers[timer.label].calls = timer.calls
+            self.timers[timer.label].calls += timer.calls
             self.timers[timer.label].set_str()
 
     # ----------------------------------------------------------------------------------------------
