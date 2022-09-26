@@ -90,9 +90,7 @@ class c_PSF:
 
         self.timers.start_timer('standard_run',units='m')
 
-        # options for the calculation
-        self.config = m_config.c_config()
-        self.config.get_args_from_file()
+        self.get_config()
 
         # 'communicator' to conveniently pass objects in/out of stuff
         self.comm = m_communicator.c_communicator(self.config,self.timers)
@@ -109,6 +107,18 @@ class c_PSF:
         self.comm.writer.write_structure_factors()
 
         self.timers.stop_timer('standard_run')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def get_config(self):
+
+        """
+        get config info from file
+        """
+
+        # options for the calculation
+        self.config = m_config.c_config()
+        self.config.get_args_from_file()
 
     # ----------------------------------------------------------------------------------------------
 
