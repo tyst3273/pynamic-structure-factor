@@ -19,6 +19,7 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
+from copy import deepcopy
 
 from psf.m_error import crash
 
@@ -191,6 +192,9 @@ class c_Qpoints:
         
         """
         return steps along Q axis based on mesh args
+
+        NOTE: consistent with what phonopy returns, this does NOT include the lowest
+        Q point on the requested mesh
         """
         
         if Q_mesh.size == 1:
@@ -198,12 +202,13 @@ class c_Qpoints:
             Q = np.copy(Q_mesh).reshape(1,)
             _0 = True
         else:
-            num_Q = int(Q_mesh[2])
-            Q = np.linspace(Q_mesh[0],Q_mesh[1],num_Q)
-            if np.abs(Q.mean()) < eps:
+            if (Q_mesh[0]+Q_mesh[1])/2 < eps:
                 _0 = True
             else:
                 _0 = False
+
+            num_Q = int(Q_mesh[2])
+            Q = np.linspace(Q_mesh[0],Q_mesh[1],num_Q+1)[1:] # trim off lowest point in mesh ...
 
         return num_Q, Q, _0
 
@@ -253,11 +258,11 @@ class c_Qpoints:
 
         # otherwise use full grid
         else:
-            self._make_Q_mesh()
+            self._get_full_Q_mesh()
     
     # ----------------------------------------------------------------------------------------------
 
-    def _make_Q_mesh(self):
+    def _get_full_Q_mesh(self):
 
         """
         make Q-point mesh on full grid without using spglib
@@ -272,6 +277,9 @@ class c_Qpoints:
         self.Q_rlu = np.zeros((self.num_Q,3),dtype=float)
         self.Q_rlu[:,0] = _H; self.Q_rlu[:,1] = _K; self.Q_rlu[:,2] = _L
 
+        # for 'reshaping' the intensity grids
+        self.mesh_shape = [self.num_H,self.num_K,self.num_L] 
+
         msg = 'number of Q-points on full grid:\n'
         msg += f'  {self.num_Q:g}\n'
         print(msg)
@@ -283,6 +291,11 @@ class c_Qpoints:
         """
         generate Q-points on mesh using spglib to reduce number of points
         """
+
+        msg = 'symmetry reduced grid doesnt work yet! email me at\n' \
+              ' --- ty.sterling@colorado.edu --- \n' \
+              'if you need this functionality. goodbye!\n'
+        crash(msg)
 
         try:
             import spglib
@@ -327,13 +340,23 @@ class c_Qpoints:
 
     # ----------------------------------------------------------------------------------------------
 
-    def put_on_mesh(self):
+    def unfold_onto_Q_mesh(self,arr=None):
 
         """
         put data onto Q-point on 'mesh'
         """
 
-        pass
+        _shape = list(arr.shape)
+        if len(_shape) != 1:
+            _mesh_shape = deepcopy(self.mesh_shape)
+            _mesh_shape.extend(_shape[1:])
+        else:
+            _mesh_shape = deepcopy(self.mesh_shape)
+
+        if not self.Q_mesh_symmetry:
+            arr.shape = _mesh_shape
+
+        return arr
 
     # ----------------------------------------------------------------------------------------------
 

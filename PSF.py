@@ -107,7 +107,7 @@ class c_PSF:
             self.comm.strufacs.put_on_mesh()
 
         # write output files
-        self.comm.io.write_structure_factors()
+        self.comm.writer.write_structure_factors()
 
         self.timers.stop_timer('standard_run')
         self.timers.stop_timer('PSF')

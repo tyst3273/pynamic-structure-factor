@@ -93,7 +93,9 @@ class c_config:
 
         # now get the variables
         self._set_trajectory_format()
-        self._set_trajectory_file()
+        if not self.trajectory_format in ['external']:
+            self._set_trajectory_file()
+
         self._set_unwrap_trajectory()
         self._set_recalculate_box_lengths()
         self._set_calc_rho_squared()
@@ -704,7 +706,7 @@ class c_config:
         self.trajectory_format = str(self.trajectory_format)
         
         msg = 'trajectory_format \'{self.trajectory_format}\' is unknown'
-        if self.trajectory_format not in ['lammps_hdf5']:
+        if self.trajectory_format not in ['lammps_hdf5','external']:
             crash(msg)
 
         print(f'trajectory_format:\n  {self.trajectory_format}')

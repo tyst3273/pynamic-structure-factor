@@ -46,10 +46,10 @@ Qpoints_option = 'mesh' # mesh, mesh_file, write_mesh, text_file, or path
 # for 'Qpoints_option' == 'mesh' ; 
 # note, symmetry only works with plane centered on Q=(0,0,0) right now
 # and requires spglib !!
-Q_mesh_symmetry = False 
-Q_mesh_H = [-2,2,4]
-Q_mesh_K = [-2,2,4]
-Q_mesh_L = 2
+Q_mesh_symmetry = False
+Q_mesh_H = [-1,1,4]
+Q_mesh_K = [-1,1,4]
+Q_mesh_L = [-1,1,4]
 
 # 'Qpoints_option' == 'file'
 Q_file = 'Qpts.dat'

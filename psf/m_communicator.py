@@ -69,7 +69,7 @@ class c_communicator:
         self.strufacs = m_structure_factors.c_structure_factors(self.config,self,self.timers)
 
         # setup io object to write files
-        self.io = m_io.c_io(self.config,self)
+        self.writer = m_io.c_writer(self.config,self)
 
     # ----------------------------------------------------------------------------------------------
 

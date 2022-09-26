@@ -138,11 +138,11 @@ class c_structure_factors:
         # divide by number of blocks and number of atoms (to normalize vs system size)
         _num_atoms = self.comm.traj.num_atoms
         if self.calc_bragg:
-            self.sq_bragg /= _num_blocks #*_num_atoms
+            self.sq_bragg /= _num_blocks*_num_atoms
         if self.calc_diffuse:
-            self.sq_bragg /= _num_blocks #*_num_atoms
+            self.sq_bragg /= _num_blocks*_num_atoms
         if self.calc_sqw:
-            self.sq_bragg /= _num_blocks #*_num_atoms
+            self.sq_bragg /= _num_blocks*_num_atoms
 
         self.timers.stop_timer('calc_strufacs')
 
@@ -254,7 +254,7 @@ class c_structure_factors:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _get_strufac_arrays(self,_nQ,proc=0):
+    def _get_empty_strufac_arrays(self,_nQ,proc=0):
 
         """
         get empty arrays that are used repeatedly to keep from having to allocate/reallocate
@@ -316,7 +316,7 @@ class c_structure_factors:
         _nQ = _Qpts.shape[0]
 
         # get empty arrays
-        self._get_strufac_arrays(_nQ)
+        self._get_empty_strufac_arrays(_nQ)
 
         # get this for neutrons once and for all
         if _exp_type == 'neutrons':
@@ -375,6 +375,15 @@ class c_structure_factors:
             msg = 'a Qpoint-mesh was not requested, i.e. cannot be unfolded!\n' \
                   'use \'Qpoints_option\' = \'mesh\' or \'write_mesh\' \n'
             crash(msg)
+
+        if self.calc_sqw:
+            self.sqw = self.comm.Qpoints.unfold_onto_Q_mesh(self.sqw)
+        if self.calc_diffuse:
+            self.sq_diffuse = self.comm.Qpoints.unfold_onto_Q_mesh(self.sq_diffuse)
+        if self.calc_rho_squared:
+            self.rho_sq = self.comm.Qpoints.unfold_onto_Q_mesh(self.rho_sq)
+        if self.calc_bragg:
+            self.sq_bragg = self.comm.Qpoints.unfold_onto_Q_mesh(self.sq_bragg)
 
     # ----------------------------------------------------------------------------------------------
 
