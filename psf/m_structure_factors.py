@@ -164,7 +164,6 @@ class c_structure_factors:
             res.append(self._sq_diffuse)
         if self.calc_sqw:
             res.append(self._sqw)
-        res.append(self.timers.timers['loop_on_Q'])
 
         return res
 
@@ -198,11 +197,6 @@ class c_structure_factors:
             self.sqw[Q_inds,:] += res[0]
             res.pop(0)
 
-        _timer = res[0]
-        res.pop(0)
-
-        return _timer
-
     # ----------------------------------------------------------------------------------------------
 
     def _calculate_on_block(self,_block):
@@ -232,11 +226,8 @@ class c_structure_factors:
             _proc.start()
 
         # get the results from queue
-        _timers = []
         for _proc in range(_num_procs):
             _res = self.queue.get()
-            _timer = self._get_arrays_from_res(_res)
-            _timers.append(_timer)
 
         # close queue, kill it
         self.queue.close()
@@ -246,9 +237,6 @@ class c_structure_factors:
         for _proc in _procs:
             _proc.join()
             _proc.close()
-
-        # this 'collects' the timers from all processes and tallys thier timing
-        self.timers.collect_timers(_timers)
 
         self.timers.stop_timer('calc_on_block')
 
@@ -303,8 +291,6 @@ class c_structure_factors:
         loops over the Q-points assinged to the proc, calcs S(Q,E) etc, then puts data in queue
         """
 
-        self.timers.start_timer('loop_on_Q',units='s')
-
         # convenience refs for below
         _exp_type = self.comm.xlengths.experiment_type
         _num_steps = self.comm.traj.num_block_steps
@@ -350,8 +336,6 @@ class c_structure_factors:
 
             # get different arrays depending on what is requested
             self._calc_strufacs(_exp_iQr,ii)
-
-        self.timers.stop_timer('loop_on_Q')
 
         # return list of results
         res = self._get_res_list(proc)

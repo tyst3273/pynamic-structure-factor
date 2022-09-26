@@ -45,14 +45,6 @@ class c_PSF:
         # timers
         self.timers = m_timing.c_timers()
 
-        # options for the calculation
-        self.config = m_config.c_config()
-        self.config.get_args_from_file()
-
-        # 'communicator' to conveniently pass objects in/out of stuff
-        self.comm = m_communicator.c_communicator(self.config,self.timers)
-        self.comm.setup_calculation()
-
     # ----------------------------------------------------------------------------------------------
 
     def print_preamble(self):
@@ -96,8 +88,15 @@ class c_PSF:
         writes the results, the exits.
         """
 
-        self.timers.start_timer('PSF',units='m')
         self.timers.start_timer('standard_run',units='m')
+
+        # options for the calculation
+        self.config = m_config.c_config()
+        self.config.get_args_from_file()
+
+        # 'communicator' to conveniently pass objects in/out of stuff
+        self.comm = m_communicator.c_communicator(self.config,self.timers)
+        self.comm.setup_calculation()
 
         # this loops over all blocks, calculating errything
         self.comm.strufacs.calculate_structure_factors()
@@ -110,7 +109,6 @@ class c_PSF:
         self.comm.writer.write_structure_factors()
 
         self.timers.stop_timer('standard_run')
-        self.timers.stop_timer('PSF')
 
     # ----------------------------------------------------------------------------------------------
 

@@ -124,33 +124,6 @@ class c_timers:
         self.timers = {}
 
     # ----------------------------------------------------------------------------------------------
-    
-    def collect_timers(self,timers):
-
-        """
-        take a list of timer objects and tally up their data, etc.
-        
-        useful for passing timing up to the main proc. when using multiprocessing
-        """
-
-        for timer in timers:
-
-            # dont collect running timers
-            if timer.running:
-                msg = 'cant collect running timers!'
-                crash(msg)
-
-            # if timer doesnt exists, create it
-            if not timer.label in self.timers.keys():
-                self.timers[timer.label] = _timer(timer.label,timer.units)
-    
-            # add up data over timers
-            self.timers[timer.label].lap_time = timer.lap_time
-            self.timers[timer.label].total_time += timer.total_time
-            self.timers[timer.label].calls += timer.calls
-            self.timers[timer.label].set_str()
-
-    # ----------------------------------------------------------------------------------------------
 
     def start_timer(self,label,units='s'):
 
