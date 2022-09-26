@@ -19,6 +19,8 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
+import multiprocessing as mp
+
 from psf.m_import import import_module
 
 class c_scattering_lengths:
@@ -30,7 +32,7 @@ class c_scattering_lengths:
 
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self,config,comm):
+    def __init__(self,config,comm,timers):
 
         """
         scattering lengths for neutron/xray scattering
@@ -38,9 +40,10 @@ class c_scattering_lengths:
 
         self.config = config
         self.comm = comm
+        self.timers = timers
 
         self.num_types = self.config.num_types
-        self.unique_types = self.config.unique_types
+        self.atom_types = self.config.atom_types
 
         self.experiment_type = self.config.experiment_type
 
@@ -82,34 +85,94 @@ class c_scattering_lengths:
 
         compute xray form factor f(|Q|) using the data from the params dictionary.
         f(|Q|) = c+sum_{i=(1,2,3,4)} ai*exp(-bi*(|Q|/4/pi)**2)
+
+        NOTE: this is now parallelized for speed!
+        """
+
+        self.timers.start_timer('get_form_factors',units='s')
+
+        msg = 'calculating x-ray form factors. this might take a while ...\n'
+        print(msg)
+
+        # form factor array
+        _num_atoms = self.comm.traj.num_atoms
+        _num_Q = self.comm.Qpoints.num_Q
+        self.form_factors = np.zeros((_num_atoms,_num_Q))
+        
+          # get stuff for parallelization
+        _num_procs = self.comm.paral.num_Qpoint_procs
+
+        # Queue for passing data between procs
+        self.queue = mp.Queue()
+
+        _procs = []
+        for _proc in range(_num_procs):
+            _procs.append(mp.Process(target=self._form_factors_on_proc,args=[_proc]))
+        # start execution
+        for _proc in _procs:
+            _proc.start()
+
+        # get the results from queue
+        _timers = []
+        for _proc in range(_num_procs):
+            _form_factors, _proc = self.queue.get()
+            _Q_inds = self.comm.paral.Qpts_on_proc[_proc]
+            self.form_factors[:,_Q_inds] = _form_factors[...]
+
+        # close queue, kill it
+        self.queue.close()
+        self.queue.join_thread()
+
+        # blocking; wait for all procs to finish before moving on
+        for _proc in _procs:
+            _proc.join()
+            _proc.close()
+
+        self.timers.stop_timer('get_form_factors')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _form_factors_on_proc(self,proc=0):
+
+        """
+        calculate x-ray from factors on Q-points
+
+        compute xray form factor f(|Q|) using the data from the params dictionary.
+        f(|Q|) = c+sum_{i=(1,2,3,4)} ai*exp(-bi*(|Q|/4/pi)**2)
         """
 
         _num_atoms = self.comm.traj.num_atoms
-        _num_Q = self.comm.Qpoints.num_Q
-        _Q = self.comm.Qpoints.Q_len
+        _Qpt_inds = self.comm.paral.Qpts_on_proc[proc]
+        _Q = self.comm.Qpoints.Q_len[_Qpt_inds]
+        _num_Q = _Q.size
         _params = self.scattering_params
         _num_types = self.config.num_types
         _types = self.comm.traj.types
 
-        self.form_factors = np.zeros((_num_atoms,_num_Q))
+        # form factor for all Q on this proc
+        _ffacs_Q = np.zeros((_num_atoms,_num_Q))
 
-        _form_facs = np.zeros(_num_types)
+        # work array
+        _ffacs = np.zeros(_num_types)
         for ii in range(_num_Q):
 
             _Q4pi = (_Q[ii]/4/np.pi)**2
             
             # get the form factors for each atom type
             for jj in range(_num_types):
-                _form_facs[jj] = _params[jj]['c']+ \
-                _params[jj]['a1']*np.exp(-_params[jj]['b1']*_Q4pi)+ \
-                _params[jj]['a2']*np.exp(-_params[jj]['b2']*_Q4pi)+ \
-                _params[jj]['a3']*np.exp(-_params[jj]['b3']*_Q4pi)+ \
-                _params[jj]['a4']*np.exp(-_params[jj]['b4']*_Q4pi)
+                _p = _params[jj]
+                _ffacs[jj] = _p['c']+ \
+                _p['a1']*np.exp(-_p['b1']*_Q4pi)+ \
+                _p['a2']*np.exp(-_p['b2']*_Q4pi)+ \
+                _p['a3']*np.exp(-_p['b3']*_Q4pi)+ \
+                _p['a4']*np.exp(-_p['b4']*_Q4pi)
 
             # assign form factors to all atoms
             for jj in range(_num_atoms):
                 _type = _types[jj]
-                self.form_factors[jj,ii] = _form_facs[_type]
+                _ffacs_Q[jj,ii] = _ffacs[_type]
+
+        self.queue.put([_ffacs_Q, proc])
 
     # ----------------------------------------------------------------------------------------------
 
@@ -148,7 +211,7 @@ class c_scattering_lengths:
 
             _ = {}
             
-            _x = _params.scattering_params[self.unique_types[ii]]
+            _x = _params.scattering_params[self.atom_types[ii]]
             _['a1'] = _x['a1']
             _['b1'] = _x['b1']
             _['a2'] = _x['a2']
@@ -161,7 +224,7 @@ class c_scattering_lengths:
 
             self.scattering_params.append(_)
 
-            msg += f'  {self.unique_types[ii]:4}  {_x["a1"]:6.2f} {_x["b1"]:6.2f}' \
+            msg += f'  {self.atom_types[ii]:4}  {_x["a1"]:6.2f} {_x["b1"]:6.2f}' \
                 f' {_x["a2"]:6.2f} {_x["b2"]:6.2f} {_x["a3"]:6.2f} {_x["b3"]:6.2f}' \
                 f' {_x["a4"]:6.2f} {_x["b4"]:6.2f} {_x["c"]:6.2f}\n'
         
@@ -185,16 +248,16 @@ class c_scattering_lengths:
         msg += ' (type)  (b in fm)\n'
         for ii in range(self.num_types):
             
-            _x = _xlens.scattering_lengths[self.unique_types[ii]]
+            _x = _xlens.scattering_lengths[self.atom_types[ii]]
             if np.abs(np.imag(_x)) > eps:
                 msg += '\nWARNING! the neutron scattering lenght for type ' \
-                    f'\'{self.unique_types[ii]}\' has a large\nimaginary part! ' \
+                    f'\'{self.atom_types[ii]}\' has a large\nimaginary part! ' \
                      'i will discard the imaginary part but the results\nmay not be sensible ...\n\n'
                 print(msg)
             _x = np.real(_x)
             self.neutron_scattering_lengths[ii] = _x
 
-            msg += f'  {self.unique_types[ii]:4}  {_x:8.4f}\n'  
+            msg += f'  {self.atom_types[ii]:4}  {_x:8.4f}\n'  
 
         print(msg)
 

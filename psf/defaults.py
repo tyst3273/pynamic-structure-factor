@@ -23,7 +23,7 @@ trajectory_format = 'lammps_hdf5'
 trajectory_file = \
         '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/tmp/pos.h5'
 unwrap_trajectory = True
-recalculate_box_lengths = False
+#recalculate_box_lengths = False # deprecated
 
 # options for splitting up trajectory
 num_trajectory_blocks = 10
@@ -48,7 +48,7 @@ lattice_vectors = [[4.593,0.000,0.000], # angstroms
                    [0.000,4.593,0.000],
                    [0.000,0.000,2.959]]
 atom_types = ['Ti','Ti','O','O','O','O']
-basis_positions = None
+#basis_positions = None # deprecated
 
 
 # experiment info
@@ -59,9 +59,7 @@ experiment_type = 'neutrons' # 'neutrons' or 'xrays'
 Qpoints_option = 'mesh' # mesh, mesh_file, write_mesh, text_file, or path
 
 # for 'Qpoints_option' == 'mesh' ;
-# note, symmetry only works with plane centered on Q=(0,0,0) right now
-# and requires spglib !!
-Q_mesh_symmetry = True # used for 'mesh' option; requires spglib !!
+#Q_mesh_symmetry = True # deprecated
 Q_mesh_H = [-3,3,41]
 Q_mesh_K = [-3,3,41]
 Q_mesh_L = 1

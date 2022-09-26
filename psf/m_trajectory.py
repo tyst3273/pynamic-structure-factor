@@ -40,10 +40,11 @@ class c_trajectory:
         # the trajectory file
         self.num_atoms = self.config.md_num_atoms
         self.trajectory_format = self.config.trajectory_format
-        self.trajectory_file = self.config.trajectory_file
-        self.md_time_step = self.config.md_time_step
-    
+        self.md_time_step = self.config.md_time_step    
         self.unwrap_trajectory = self.config.unwrap_trajectory
+
+        if self.trajectory_format not in ['external']:
+            self.trajectory_file = self.config.trajectory_file
 
         # set up the 'blocks' of indices for calculating on
         self._get_block_inds()
@@ -51,8 +52,8 @@ class c_trajectory:
         # the times for time correlation functions
         self.time = np.arange(0,self.num_block_steps,self.md_time_step)
 
-        # get atom types once and for all
-        self._read_types_lammps_hdf5()
+        # get atom types once and for all if possible
+        self.get_atom_types()
 
         # WRAPPED positions in cartesian coords in Angstrom
         self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
@@ -110,7 +111,16 @@ class c_trajectory:
         """
 
         if self.trajectory_format == 'lammps_hdf5':
-            self._read_types_lammps_hdf5(_inds)
+            self._read_types_lammps_hdf5()
+
+        elif self.trajectory_format == 'external':
+            pass
+
+        _types = np.unique(self.types)
+        if _types.max() >= self.comm.config.num_types or _types.min() < 0 \
+            or _types.size > self.comm.config.num_types:
+            msg = 'types in trajectory file are incompatible with types in input file\n'
+            crash(msg)
 
     # ----------------------------------------------------------------------------------------------
 

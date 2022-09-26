@@ -86,9 +86,7 @@ class c_Qpoints:
         elif self.Qpoints_option == 'mesh' or self.Qpoints_option == 'write_mesh':
 
             """
-            generate a mesh in reciprocal space to calculate on. can use symmetry to reduce
-            number of points, but only if the mesh is centered on Q=(0,0,0). otherwise, 
-            arbitrary mesh can be done without using symmetry
+            generate a mesh in reciprocal space to calculate on
             """
             self._get_Q_on_mesh()
 
@@ -200,17 +198,11 @@ class c_Qpoints:
         if Q_mesh.size == 1:
             num_Q = 1
             Q = np.copy(Q_mesh).reshape(1,)
-            _0 = True
         else:
-            if (Q_mesh[0]+Q_mesh[1])/2 < eps:
-                _0 = True
-            else:
-                _0 = False
-
             num_Q = int(Q_mesh[2])
             Q = np.linspace(Q_mesh[0],Q_mesh[1],num_Q+1)[1:] # trim off lowest point in mesh ...
 
-        return num_Q, Q, _0
+        return num_Q, Q
 
     # ----------------------------------------------------------------------------------------------
 
@@ -218,47 +210,21 @@ class c_Qpoints:
 
         """
         generate Q-points on mesh that is specified by user
-
-        note that grid has to be centered on Q=(0,0,0) for symmetry reduction to work. actually,
-        if cutting 2D planes, the axes spanning the plane have to be centered on 0... i think
-        it's fine to ignore the center of the otherone, since all of that Q_i in the set are the 
-        same. 
         """
 
         msg = '\ngenerating Q-points on mesh'
         print(msg)
 
-        self.Q_mesh_symmetry  = self.config.Q_mesh_symmetry
         self.Q_mesh_H = self.config.Q_mesh_H
         self.Q_mesh_K = self.config.Q_mesh_K
         self.Q_mesh_L = self.config.Q_mesh_L
 
         # get steps along each Q axis
-        self.num_H, self.H, _H0 = self._Q_steps(self.Q_mesh_H)
-        self.num_K, self.K, _K0 = self._Q_steps(self.Q_mesh_K)
-        self.num_L, self.L, _L0 = self._Q_steps(self.Q_mesh_L)
+        self.num_H, self.H = self._Q_steps(self.Q_mesh_H)
+        self.num_K, self.K = self._Q_steps(self.Q_mesh_K)
+        self.num_L, self.L = self._Q_steps(self.Q_mesh_L)
 
-        # grid has to be centered on Q=(0,0,0) for symmetry reduction to work 
-        if _H0 and _K0 and _L0:
-            _0_centered = True
-        else:
-            _0_centered = False
-
-        # try to grid using symmetry to reduce number of points
-        if self.Q_mesh_symmetry:
-            if not _0_centered:
-                msg = 'to use Q-point symmetry, grid must be centered on Q=(0,0,0)\n' \
-                      'either disable symmetry or pick a different grid!\n'
-                crash(msg)
-            if self.config.basis_positions is None:
-                msg = 'basis_positions must be defined to find space group and\n' \
-                       'reduce number of Q-points using symmetry\n'
-                crash(msg)
-            self._get_symmetry_reduced_Q_mesh()
-
-        # otherwise use full grid
-        else:
-            self._get_full_Q_mesh()
+        self._get_full_Q_mesh()
     
     # ----------------------------------------------------------------------------------------------
 
@@ -267,8 +233,6 @@ class c_Qpoints:
         """
         make Q-point mesh on full grid without using spglib
         """
-
-        print('\n!!!!!!!!!!!!!!!!!\n')
 
         _H, _K, _L = np.meshgrid(self.H,self.K,self.L,indexing='ij')
         _H = _H.flatten(); _K = _K.flatten(); _L = _L.flatten()
@@ -281,60 +245,6 @@ class c_Qpoints:
         self.mesh_shape = [self.num_H,self.num_K,self.num_L] 
 
         msg = 'number of Q-points on full grid:\n'
-        msg += f'  {self.num_Q:g}\n'
-        print(msg)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def _get_symmetry_reduced_Q_mesh(self):
-
-        """
-        generate Q-points on mesh using spglib to reduce number of points
-        """
-
-        msg = 'symmetry reduced grid doesnt work yet! email me at\n' \
-              ' --- ty.sterling@colorado.edu --- \n' \
-              'if you need this functionality. goodbye!\n'
-        crash(msg)
-
-        try:
-            import spglib
-        except Exception as _ex:
-            msg = 'spglib couldnt be imported. check the installation or disable symmetry\n' \
-                  'for reducing the number of Q-points. see the exception below for details.\n'
-            crash(msg,_ex)
-
-        lat_vecs = self.comm.lattice.lattice_vectors
-        basis_pos = self.config.basis_positions
-        basis_num = self.config.type_map
-        cell = (lat_vecs,basis_pos,basis_num)
-
-        mesh = [self.num_H,self.num_K,self.num_L]
-        mapping, grid = spglib.get_ir_reciprocal_mesh(mesh,cell,is_shift=[0,0,0])
-
-        # full grid 
-        self.num_Q_full = mapping.size
-        self.Q_rlu_full = grid/np.array(mesh,dtype=float)
-
-        # put on extended Q-grid, not just in 1st BZ
-        self.Q_rlu_full[:,0] *= 2*self.H.max()
-        self.Q_rlu_full[:,1] *= 2*self.K.max()
-        self.Q_rlu_full[:,2] *= 2*self.L.max()
-        
-        # get irreducible part
-        irr_inds, self.Q_wts = np.unique(mapping,return_counts=True)
-        self.Q_wts = self.Q_wts/self.num_Q_full
-        self.Q_rlu = self.Q_rlu_full[irr_inds]
-        self.num_Q = self.Q_rlu.shape[0]
-
-        # map from irreducible part to full grid
-        self.Q_irr_to_full = np.zeros(mapping.shape,dtype=int)
-        for ii in range(self.num_Q_full):
-            self.Q_irr_to_full[ii] == np.flatnonzero(mapping[ii] == irr_inds)[0]
-
-        msg = 'number of Q-points on full grid:\n'
-        msg += f'  {self.num_Q_full:g}\n'
-        msg += 'numer of Q-point in irreducible part:\n'
         msg += f'  {self.num_Q:g}\n'
         print(msg)
 
@@ -353,8 +263,7 @@ class c_Qpoints:
         else:
             _mesh_shape = deepcopy(self.mesh_shape)
 
-        if not self.Q_mesh_symmetry:
-            arr.shape = _mesh_shape
+        arr.shape = _mesh_shape
 
         return arr
 

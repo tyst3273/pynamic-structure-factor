@@ -37,12 +37,6 @@ class c_lattice:
         self.config = config
 
         self.ortho_lattice_vectors = config.ortho_lattice_vectors
-        
-        if config.recalculate_box_lengths:
-            msg = '\nlattice vectors will be dynamically recalculate using data\n' \
-                  'from the trajectory file!'
-            print(msg)
-
         self.set_lattice_vectors(config.lattice_vectors)
 
     # ----------------------------------------------------------------------------------------------

@@ -97,7 +97,6 @@ class c_config:
             self._set_trajectory_file()
 
         self._set_unwrap_trajectory()
-        self._set_recalculate_box_lengths()
         self._set_calc_rho_squared()
         self._set_calc_bragg()
         self._set_calc_diffuse()
@@ -118,18 +117,15 @@ class c_config:
 
         # could just read all of this stuff; this is just to make it lightweight 
         if self.Qpoints_option == 'mesh':
-            self._set_Q_mesh_symmetry()
             self._set_Q_mesh_H()
             self._set_Q_mesh_K()
             self._set_Q_mesh_L()
-
-            if self.Q_mesh_symmetry:
-                self._set_basis_positions()
 
         elif self.Qpoints_option == 'text_file' \
                 or self.Qpoints_option == 'mesh_file' \
                 or self.Qpoints_option == 'write_mesh':
             self._set_Q_file() 
+
         elif self.Qpoints_option == 'path':
             self._set_Q_path_start()
             self._set_Q_path_end()
@@ -635,29 +631,6 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_recalculate_box_lengths(self,recalculate_box_lengths=None):
-
-        """
-        get the attribute
-        """
-
-        if recalculate_box_lengths is None:
-            self.recalculate_box_lengths = self._get_attr('recalculate_box_lengths')
-        else:
-            self.recalculate_box_lengths = recalculate_box_lengths
-        self.recalculate_box_lengths = bool(self.recalculate_box_lengths)
-
-        # --- devloper stuff ---
-        if self.recalculate_box_lengths:
-            msg = '\'recalculate_box_lengths\' is disabled right now. if you need this\n' \
-                  'functionality, contact the author at --- ty.sterling@colorado.edu ---\n'
-            crash(msg)
-        # ----------------------
-
-        #print(f'recalculate_box_lengths:\n  {self.recalculate_box_lengths}')
-
-    # ----------------------------------------------------------------------------------------------
-
     def _set_unwrap_trajectory(self,unwrap_trajectory=None):
 
         """
@@ -764,54 +737,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_basis_positions(self,basis_positions=None):
-
-        """
-        get the attribute
-        """
-
-        if basis_positions is None:
-            self.basis_positions = self._get_attr('basis_positions')
-        else:
-            self.basis_positions = basis_positions
-
-        # if None, won't use them to reduce symmetry
-        if self.basis_positions is None:
-            self.use_basis_positions = False
-            msg = 'basis_positions:\n  None (not using symmetry)'
-            print(msg)
-
-        else:
-            # check the shape
-            msg = f'\'basis_positions\' seems wrong\n'
-            try:
-                self.basis_positions = np.array(self.basis_positions,dtype=float)
-            except:
-                crash(msg)
-            if self.basis_positions.shape[1] != 3:
-                crash(msg)
-            if self.basis_positions.shape[0] != self.num_basis_atoms:
-                crash(msg)
-
-            # echo to the info file
-            msg = f'basis_positions: (crystal coords.)'
-            for ii in range(self.num_basis_atoms):
-                msg = msg+'\n'
-                for jj in range(3):
-                    msg = msg+f'{self.basis_positions[ii,jj]: 10.6f} '
-            print(msg)
-    
-    # ----------------------------------------------------------------------------------------------
-
     def _set_atom_types(self,atom_types=None):
 
         """
-        get the attribute
+        get the attribute.
 
-        IMPORTANT: note how the types are parsed; if the same type is repeated after other 
-        are defined, e.g. ['Si','Si','C','Si','Ge'], the result for unique_types will be 
-        'Si', 'C', 'Ge'.  the unique types (i.e. those that 'atom_files' are mapped to) 
-        will be used in the order *new* types are found in 'atom_types' arg
+        one string per type in the trajectory data. same string can be repeated for multiple 
+        types
         """
         
         if atom_types is None:
@@ -819,54 +751,13 @@ class c_config:
         else:
             self.atom_types = atom_types
 
-        # number of atoms in unitcell
-        self.num_basis_atoms = len(self.atom_types)
-
-        # find unique types; can use np.unique because dont want to sort it
-        self.unique_types = []
-        for atom in self.atom_types:
-            if atom in self.unique_types:
-                continue
-            else:
-                self.unique_types.append(atom)
-        self.num_types = len(self.unique_types)
-
-        # get type map
-        self.type_map = []
-        for ii in range(self.num_basis_atoms):
-            self.type_map.append(self.unique_types.index(self.atom_types[ii]))
+        self.num_types = len(self.atom_types)
 
         # echo to the info file
         msg = 'atom_types:\n  '
-        for ii in range(self.num_basis_atoms):
-            msg = msg+f'{self.atom_types[ii]} '
-        print(msg)
-        msg = f'num_basis_atoms:\n  {self.num_basis_atoms:g}\n'
-        msg = msg+f'num_types:\n  {self.num_types:g}'
-        print(msg)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def _set_Q_mesh_symmetry(self,Q_mesh_symmetry=None):
-
-        """
-        get the attribute
-        """
-
-        if Q_mesh_symmetry is None:
-            self.Q_mesh_symmetry = self._get_attr('Q_mesh_symmetry')
-        else:
-            self.Q_mesh_symmetry = Q_mesh_symmetry
-
-        # check if allowed
-        try:
-            self.Q_mesh_symmetry = bool(self.Q_mesh_symmetry)
-        except:
-            msg = '\'Q_mesh_symmetry\' seems wrong'
-            crash(msg)
-
-        # echo to the info file
-        msg = f'Q_mesh_symmetry:\n  {self.Q_mesh_symmetry}'
+        for ii in range(len(self.atom_types)):
+            msg += f'{self.atom_types[ii]} '
+        msg += f'\nnum_types:\n  {self.num_types:g}'
         print(msg)
 
     # ----------------------------------------------------------------------------------------------
