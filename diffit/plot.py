@@ -6,7 +6,7 @@ import psf.m_io as m_io
 
 
 
-shape = [100,100]
+shape = [200,120]
 sq = np.zeros(shape)
 
 n_reps = 11
@@ -18,22 +18,22 @@ for ii in range(n_reps):
     reader.read_diffuse()
 
     H = reader.H; K = reader.K; L = reader.L
-    sq += reader.sq_diffuse[:,:,0]
+    sq += reader.sq_diffuse[:,0,:]
 
 sq /= n_reps
 
 
 vmin = 0
-vmax = 1e4
-cmap = 'bone'
+vmax = 2.5e5
+cmap = 'magma'
 interp = 'none'
 
 
 fig, ax = plt.subplots(figsize=(7,6))
 
-extent = [H.min(),H.max(),K.min(),K.max()]
+extent = [H.min(),H.max(),L.min(),L.max()]
 
-im = ax.imshow(sq.T,origin='lower',aspect='auto',extent=extent,cmap=cmap,
+im = ax.imshow(sq,origin='lower',aspect='auto',extent=extent,cmap=cmap,
         interpolation=interp,vmin=vmin,vmax=vmax)
 fig.colorbar(im,ax=ax,extend='both')
 
