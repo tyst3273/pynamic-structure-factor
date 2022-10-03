@@ -8,7 +8,7 @@ import mods.m_crystals as m_crystals
 supercells = []
 
 # target supercell size and steps around it to remove finite size effects
-num_reps_target = [15,15,15]
+num_reps_target = [20,20,20]
 d_reps = 5
 
 

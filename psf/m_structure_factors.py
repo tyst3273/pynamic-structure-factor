@@ -140,9 +140,11 @@ class c_structure_factors:
         if self.calc_bragg:
             self.sq_bragg /= _num_blocks*_num_atoms
         if self.calc_diffuse:
-            self.sq_bragg /= _num_blocks*_num_atoms
+            self.sq_diffuse /= _num_blocks*_num_atoms 
         if self.calc_sqw:
-            self.sq_bragg /= _num_blocks*_num_atoms
+            self.sq_sqw /= _num_blocks*_num_atoms 
+        if self.calc_rho_squared:
+            self.rho_sq /= _num_blocks*_num_atoms 
 
         self.timers.stop_timer('calc_strufacs')
 
