@@ -107,8 +107,10 @@ class c_writer:
                 db['reciprocal_lattice_vectors'][...] = \
                         self.comm.lattice.reciprocal_lattice_vectors[...]
     
+                db.create_dataset('mesh',shape=(1),dtype=int)
+
                 if self.comm.Qpoints.use_mesh:
-                    db['mesh'] = True
+                    db['mesh'][...] = int(True)
                     db.create_dataset('H',shape=_Qpoints.num_H,dtype=float)
                     db['H'][...] = _Qpoints.H[...]
                     db.create_dataset('K',shape=_Qpoints.num_K,dtype=float)
@@ -116,7 +118,7 @@ class c_writer:
                     db.create_dataset('L',shape=_Qpoints.num_L,dtype=float)
                     db['L'][...] = _Qpoints.L[...]
                 else:
-                    db['mesh'] = False
+                    db['mesh'][...] = int(False)
                     db.create_dataset('Q_rlu',shape=_Qpoints.Q_rlu.shape,dtype=float)
                     db['Q_rlu'][...] = _Qpoints.Q_rlu[...]
                     db.create_dataset('Q_cart',shape=_Qpoints.Q_cart.shape,dtype=float)
@@ -253,7 +255,7 @@ class c_reader:
                 self.lattice_vectors = db['lattice_vectors'][...]
                 self.reciprocal_lattice_vectors = db['reciprocal_lattice_vectors'][...]
 
-                if db['mesh']:
+                if db['mesh'][...]:
                     self.mesh = True
                     self.H = db['H'][...]
                     self.K = db['K'][...]
@@ -278,8 +280,8 @@ class c_reader:
 
         try:
             with h5py.File(self.input_file,'r') as db:
-                self.sqw = db['sqw']
-                self.energy = db['energy']
+                self.sqw = db['sqw'][...]
+                self.energy = db['energy'][...]
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -296,7 +298,7 @@ class c_reader:
 
         try:
             with h5py.File(self.input_file,'r') as db:
-                self.sq_bragg = db['sq_bragg']
+                self.sq_bragg = db['sq_bragg'][...]
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -313,7 +315,7 @@ class c_reader:
 
         try:
             with h5py.File(self.input_file,'r') as db:
-                self.sq_diffuse = db['sq_diffuse']
+                self.sq_diffuse = db['sq_diffuse'][...]
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -330,8 +332,8 @@ class c_reader:
 
         try:
             with h5py.File(self.input_file,'r') as db:
-                self.rho_sq = db['rho_sq']
-                self.time = db['time']
+                self.rho_sq = db['rho_sq'][...]
+                self.time = db['time'][...]
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)

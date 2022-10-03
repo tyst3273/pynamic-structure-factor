@@ -228,6 +228,7 @@ class c_structure_factors:
         # get the results from queue
         for _proc in range(_num_procs):
             _res = self.queue.get()
+            self._get_arrays_from_res(_res)
 
         # close queue, kill it
         self.queue.close()
