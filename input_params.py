@@ -2,12 +2,12 @@
 # options for where to get data/preprocessing
 trajectory_format = 'lammps_hdf5' 
 trajectory_file = \
-    '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/tmp/pos.h5'
+    '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/pos.h5'
 # '/home/ty/research/projects/psf_data/pos.h5'
 unwrap_trajectory = True
 
 # options for splitting up trajectory
-num_trajectory_blocks = 5
+num_trajectory_blocks = 10
 trajectory_blocks = [0] #None 
 
 # options for writing results

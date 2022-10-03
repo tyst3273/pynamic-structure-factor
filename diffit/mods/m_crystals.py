@@ -3,14 +3,16 @@
 import numpy as np
 
 
-class crystal:
+class c_rutile:
     
     # ----------------------------------------------------------------------------------------------
 
     def __init__(self,basis=None,types=None,lattice_vectors=None):
 
         """
-        define the primitive unitcell
+        define the primitive unitcell;
+
+        nothing is really error checked here
         """
 
         # types of atoms
@@ -42,16 +44,14 @@ class crystal:
 
     # ----------------------------------------------------------------------------------------------
 
-    def make_crystal(self,reps=[1,1,1])
+    def make_supercell(self,reps=[1,1,1]):
 
         """
-        create supercell by replicating primitive cell reps[ii] number of times along the ii^th
-        direction
+        create rectangular supercell by replicating primitive cell reps[ii] number of times 
+        along the ii^th direction 
         """
 
         self.reps = np.array(reps)
         self.num_reps = np.prod(self.reps)
-        
-
         
     # ----------------------------------------------------------------------------------------------

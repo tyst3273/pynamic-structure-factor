@@ -71,10 +71,16 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def get_args_from_file(self):
+    def set_config(self,trajectory_format=None,trajectory_file=None,unwrap_trajectory=None,
+        calc_rho_squared=None,calc_bragg=None,calc_diffuse=None,calc_sqw=None,
+        lattice_vectors=None,atom_types=None,output_directory=None,output_prefix=None,
+        md_time_step=None,md_num_steps=None,md_num_atoms=None,md_supercell_reps=None,
+        num_trajectory_blocks=None,trajectory_blocks=None,experiment_type=None,
+        num_Qpoint_procs=None,Qpoints_option=None,Q_mesh_H=None,Q_mesh_K=None,Q_mesh_L=None,
+        Q_file=None,Q_path_start=None,Q_path_end=None,Q_path_steps=None):
 
         """
-        get args from file
+        get args from file; if new arg is added, has to be passed as default = None above
         """
 
         allowed = vars(self.defaults).keys()
@@ -96,40 +102,40 @@ class c_config:
         if not self.trajectory_format in ['external']:
             self._set_trajectory_file()
 
-        self._set_unwrap_trajectory()
-        self._set_calc_rho_squared()
-        self._set_calc_bragg()
-        self._set_calc_diffuse()
-        self._set_calc_sqw()
-        self._set_lattice_vectors()
-        self._set_atom_types()
-        self._set_output_directory()
-        self._set_output_prefix()
-        self._set_md_time_step()
-        self._set_md_num_steps()
-        self._set_md_num_atoms()
-        self._set_md_supercell_reps()
-        self._set_num_trajectory_blocks()
-        self._set_trajectory_blocks()
-        self._set_experiment_type() 
-        self._set_num_Qpoint_procs()
-        self._set_Qpoints_option() 
+        self._set_unwrap_trajectory(unwrap_trajectory)
+        self._set_calc_rho_squared(calc_rho_squared)
+        self._set_calc_bragg(calc_bragg)
+        self._set_calc_diffuse(calc_diffuse)
+        self._set_calc_sqw(calc_sqw)
+        self._set_lattice_vectors(lattice_vectors)
+        self._set_atom_types(atom_types)
+        self._set_output_directory(output_directory)
+        self._set_output_prefix(output_prefix)
+        self._set_md_time_step(md_time_step)
+        self._set_md_num_steps(md_num_steps)
+        self._set_md_num_atoms(md_num_atoms)
+        self._set_md_supercell_reps(md_supercell_reps)
+        self._set_num_trajectory_blocks(num_trajectory_blocks)
+        self._set_trajectory_blocks(trajectory_blocks)
+        self._set_experiment_type(experiment_type) 
+        self._set_num_Qpoint_procs(num_Qpoint_procs)
+        self._set_Qpoints_option(Qpoints_option) 
 
         # could just read all of this stuff; this is just to make it lightweight 
         if self.Qpoints_option == 'mesh':
-            self._set_Q_mesh_H()
-            self._set_Q_mesh_K()
-            self._set_Q_mesh_L()
+            self._set_Q_mesh_H(Q_mesh_H)
+            self._set_Q_mesh_K(Q_mesh_K)
+            self._set_Q_mesh_L(Q_mesh_L)
 
         elif self.Qpoints_option == 'text_file' \
                 or self.Qpoints_option == 'mesh_file' \
                 or self.Qpoints_option == 'write_mesh':
-            self._set_Q_file() 
+            self._set_Q_file(Q_file) 
 
         elif self.Qpoints_option == 'path':
-            self._set_Q_path_start()
-            self._set_Q_path_end()
-            self._set_Q_path_steps()
+            self._set_Q_path_start(Q_path_start)
+            self._set_Q_path_end(Q_path_end)
+            self._set_Q_path_steps(Q_path_steps)
    
         # --- add new variables parsers here ---
         # ...

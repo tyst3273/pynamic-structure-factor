@@ -54,11 +54,11 @@ class c_scattering_lengths:
             self._read_xray_scattering_params()
 
         # now go an use data for stuff
-        self.get_scattering_data()
+        self._get_scattering_data()
 
     # ----------------------------------------------------------------------------------------------
 
-    def get_scattering_data(self):
+    def _get_scattering_data(self):
         
         """
         set up the scattering 'data' i.e. either scattering lengths or xray form factors
@@ -201,7 +201,7 @@ class c_scattering_lengths:
         lookup xray scattering params
         """
 
-        self.scattering_params = [] #np.zeros((self.num_types,9)) # 9 params per type
+        self.scattering_params = [] 
 
         _params = import_module('psf.scattering_data.xray_scattering_params')
 

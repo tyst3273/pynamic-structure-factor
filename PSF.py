@@ -34,7 +34,7 @@ class c_PSF:
 
     # ----------------------------------------------------------------------------------------------
     
-    def __init__(self):
+    def __init__(self,input_file=None):
 
         """
         main class that holds 'macros' to do stuff
@@ -44,6 +44,9 @@ class c_PSF:
 
         # timers
         self.timers = m_timing.c_timers()
+
+        # options for the calculation
+        self.config = m_config.c_config(input_file)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -90,7 +93,8 @@ class c_PSF:
 
         self.timers.start_timer('standard_run',units='m')
 
-        self.get_config()
+        # read input file 
+        self.get_config_from_file()
 
         # 'communicator' to conveniently pass objects in/out of stuff
         self.comm = m_communicator.c_communicator(self.config,self.timers)
@@ -110,15 +114,13 @@ class c_PSF:
 
     # ----------------------------------------------------------------------------------------------
 
-    def get_config(self):
+    def get_config_from_file(self):
 
         """
         get config info from file
         """
 
-        # options for the calculation
-        self.config = m_config.c_config()
-        self.config.get_args_from_file()
+        self.config.set_config()
 
     # ----------------------------------------------------------------------------------------------
 
