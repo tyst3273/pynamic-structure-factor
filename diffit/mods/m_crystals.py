@@ -7,12 +7,12 @@ class c_rutile:
     
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self,basis=None,types=None,lattice_vectors=None):
+    def __init__(self,basis=None,types=None,lattice_vectors=None,charges=None):
 
         """
         define the primitive unitcell;
 
-        nothing is really error checked here
+        WARNING: nothing is really error checked here
         """
 
         # types of atoms
@@ -42,6 +42,12 @@ class c_rutile:
         else:
             self.lattice_vectors = np.array(lattice_vectors)
 
+        # charges for MD potential
+        if charges is None:
+            self.charges = np.array([2.196,-1.098])
+        else:
+            self.charges = np.array(charges,dtype=float)
+
     # ----------------------------------------------------------------------------------------------
 
     def make_supercell(self,reps=[1,1,1]):
@@ -51,7 +57,92 @@ class c_rutile:
         along the ii^th direction 
         """
 
+        # DEV
+        self.basis += 0.0
+
         self.reps = np.array(reps)
         self.num_reps = np.prod(self.reps)
-        
+
+        self.sc_lattice_vectors = np.copy(self.lattice_vectors)
+        self.sc_lattice_vectors[0,:] *= self.reps[0]
+        self.sc_lattice_vectors[1,:] *= self.reps[1]
+        self.sc_lattice_vectors[2,:] *= self.reps[2]
+
+        self.num_atoms = self.num_basis*self.num_reps
+        self.sc_pos = np.tile(self.basis.reshape(1,self.num_basis,3),reps=(self.num_reps,1,1))
+        self.sc_types = np.tile(self.types,reps=(self.num_reps,1))
+
+        _x, _y, _z = np.meshgrid(np.arange(self.reps[0]),
+                                 np.arange(self.reps[1]),
+                                 np.arange(self.reps[2]),indexing='ij')
+        _x = _x.flatten(); _y = _y.flatten(); _z = _z.flatten()
+
+        # integer translation vectors
+        self.sc_shift = np.array((_x,_y,_z),dtype=int).T
+        self.sc_shift.shape = [self.num_reps,1,3]
+        self.sc_shift = np.tile(self.sc_shift,reps=(1,self.num_basis,1))
+
+        # positions in reduced coords of supercell
+        self.sc_pos += self.sc_shift
+        self.sc_pos[:,:,0] /= self.reps[0]
+        self.sc_pos[:,:,1] /= self.reps[1]
+        self.sc_pos[:,:,2] /= self.reps[2]
+
+        # probably should call this externally
+        self.get_cartesian_coords()
+
     # ----------------------------------------------------------------------------------------------
+
+    def get_cartesian_coords(self):
+
+        """
+        flatten supercell positions into num_atoms x 3 array and get in cartesian coords
+        """
+
+        self.sc_pos.shape = [self.num_atoms,3]
+        self.sc_types.shape = [self.num_atoms]
+
+        self.sc_cart = np.zeros(self.sc_pos.shape)
+        for ii in range(self.num_atoms):
+            self.sc_cart[ii,:] = self.sc_lattice_vectors[0,:]*self.sc_pos[ii,0]+ \
+                                 self.sc_lattice_vectors[1,:]*self.sc_pos[ii,1]+ \
+                                 self.sc_lattice_vectors[2,:]*self.sc_pos[ii,2]
+
+    # ----------------------------------------------------------------------------------------------
+
+    def write_poscar(self,file_name='POSCAR'):
+
+        """
+        write a VASP 'POSCAR' file for calculating/visualizing with VESTA
+        """
+
+        pos = self.sc_cart
+        types = self.sc_types+1
+        inds = np.argsort(types)
+
+        num_ti = np.count_nonzero(types == 1)
+        num_o = np.count_nonzero(types == 2)
+
+        types = types[inds]
+        pos = pos[inds]
+
+        with open(file_name,'w') as f_out:
+            _= 0.0
+            f_out.write(f'auto generated\n 1.0\n')
+            f_out.write(f'  {self.sc_lattice_vectors[0,0]:10.7f}  {_:10.7f}  {_:10.7f}\n')
+            f_out.write(f'  {_:10.7f}  {self.sc_lattice_vectors[1,1]:10.7f}  {_:10.7f}\n')
+            f_out.write(f'  {_:10.7f}  {_:10.7f}  {self.sc_lattice_vectors[2,2]:10.7f}\n')
+            f_out.write(f' Ti O \n')
+            f_out.write(f'   {num_ti:g}  {num_o:g}\nCartesian\n')
+            for ii in range(self.num_atoms):
+                f_out.write(f' {pos[ii,0]:10.9f}  {pos[ii,1]:10.9f}  {pos[ii,2]:10.9f}\n')
+
+    # ----------------------------------------------------------------------------------------------
+
+    
+
+
+
+
+
+

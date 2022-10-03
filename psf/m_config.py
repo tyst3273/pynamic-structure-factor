@@ -98,9 +98,9 @@ class c_config:
         print('echoing input args to the screen!\n')
 
         # now get the variables
-        self._set_trajectory_format()
+        self._set_trajectory_format(trajectory_format)
         if not self.trajectory_format in ['external']:
-            self._set_trajectory_file()
+            self._set_trajectory_file(trajectory_file)
 
         self._set_unwrap_trajectory(unwrap_trajectory)
         self._set_calc_rho_squared(calc_rho_squared)
@@ -153,6 +153,7 @@ class c_config:
             self.num_trajectory_blocks = self._get_attr('num_trajectory_blocks')
         else:
             self.num_trajectory_blocks = num_trajectory_blocks
+
         try:
             self.num_trajectory_blocks = int(self.num_trajectory_blocks)
         except:

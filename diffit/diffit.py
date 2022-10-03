@@ -4,9 +4,6 @@ import numpy as np
 from PSF import c_PSF
 import mods.m_crystals as m_crystals
 
-def get_file_str(ind):
-    return f'_{ind}.hdf5'
-
 # list 'c_rutile' objects that model instances of rutile
 supercells = []
 
@@ -29,17 +26,28 @@ for _r in range(-d_reps,d_reps+1):
 
 # go and calc scattering intensity from each supercell
 for ind, sc in enumerate(supercells):
+
+    prefix = f'o{ind:g}'
+    print(prefix)
     
     # object to calculate scattering intensity each time
-    PSF = c_PSF()
+    PSF = c_PSF(input_file='batch_config.py')
 
-    # goes and reads file, sets up calc
-    PSF.get_config()
-    
     # now overwrite all config variables we want to change
-    PSF.config.set_config()
+    PSF.config.set_config(md_num_atoms=sc.num_atoms,
+                          md_supercell_reps=sc.reps,
+                          output_prefix=prefix)
 
-    print(get_file_str(ind))
+    # set stuff up
+    PSF.setup_communicator(sc.sc_cart,
+                           sc.sc_types)
+
+    # get structure factors
+    PSF.run()
+
+    # write the results
+    PSF.write_strufacs()
+    
 
 
 

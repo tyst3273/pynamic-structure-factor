@@ -43,20 +43,24 @@ class c_trajectory:
         self.md_time_step = self.config.md_time_step    
         self.unwrap_trajectory = self.config.unwrap_trajectory
 
-        if self.trajectory_format not in ['external']:
-            self.trajectory_file = self.config.trajectory_file
-
         # set up the 'blocks' of indices for calculating on
         self._get_block_inds()
-    
+
         # the times for time correlation functions
         self.time = np.arange(0,self.num_block_steps,self.md_time_step)
 
+        # positions in cartesian coords in Angstrom
+        self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
+
+        # if setting types and pos externally, dont do anything else here
+        if self.trajectory_format in ['external']:
+            return
+
+        # the file with traj in it
+        self.trajectory_file = self.config.trajectory_file
+
         # get atom types once and for all if possible
         self.get_atom_types()
-
-        # WRAPPED positions in cartesian coords in Angstrom
-        self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
 
      # ----------------------------------------------------------------------------------------------
 
@@ -113,13 +117,53 @@ class c_trajectory:
         if self.trajectory_format == 'lammps_hdf5':
             self._read_types_lammps_hdf5()
 
-        elif self.trajectory_format == 'external':
-            pass
-
         _types = np.unique(self.types)
         if _types.max() >= self.comm.config.num_types or _types.min() < 0 \
             or _types.size > self.comm.config.num_types:
             msg = 'types in trajectory file are incompatible with types in input file\n'
+            crash(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def set_external_types(self,types):
+
+        """
+        get an array that holds types of atom. given explicitly, then checked
+        """
+
+        self.types = np.array(types)
+
+        _types = np.unique(self.types)
+        if _types.max() >= self.comm.config.num_types or _types.min() < 0 \
+            or _types.size > self.comm.config.num_types:
+            msg = 'given external types are incompatible with types in input file\n'
+            crash(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def set_external_pos(self,pos):
+
+        """
+        get an array that holds time-series of positions. given explicitly, then checked
+        """
+
+        self.external_pos = np.array(pos)
+
+        msg = 'external positions have wrong shape\n'
+
+        _shape = self.external_pos.shape
+        if len(_shape) == 2:
+            _num_atoms = _shape[0]
+            if _num_atoms != self.config.md_num_atoms:
+                crash(msg)
+            if _shape[1] != 3:
+                crash(msg)
+     
+            # put into time x atoms x 3 shape
+            self.external_pos.shape = [1,_shape[0],_shape[1]]
+                
+        _nsteps = self.external_pos.shape[0]
+        if _nsteps != self.config.md_num_steps:
             crash(msg)
 
     # ----------------------------------------------------------------------------------------------
@@ -134,6 +178,8 @@ class c_trajectory:
 
         if self.trajectory_format == 'lammps_hdf5':
             self._read_pos_lammps_hdf5(_inds)            
+        elif self.trajectory_format == 'external':
+            self._read_pos_external(_inds)
 
         if self.unwrap_trajectory:
             self._unwrap_positions()
@@ -217,7 +263,7 @@ class c_trajectory:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _read_pos_lammps_hdf5(self,_inds):
+    def _read_pos_lammps_hdf5(self,inds):
 
         """
         get from lammps *.h5 file. the data should have been written using commands like:
@@ -243,7 +289,7 @@ class c_trajectory:
                 """
                 # read positions
                 self.pos[:,:,:] = in_db['particles']['all']['position']['value'] \
-                                    [_inds[0]:_inds[1],:,:]
+                                    [inds[0]:inds[1],:,:]
 
         except Exception as _ex:
             msg = f'the hdf5 file\n  \'{self.trajectory_file}\'\ncould not be read!\n'
@@ -251,6 +297,16 @@ class c_trajectory:
             crash(msg,_ex)
 
         self.timers.stop_timer('read_lammps_hdf5')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _read_pos_external(self,inds):
+
+        """
+        simply slice data from previously specified array
+        """
+
+        self.pos[:,:,:] = self.external_pos[inds[0]:inds[1],:,:]
 
     # ----------------------------------------------------------------------------------------------
 

@@ -250,9 +250,9 @@ class c_structure_factors:
         """
 
         _num_steps = self.comm.traj.num_block_steps
-        _num_energy = self.num_energy
         
         if self.calc_sqw:
+            _num_energy = self.num_energy
             self._sqw = np.zeros((_nQ,_num_energy),dtype=float)
 
         if self.calc_diffuse or self.calc_rho_squared:

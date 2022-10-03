@@ -84,6 +84,22 @@ class c_PSF:
 
     # ----------------------------------------------------------------------------------------------
 
+    def setup_communicator(self,pos=None,types=None):
+
+        """
+        set up the 'communicator' object to pass stuff back and forth
+        """
+
+        # 'communicator' to conveniently pass objects in/out of stuff
+        self.comm = m_communicator.c_communicator(self.config,self.timers)
+
+        if self.config.trajectory_format in ['external']:
+            self.comm.setup_calculation(pos,types)
+        else:
+            self.comm.setup_calculation()
+
+    # ----------------------------------------------------------------------------------------------
+
     def standard_run(self):
 
         """
@@ -97,20 +113,41 @@ class c_PSF:
         self.get_config_from_file()
 
         # 'communicator' to conveniently pass objects in/out of stuff
-        self.comm = m_communicator.c_communicator(self.config,self.timers)
-        self.comm.setup_calculation()
+        self.setup_communicator()
+
+        # run the calculation 
+        self.run()
+
+        # write output files
+        self.write_strufacs()
+
+        self.timers.stop_timer('standard_run')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def write_strufacs(self):
+
+        """
+        write the data to files
+        """
+
+        # write output files
+        self.comm.writer.write_structure_factors()
+    
+    # ----------------------------------------------------------------------------------------------
+
+    def run(self):
+
+        """
+        run the calculation
+        """
 
         # this loops over all blocks, calculating errything
         self.comm.strufacs.calculate_structure_factors()
 
-        # unfold mesh onto full reciprocal space 
+        # unfold mesh onto full reciprocal space
         if self.comm.Qpoints.use_mesh:
             self.comm.strufacs.put_on_mesh()
-
-        # write output files
-        self.comm.writer.write_structure_factors()
-
-        self.timers.stop_timer('standard_run')
 
     # ----------------------------------------------------------------------------------------------
 

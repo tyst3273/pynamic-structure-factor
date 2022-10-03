@@ -43,7 +43,7 @@ class c_communicator:
 
     # ----------------------------------------------------------------------------------------------
 
-    def setup_calculation(self):
+    def setup_calculation(self,pos=None,types=None):
 
         """
         initialize errything
@@ -62,6 +62,12 @@ class c_communicator:
         # find trajectory file and set up for block-averaging
         self.traj = m_trajectory.c_trajectory(self.config,self,self.timers)
 
+        # setup using external data if requested
+        if not types is None:
+            self.traj.set_external_types(types)
+        if not pos is None:
+            self.traj.set_external_pos(pos)
+
         # scattering lengths for the S(Q,w) calculation
         self.xlengths = m_scattering_lengths.c_scattering_lengths(self.config,self,self.timers)
 
@@ -72,5 +78,6 @@ class c_communicator:
         self.writer = m_io.c_writer(self.config,self)
 
     # ----------------------------------------------------------------------------------------------
+
 
 
