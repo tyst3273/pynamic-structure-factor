@@ -142,7 +142,7 @@ class c_structure_factors:
         if self.calc_diffuse:
             self.sq_diffuse /= _num_blocks*_num_atoms 
         if self.calc_sqw:
-            self.sq_sqw /= _num_blocks*_num_atoms 
+            self.sqw /= _num_blocks*_num_atoms 
         if self.calc_rho_squared:
             self.rho_sq /= _num_blocks*_num_atoms 
 
