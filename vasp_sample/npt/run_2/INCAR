@@ -1,0 +1,49 @@
+
+SYSTEM      = si_2x2x2
+
+### --- PARALLELISM -------
+LPLANE      =  .TRUE.
+NCORE       =  16
+KPAR        =  4
+
+### --- GENERAL -----------
+ALGO        =  VeryFast
+PREC        =  Low
+ISYM        =  0 
+
+### --- I/O ---------------
+LWAVE       =  .TRUE. 
+LCHARGE     =  .TRUE.
+#ISTART      =  0
+#ICHARG      =  1
+
+### --- PAW OPTIONS -------
+LREAL       = Auto
+
+### --- RELAXATION --------
+#NSW         =  10
+#IBRION      =  2
+#ISIF        =  2
+#EDIFFG      = -1E-5
+
+### --- SCF ---------------
+NELM        =  150
+EDIFF       =  1E-6
+ISMEAR      =  0
+SIGMA       =  0.1
+ENCUT       =  250
+
+### --- DFT --------------
+GGA         = PS
+
+### ---- MD --------------
+NWRITE      = 2   # how much to write to file
+MDALGO      = 2   # nose-hoover thermostat
+ISIF        = 3   # 2=NVT , 3=NPT
+SMASS       = 1.0 # nose mass... dont know how to pick it correctly. 
+TEBEG       = 600 # start T in K
+TEEND       = 600 # end T in K
+NSW         = 100 # number of MD steps
+POTIM       = 3.0 # timestep in fs
+
+
