@@ -2,7 +2,8 @@
 # options for where to get data/preprocessing
 trajectory_format = 'lammps_hdf5' 
 trajectory_file = \
-    '/home/ty/research/projects/psf_data/pos.h5'
+    '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/pos.h5'
+#    '/home/ty/research/projects/psf_data/pos.h5'
 #    '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/pos.h5'
 
 # '/home/ty/research/projects/psf_data/pos.h5'
@@ -22,7 +23,7 @@ calc_sqw = True
 
 # simulation options
 md_time_step = 16 # femtoseconds; time step IN FILE, not used in simulation
-md_num_steps = 625
+md_num_steps = 6250
 md_num_atoms = 6480
 md_supercell_reps = [6,6,30] 
 
