@@ -63,8 +63,9 @@ class c_communicator:
         self.traj = m_trajectory.c_trajectory(self.config,self,self.timers)
 
         # setup using external data if requested
-        if self.config.trajectory_format == 'exteral':
+        if self.config.trajectory_format == 'external':
             if not types is None:
+                print('a')
                 self.traj.set_external_types(types)
             if not pos is None:
                 self.traj.set_external_pos(pos)
