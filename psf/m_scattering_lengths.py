@@ -113,7 +113,6 @@ class c_scattering_lengths:
             _proc.start()
 
         # get the results from queue
-        _timers = []
         for _proc in range(_num_procs):
             _form_factors, _proc = self.queue.get()
             _Q_inds = self.comm.paral.Qpts_on_proc[_proc]
@@ -167,7 +166,8 @@ class c_scattering_lengths:
                 _p['a3']*np.exp(-_p['b3']*_Q4pi)+ \
                 _p['a4']*np.exp(-_p['b4']*_Q4pi)
 
-            # assign form factors to all atoms
+            # assign form factors to all atoms;
+            # would be faster to use fancy indexing
             for jj in range(_num_atoms):
                 _type = _types[jj]
                 _ffacs_Q[jj,ii] = _ffacs[_type]

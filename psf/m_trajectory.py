@@ -49,7 +49,7 @@ class c_trajectory:
         # the times for time correlation functions
         self.time = np.arange(0,self.num_block_steps,self.md_time_step)
 
-        # positions in cartesian coords in Angstrom
+        # initialize the positions; they are cartesian coords in whatever units are in the file
         self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
 
         # if setting types and pos externally, dont do anything else here
@@ -59,7 +59,7 @@ class c_trajectory:
         # the file with traj in it
         self.trajectory_file = self.config.trajectory_file
 
-        # get atom types once and for all if possible
+        # get atom types once and for all (if possible)
         self.get_atom_types()
 
      # ----------------------------------------------------------------------------------------------
@@ -117,6 +117,7 @@ class c_trajectory:
         if self.trajectory_format == 'lammps_hdf5':
             self._read_types_lammps_hdf5()
 
+        # do generic error checking
         _types = np.unique(self.types)
         if _types.max() >= self.comm.config.num_types or _types.min() < 0 \
             or _types.size > self.comm.config.num_types:
@@ -150,7 +151,6 @@ class c_trajectory:
         self.external_pos = np.array(pos)
 
         msg = 'external positions have wrong shape\n'
-
         _shape = self.external_pos.shape
         if len(_shape) == 2:
             _num_atoms = _shape[0]
@@ -178,6 +178,7 @@ class c_trajectory:
 
         if self.trajectory_format == 'lammps_hdf5':
             self._read_pos_lammps_hdf5(_inds)            
+
         elif self.trajectory_format == 'external':
             self._read_pos_external(_inds)
 

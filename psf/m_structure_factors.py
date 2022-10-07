@@ -323,14 +323,13 @@ class c_structure_factors:
                 msg = f'  now on Qpt[{ii}]'
                 print(msg)
 
-            _Q = _Qpts[ii,:].reshape(1,3)
-            _Q_ind = _Qpt_inds[ii]
-
             # depends on Q for xrays, but calculate earlier
             if _exp_type == 'xrays':
+                _Q_ind = _Qpt_inds[ii]
                 _x = self.comm.xlengths.form_factors[:,_Q_ind]
 
             # vectorized Q.r dot product, sum over atoms gives space FT
+            _Q = _Qpts[ii,:].reshape(1,3)
             _x_tile = np.tile(_x.reshape(1,_num_atoms),reps=(_num_steps,1))
             _exp_iQr = np.tile(_Q,reps=(_num_steps,_num_atoms,1))
             _exp_iQr = np.sum(_exp_iQr*self.comm.traj.pos,axis=2)

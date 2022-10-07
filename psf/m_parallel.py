@@ -66,7 +66,6 @@ class c_multi_processing:
                   'decrease num_Qpoint_procs or use more Q-points\n')
 
         # print wassup
-
         self.max_num_Qpts_on_procs = self.num_Qpts_per_proc.max()
         msg = 'max number of Q-points over all processes:' \
                 f' {self.max_num_Qpts_on_procs}\n'

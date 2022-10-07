@@ -1,4 +1,7 @@
 
+FYI these notes are from the author for the author. you arent supposed to care about what is in 
+this file... but if you do, contact me at ty.sterling@colorado.edu
+
 the input options suppose that calculations are done with LAMMPS using an orthorhombic simulation box. 
 the consequences of these assumptions are as follows: 
 
@@ -6,13 +9,10 @@ the consequences of these assumptions are as follows:
         the LAMMPS simulation. the atoms in 'atom_types' should be given in the same order 
         as used in the simulation. 
 
-    (2) the orthorhombic simulation box is assumed since all that is written using the hdf5 
+    (2) an orthorhombic simulation box is assumed since all that is read from the hdf5 
         dump method of lammps is the box lengths. so to calculate the box size dynamically, 
-        we have to use these data which imposes an orhtorhombic simulation box. dervied from 
-        this requirement is that the 'lattice_vectors' must also be orthorhombic. in most cases, 
-        this isnt an overly restrictive requirement since you can just pick a conventional cell 
-        that is orhto. make sure to convert the real Q-vectors you want to study to the new basis!
-        NOTE: this restriction can be (fairly) easily reversed later on.
+        we have to use these data which imposes an orhtorhombic simulation box. this requirement 
+        could easily be lifted if needed.
 
 
 note about unwrapping:
@@ -29,7 +29,9 @@ note about unwrapping:
         deviated by half a box length (i.e. outside the cell since the atom is at the
         center), shift it back. See e.g. Allen: "Computer Simulation of Liquids".
 
-        NOTE: this methods assumes lattice vectors and coordinates in traj file are in Angstrom!
+        NOTE: this methods assumes lattice vectors and coordinates in traj file are in 
+        2*pi/whatever is used for the lattice vectors in the input file.
+
         it also assumes that the simulationcell and underlying unitcell are orthorhombic. this
         last restriction isnt super important and can be fixed by using the simulation box vectors
         to go to reduced coordinates in the simulation cell. then unwrapping is as easy as shifting
@@ -38,7 +40,7 @@ note about unwrapping:
         the crystal lattice vectors don't really need to be orthorhombic at all... they are used
         to get Q in cartesian coords, at which point scattering for any simulation cell can be
         calculated by summing over positions. the reason it is enforced is so that lx,ly,lz can
-        be calculated like below ...
+        be calculated for the above ... but 
 
 
 new features ...

@@ -28,6 +28,7 @@ all kinds of stuff in here... but for now, its just the main script.
 import psf.m_communicator as m_communicator
 import psf.m_config as m_config
 import psf.m_timing as m_timing
+import psf.m_io as m_io
 
 
 class c_PSF:
@@ -110,7 +111,7 @@ class c_PSF:
         self.timers.start_timer('standard_run',units='m')
 
         # read input file 
-        self.get_config_from_file()
+        self.config.set_config()
 
         # 'communicator' to conveniently pass objects in/out of stuff
         self.setup_communicator()
@@ -131,8 +132,9 @@ class c_PSF:
         write the data to files
         """
 
-        # write output files
-        self.comm.writer.write_structure_factors()
+        # setup io object to write files
+        writer = m_io.c_writer(self.config,self.comm)
+        writer.write_structure_factors()
     
     # ----------------------------------------------------------------------------------------------
 
@@ -145,7 +147,7 @@ class c_PSF:
         # this loops over all blocks, calculating errything
         self.comm.strufacs.calculate_structure_factors()
 
-        # unfold mesh onto full reciprocal space
+        # if calculated on a mesh, unfold mesh onto full reciprocal space
         if self.comm.Qpoints.use_mesh:
             self.comm.strufacs.put_on_mesh()
 

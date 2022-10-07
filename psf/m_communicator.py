@@ -63,19 +63,17 @@ class c_communicator:
         self.traj = m_trajectory.c_trajectory(self.config,self,self.timers)
 
         # setup using external data if requested
-        if not types is None:
-            self.traj.set_external_types(types)
-        if not pos is None:
-            self.traj.set_external_pos(pos)
+        if self.config.trajectory_format == 'exteral':
+            if not types is None:
+                self.traj.set_external_types(types)
+            if not pos is None:
+                self.traj.set_external_pos(pos)
 
         # scattering lengths for the S(Q,w) calculation
         self.xlengths = m_scattering_lengths.c_scattering_lengths(self.config,self,self.timers)
 
         # setup object to hold structure factors, calculate stuff, etc.
         self.strufacs = m_structure_factors.c_structure_factors(self.config,self,self.timers)
-
-        # setup io object to write files
-        self.writer = m_io.c_writer(self.config,self)
 
     # ----------------------------------------------------------------------------------------------
 
