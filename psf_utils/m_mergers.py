@@ -85,7 +85,6 @@ class c_lammpstrj_reader:
 
         self.steps_in_file = _num_lines/(self.number_of_atoms+9)
         self.steps_in_file = int(self.steps_in_file)
-        print(self.steps_in_file)
 
     # ----------------------------------------------------------------------------------------------
 
