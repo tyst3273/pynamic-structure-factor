@@ -65,10 +65,21 @@ class c_lammpstrj_reader:
             for ii in range(9):
                 _if.readline()
 
-            self.types = []
+            _types = []
             for ii in range(self.number_of_atoms):
                 _ = _if.readline().strip().split()
-                self.types.append(int(_[1]))
+                _types.append(_[1])
+            _unique = []
+            self.types = []
+            for ii in range(self.number_of_atoms):
+                _t = _types[ii]
+                if _t not in _unique:
+                    _unique.append(_t)
+                _i = _unique.index(_t)
+                self.types.append(_i)
+
+        # types start from 1
+        self.types = [x+1 for x in self.types]           
 
         self.num_types = len(self.types)
 
@@ -224,6 +235,7 @@ class c_vasp_xdatcar_reader:
         self.types = []
         for ii in range(self.num_types):
             self.types.extend([ii]*self.num_each_type[ii])
+        self.types = [x+1 for x in self.types]
     
     # ----------------------------------------------------------------------------------------------
 
@@ -335,7 +347,7 @@ class c_user_data:
     # ----------------------------------------------------------------------------------------------
 
     def __init__(self,output_file='user_data.hdf5',input_files='XDATCAR',number_of_atoms=None,
-                 file_format='vasp_xdatcar',constant_volume=True,block_size=None,reduced=True):
+                 file_format='vasp_xdatcar',constant_volume=True,block_size=None,reduced=False):
 
         """
         a module to read externally generated data from various codes (e.g. vasp, lammps, ...)
@@ -612,27 +624,24 @@ class c_user_data:
 if __name__ == '__main__':
 
     trj = c_user_data(number_of_atoms=64,output_file='npt_lmp.hdf5',
-            input_files=['npt/npt_1.lammpstrj','npt/npt_2.lammpstrj'],
+            input_files=['vasp_sample/npt/npt_1.lammpstrj','vasp_sample/npt/npt_2.lammpstrj'],
             file_format='lammpstrj',block_size=20,reduced=False)
     trj.merge_files()
 
     trj = c_user_data(number_of_atoms=64,output_file='nvt_lmp.hdf5',
-            input_files='nvt/nvt.lammpstrj',file_format='lammpstrj',reduced=False)
+            input_files='vasp_sample/nvt/nvt.lammpstrj',file_format='lammpstrj',reduced=False)
     trj.merge_files()
-    trj.write_lammpstrj()
 
-    """
     xdat = c_user_data(number_of_atoms=64,output_file='npt.hdf5',
-            input_files=['npt/run_1/XDATCAR','npt/run_2/XDATCAR'],
+            input_files=['vasp_sample/npt/run_1/XDATCAR','vasp_sample/npt/run_2/XDATCAR'],
             file_format='vasp_xdatcar',constant_volume=False,block_size=20)
     xdat.merge_files()
-#    xdat.write_lammpstrj('npt.lammpstrj')
+    xdat.write_lammpstrj('npt.lammpstrj')
 
     xdat = c_user_data(number_of_atoms=64,output_file='nvt.hdf5',
-            input_files='nvt/XDATCAR',file_format='vasp_xdatcar',constant_volume=True)
+            input_files='vasp_sample/nvt/XDATCAR',file_format='vasp_xdatcar',constant_volume=True)
     xdat.merge_files()
-#    xdat.write_lammpstrj('nvt.lammpstrj')
-    """
+    xdat.write_lammpstrj('nvt.lammpstrj')
 
 
 
