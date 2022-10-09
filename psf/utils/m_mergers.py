@@ -631,26 +631,29 @@ class c_user_data:
 
 if __name__ == '__main__':
 
-    trj = c_user_data(number_of_atoms=64,output_file='npt_lmp.hdf5',
-            input_files=['vasp_sample/npt/npt_1.lammpstrj','vasp_sample/npt/npt_2.lammpstrj'],
-            file_format='lammpstrj',block_size=20,reduced=False)
-    trj.merge_files()
-
-    trj = c_user_data(number_of_atoms=64,output_file='nvt_lmp.hdf5',
-            input_files='vasp_sample/nvt/nvt.lammpstrj',file_format='lammpstrj',reduced=False)
-    trj.merge_files()
+    """
+    this stuff is for debugging but is also an example of how to use the classes above
+    """
 
     xdat = c_user_data(number_of_atoms=64,output_file='npt.hdf5',
             input_files=['vasp_sample/npt/run_1/XDATCAR','vasp_sample/npt/run_2/XDATCAR'],
             file_format='vasp_xdatcar',constant_volume=False,block_size=20)
     xdat.merge_files()
-    xdat.write_lammpstrj('npt.lammpstrj')
+    xdat.write_lammpstrj('vasp_sample/npt.lammpstrj')
 
     xdat = c_user_data(number_of_atoms=64,output_file='nvt.hdf5',
             input_files='vasp_sample/nvt/XDATCAR',file_format='vasp_xdatcar',constant_volume=True)
     xdat.merge_files()
-    xdat.write_lammpstrj('nvt.lammpstrj')
+    xdat.write_lammpstrj('vasp_sample/nvt.lammpstrj')
 
+    trj = c_user_data(number_of_atoms=64,output_file='npt_lmp.hdf5',
+            input_files=['vasp_sample/npt.lammpstrj'],
+            file_format='lammpstrj',block_size=20,reduced=False)
+    trj.merge_files()
+
+    trj = c_user_data(number_of_atoms=64,output_file='nvt_lmp.hdf5',
+            input_files='vasp_sample/nvt.lammpstrj',file_format='lammpstrj',reduced=False)
+    trj.merge_files()
 
 
 
