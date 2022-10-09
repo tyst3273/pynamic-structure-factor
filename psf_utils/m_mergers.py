@@ -20,6 +20,7 @@
 
 import numpy as np
 import h5py
+from timeit import default_timer
 
 from psf.m_error import crash, check_file
 
@@ -462,7 +463,11 @@ class c_user_data:
                 
                 # loop over blocks and get the data from the files
                 _block_inds = self.block_inds[ii]
+                print(f'there are {_block_inds.shape[0]} blocks\n')
                 for bb in range(_block_inds.shape[0]):  
+
+                    _start_time = default_timer()
+                    print(f'now on block {bb}')
 
                     if _block_inds[bb,0] == 0:
                         step_0 = True
@@ -482,6 +487,10 @@ class c_user_data:
                     _odb['box_vectors'][_file_ind:_file_ind+num_steps,...] = box[...]
 
                     _file_ind += num_steps
+
+                    _end_time = default_timer()
+                    _elapsed = (_end_time-_start_time)
+                    print(f'elapsed time for block: {_elapsed:10.6f} [s]\n')
 
                 # close the text file
                 _r.close_file()
