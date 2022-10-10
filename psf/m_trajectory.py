@@ -116,6 +116,8 @@ class c_trajectory:
 
         if self.trajectory_format == 'lammps_hdf5':
             self._read_types_lammps_hdf5()
+        if self.trajectory_format == 'user_hdf5':
+            self._read_types_user_hdf5()
 
         # do generic error checking
         _types = np.unique(self.types)
@@ -179,6 +181,9 @@ class c_trajectory:
         if self.trajectory_format == 'lammps_hdf5':
             self._read_pos_lammps_hdf5(_inds)            
 
+        if self.trajectory_format == 'user_hdf5':
+            self._read_pos_user_hdf5(_inds)
+
         elif self.trajectory_format == 'external':
             self._read_pos_external(_inds)
 
@@ -197,6 +202,13 @@ class c_trajectory:
         """
 
         self.timers.start_timer('unwrap_positions',units='s')
+
+        if self.trajectory_format == 'user_hdf5':
+            msg = 'if the trajectory file was created using the merger built into\n' \
+                  'this code, then the data should already be unwrapped, i.e. unwrapping\n' \
+                  'trajectories again is a waste of time. set unwrap_trajectory=False and\n' \
+                  'run again\n'
+            crash(msg)
 
         msg = '\nunwrapping positions!\n'
         print(msg)
@@ -229,6 +241,36 @@ class c_trajectory:
         self.pos = self.pos+shift
 
         self.timers.stop_timer('unwrap_positions')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _read_types_user_hdf5(self):
+
+        """
+        get from user created hdf5 file. 
+        """
+
+        self.types = np.zeros(self.num_atoms,dtype=int)
+
+        try:
+
+            import h5py
+            with h5py.File(self.trajectory_file,'r') as in_db:
+
+                # it is assumed that the types are consecutive integers starting at 1
+                # so that 1 is subtracted to match the python index starting at 0 ...
+                self.types[:] = in_db['types'][:]-1
+
+            # error check
+            if self.num_atoms != self.types.size:
+                msg = 'number of atoms in file dont match the input info.'
+                msg += 'correct the configuration or check your trajectory file!\n'
+                crash(msg)
+
+        except Exception as _ex:
+            msg = f'the hdf5 file\n  \'{self.trajectory_file}\'\ncould not be read!\n'
+            msg += 'check the h5py installation and the file then try again.\n'
+            crash(msg,_ex)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -298,6 +340,31 @@ class c_trajectory:
             crash(msg,_ex)
 
         self.timers.stop_timer('read_lammps_hdf5')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _read_pos_user_hdf5(self,inds):
+
+        """
+        get from user created hdf5 file
+        """
+
+        self.timers.start_timer('read_user_hdf5',units='s')
+
+        try:
+
+            import h5py
+            with h5py.File(self.trajectory_file,'r') as in_db:
+
+                # read positions
+                self.pos[:,:,:] = in_db['cartesian_pos'][inds[0]:inds[1],:,:]
+
+        except Exception as _ex:
+            msg = f'the hdf5 file\n  \'{self.trajectory_file}\'\ncould not be read!\n'
+            msg += 'check the h5py installation and the file then try again.\n'
+            crash(msg,_ex)
+
+        self.timers.stop_timer('read_user_hdf5')
 
     # ----------------------------------------------------------------------------------------------
 
