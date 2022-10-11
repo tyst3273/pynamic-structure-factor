@@ -321,7 +321,7 @@ class c_structure_factors:
 
             if proc == 0:
                 msg = f'  now on Qpt[{ii}]'
-                print(msg)
+                print(msg,flush=True)
 
             # depends on Q for xrays, but calculate earlier
             if _exp_type == 'xrays':
