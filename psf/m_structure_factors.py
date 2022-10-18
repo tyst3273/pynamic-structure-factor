@@ -21,6 +21,7 @@
 import numpy as np
 from scipy.fft import fft, ifft
 import multiprocessing as mp
+
 from psf.m_timing import _timer
 from psf.m_error import crash
 
@@ -323,7 +324,7 @@ class c_structure_factors:
                 msg = f'  now on Qpt[{ii}]'
                 print(msg,flush=True)
 
-            # depends on Q for xrays, but calculate earlier
+            # depends on Q for xrays, but calculated earlier (its looked up here)
             if _exp_type == 'xrays':
                 _Q_ind = _Qpt_inds[ii]
                 _x = self.comm.xlengths.form_factors[:,_Q_ind]
