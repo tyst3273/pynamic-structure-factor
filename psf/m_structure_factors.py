@@ -35,7 +35,7 @@ class c_structure_factors:
     def __init__(self,config,comm,timers):
 
         """
-        template
+        class to calculate structure factors from MD trajectories
         """
 
         # copy refs to stuff
@@ -103,7 +103,7 @@ class c_structure_factors:
     def calculate_structure_factors(self):
 
         """
-        macro within c_structure_factors to calculate scattering intensity
+        macro to calculate scattering
         """
 
         self.timers.start_timer('calc_strufacs',units='m')
