@@ -36,7 +36,6 @@ class c_lattice:
         self.comm = comm
         self.config = config
 
-        self.ortho_lattice_vectors = config.ortho_lattice_vectors
         self.set_lattice_vectors(config.lattice_vectors)
 
     # ----------------------------------------------------------------------------------------------
@@ -85,10 +84,13 @@ class c_lattice:
                         self.ortho_lattice_vectors = False
                         
         if not self.ortho_lattice_vectors:
-            msg = 'only orthogonal (i.e. diagonal) lattice_vectors allowed for now\n'
-            msg += f'if this functionality is really needed, contact the author'
-            msg += ' at\n --- ty.sterling@colorado.edu\n'
-            crash(msg)
+            msg = 'non-orthogonal lattice vectors detected. this is still under development!\n'
+            print('\n** warning **\n'+msg)
+
+            #msg = 'only orthogonal (i.e. diagonal) lattice_vectors allowed for now\n'
+            #msg += f'if this functionality is really needed, contact the author'
+            #msg += ' at\n --- ty.sterling@colorado.edu\n'
+            #crash(msg)
 
     # ----------------------------------------------------------------------------------------------
 

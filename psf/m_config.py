@@ -77,7 +77,8 @@ class c_config:
         md_time_step=None,md_num_steps=None,md_num_atoms=None,md_supercell_reps=None,
         num_trajectory_blocks=None,trajectory_blocks=None,experiment_type=None,
         num_Qpoint_procs=None,Qpoints_option=None,Q_mesh_H=None,Q_mesh_K=None,Q_mesh_L=None,
-        Q_file=None,Q_path_start=None,Q_path_end=None,Q_path_steps=None):
+        Q_file=None,Q_path_start=None,Q_path_end=None,Q_path_steps=None,trajectory_stride=None,
+        trajectory_offset=None):
 
         """
         get args from file; if new arg is added, has to be passed as default = None above
@@ -115,6 +116,8 @@ class c_config:
         self._set_md_num_steps(md_num_steps)
         self._set_md_num_atoms(md_num_atoms)
         self._set_md_supercell_reps(md_supercell_reps)
+        self._set_trajectory_stride(trajectory_stride)
+        self._set_trajectory_offset(trajectory_offset)
         self._set_num_trajectory_blocks(num_trajectory_blocks)
         self._set_trajectory_blocks(trajectory_blocks)
         self._set_experiment_type(experiment_type) 
@@ -140,6 +143,56 @@ class c_config:
         # --- add new variables parsers here ---
         # ...
         # ...
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_trajectory_stride(self,trajectory_stride=None):
+
+        """
+        get the attribute
+        """
+
+        if trajectory_stride is None:
+            self.trajectory_stride = self._get_attr('trajectory_stride')
+        else:
+            self.trajectory_stride = trajectory_stride
+
+        try:
+            self.trajectory_stride = int(self.trajectory_stride)
+        except:
+            msg = 'trajectory_stride must be an int'
+            crash(msg)
+
+        msg = 'trajectory_stride must be >= 1'
+        if self.trajectory_stride < 1:
+            crash(msg)
+
+        print(f'trajectory_stride:\n  {self.trajectory_stride}')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_trajectory_offset(self,trajectory_offset=None):
+
+        """
+        get the attribute
+        """
+
+        if trajectory_offset is None:
+            self.trajectory_offset = self._get_attr('trajectory_offset')
+        else:
+            self.trajectory_offset = trajectory_offset
+
+        try:
+            self.trajectory_offset = int(self.trajectory_offset)
+        except:
+            msg = 'trajectory_offset must be an int'
+            crash(msg)
+
+        msg = 'trajectory_offset must be >= 0'
+        if self.trajectory_offset < 0:
+            crash(msg)
+
+        print(f'trajectory_offset:\n  {self.trajectory_offset}')    
 
     # ----------------------------------------------------------------------------------------------
 
@@ -714,25 +767,6 @@ class c_config:
             crash(msg)
         else:
             self.lattice_vectors.shape = [3,3]
-
-        # check if lattice vectors are numerically orthorhombic
-        self.ortho_lattice_vectors = True
-        for ii in range(3):
-            for jj in range(3):
-                if ii == jj:
-                    continue
-                else:
-                    if np.round(self.lattice_vectors[ii,jj],6) != 0.0:
-                        self.ortho_lattice_vectors = False
-
-        if self.ortho_lattice_vectors:
-            msg = f'orthorhombic_lattice_vectors:\n  {self.ortho_lattice_vectors}'
-            print(msg)
-        else:
-            msg = 'only orthogonal (i.e. diagonal) lattice_vectors allowed for now\n'
-            msg += f'if this functionality is really needed, contact the author'
-            msg += ' at\n --- ty.sterling@colorado.edu\n'
-            crash(msg)
 
         # echo to the info file
         msg = f'lattice_vectors: (Angstrom)'

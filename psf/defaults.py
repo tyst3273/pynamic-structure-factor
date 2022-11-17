@@ -27,10 +27,18 @@ trajectory_file = \
 unwrap_trajectory = True
 
 
-# options for splitting up trajectory
+# only read every n^th step of the trajectory
+trajectory_stride = 1
+
+# skip this many steps at the beginning of the trajectory
+trajectory_offset = 0
+
+# split up the rest of the trajectory into this many blocks
 num_trajectory_blocks = 10
 
-trajectory_blocks = [0,1,2,3,4,5,6,7,8,9]
+# which of the blocks to use
+trajectory_blocks = None
+
 
 # options for writing results
 output_directory = None
