@@ -578,7 +578,7 @@ class c_user_data:
 
     # ----------------------------------------------------------------------------------------------
 
-    def write_lammpstrj(self,trj_file='pos.lammpstrj'):
+    def write_lammpstrj(self,trj_file='pos.lammpstrj',steps_to_write=None):
         
         """
         read the data from the hdf5 file into a lammpstrj text file. do NOT do this if the 
@@ -603,6 +603,9 @@ class c_user_data:
             _shape = _db['cartesian_pos'].shape
             _num_steps = _shape[0]
             _num_atoms = _shape[1]
+
+            if not steps_to_write is None:
+                _num_steps = int(steps_to_write)
             
             for ii in range(_num_steps):
 
