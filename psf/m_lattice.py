@@ -84,13 +84,15 @@ class c_lattice:
                         self.ortho_lattice_vectors = False
                         
         if not self.ortho_lattice_vectors:
-            msg = 'non-orthogonal lattice vectors detected. this is still under development!\n'
-            print('\n** warning **\n'+msg)
 
-            #msg = 'only orthogonal (i.e. diagonal) lattice_vectors allowed for now\n'
-            #msg += f'if this functionality is really needed, contact the author'
-            #msg += ' at\n --- ty.sterling@colorado.edu\n'
-            #crash(msg)
+            if self.config.unwrap_trajectory:
+                msg = 'only orthogonal lattice vectors allowed in unwrap_trajectory=True\n'
+                msg += f'if this functionality is really needed, contact the author'
+                msg += ' at\n --- ty.sterling@colorado.edu\n'
+                crash(msg)
+            else:
+                msg = 'non-orthogonal lattice vectors detected. this is still under development!\n'
+                print('\n** warning **\n'+msg)
 
     # ----------------------------------------------------------------------------------------------
 

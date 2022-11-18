@@ -78,7 +78,7 @@ class c_config:
         num_trajectory_blocks=None,trajectory_blocks=None,experiment_type=None,
         num_Qpoint_procs=None,Qpoints_option=None,Q_mesh_H=None,Q_mesh_K=None,Q_mesh_L=None,
         Q_file=None,Q_path_start=None,Q_path_end=None,Q_path_steps=None,trajectory_stride=None,
-        trajectory_offset=None):
+        trajectory_skip=None,trajectory_trim=None):
 
         """
         get args from file; if new arg is added, has to be passed as default = None above
@@ -117,7 +117,8 @@ class c_config:
         self._set_md_num_atoms(md_num_atoms)
         self._set_md_supercell_reps(md_supercell_reps)
         self._set_trajectory_stride(trajectory_stride)
-        self._set_trajectory_offset(trajectory_offset)
+        self._set_trajectory_skip(trajectory_skip)
+        self._set_trajectory_trim(trajectory_trim)
         self._set_num_trajectory_blocks(num_trajectory_blocks)
         self._set_trajectory_blocks(trajectory_blocks)
         self._set_experiment_type(experiment_type) 
@@ -171,28 +172,53 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_trajectory_offset(self,trajectory_offset=None):
+    def _set_trajectory_skip(self,trajectory_skip=None):
 
         """
         get the attribute
         """
 
-        if trajectory_offset is None:
-            self.trajectory_offset = self._get_attr('trajectory_offset')
+        if trajectory_skip is None:
+            self.trajectory_skip = self._get_attr('trajectory_skip')
         else:
-            self.trajectory_offset = trajectory_offset
+            self.trajectory_skip = trajectory_skip
 
         try:
-            self.trajectory_offset = int(self.trajectory_offset)
+            self.trajectory_skip = int(self.trajectory_skip)
         except:
-            msg = 'trajectory_offset must be an int'
+            msg = 'trajectory_skip must be an int'
             crash(msg)
 
-        msg = 'trajectory_offset must be >= 0'
-        if self.trajectory_offset < 0:
+        msg = 'trajectory_skip must be >= 0'
+        if self.trajectory_skip < 0:
             crash(msg)
 
-        print(f'trajectory_offset:\n  {self.trajectory_offset}')    
+        print(f'trajectory_skip:\n  {self.trajectory_skip}')    
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_trajectory_trim(self,trajectory_trim=None):
+
+        """
+        get the attribute
+        """
+
+        if trajectory_trim is None:
+            self.trajectory_trim = self._get_attr('trajectory_trim')
+        else:
+            self.trajectory_trim = trajectory_trim
+
+        try:
+            self.trajectory_trim = int(self.trajectory_trim)
+        except:
+            msg = 'trajectory_trim must be an int'
+            crash(msg)
+
+        msg = 'trajectory_trim must be >= 0'
+        if self.trajectory_trim < 0:
+            crash(msg)
+
+        print(f'trajectory_trim:\n  {self.trajectory_trim}')
 
     # ----------------------------------------------------------------------------------------------
 

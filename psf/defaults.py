@@ -31,7 +31,10 @@ unwrap_trajectory = True
 trajectory_stride = 1
 
 # skip this many steps at the beginning of the trajectory
-trajectory_offset = 0
+trajectory_skip = 0
+
+# skip this many steps at the end of the trajectory
+trajectory_trim = 0
 
 # split up the rest of the trajectory into this many blocks
 num_trajectory_blocks = 10

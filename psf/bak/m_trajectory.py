@@ -41,7 +41,6 @@ class c_trajectory:
         self.num_atoms = self.config.md_num_atoms
         self.trajectory_format = self.config.trajectory_format
         self.md_time_step = self.config.md_time_step    
-        self.effective_time_step = self.config.trajectory_stride*self.md_time_step
         self.unwrap_trajectory = self.config.unwrap_trajectory
 
         # set up the 'blocks' of indices for calculating on
@@ -63,7 +62,7 @@ class c_trajectory:
         # get atom types once and for all (if possible)
         self.get_atom_types()
 
-    # ----------------------------------------------------------------------------------------------
+     # ----------------------------------------------------------------------------------------------
 
     def _get_block_inds(self):
 
@@ -71,37 +70,33 @@ class c_trajectory:
         setup indices for block averaging
         """
 
-        # inds in file
         _md_steps = self.config.md_num_steps
-        _inds = np.arange(self.config.trajectory_skip,
-            self.config.md_num_steps-self.config.trajectory_trim,self.config.trajectory_stride)
-        _num_steps = _inds.size
-
-        # split up remaining inds
         _num_blocks = self.config.num_trajectory_blocks
 
         # averging is done in frequency space; having blocks of data that are on
         # different frequency grids will require interpolation to average together
         # i want to avoid doing that so i crop the dataset so that all blocks
         # have same frequency
-        if _num_steps % _num_blocks != 0:
+        if _md_steps % _num_blocks != 0:
             msg = '\n*** warning! ***\n'
-            msg += 'number of_steps must be divisible by num_trajectory_blocks\n'
+            msg += 'md_num_steps must be divisible by num_trajectory_blocks\n'
             msg += 'discarding the extra timesteps\n'
             print(msg)
 
         self.blocks = self.config.trajectory_blocks
-
-        # get the steps per block
-        _rem = _num_steps % _num_blocks
+        
+        _rem = _md_steps % _num_blocks
         self.num_block_avg = self.config.num_block_avg
-        self.num_steps_used = _num_steps-_rem
+        self.num_steps_used = _md_steps-_rem
         self.num_block_steps = self.num_steps_used // _num_blocks
 
-        # set up block inds
-        self.block_inds = np.zeros((_num_blocks,self.num_block_steps),dtype=int)
-        for bb in range(_num_blocks):
-            self.block_inds[bb,:] = _inds[bb*self.num_block_steps:(bb+1)*self.num_block_steps]
+        # lo/hi inds to index the blocks from the trajectory file 
+        # note that full trajectory is indexed and only the blocks that are 
+        # requested are used
+        _blocks = np.arange(_num_blocks)
+        self.block_inds = np.zeros((_num_blocks,2),dtype=int)
+        self.block_inds[:,0] = _blocks*self.num_block_steps
+        self.block_inds[:,1] = (_blocks+1)*self.num_block_steps
 
         msg = f'\n*** blocks ***\nnum_block_avg: {self.num_block_avg}\n'
         msg += f'num_block_steps: {self.num_block_steps}'
@@ -181,7 +176,7 @@ class c_trajectory:
         get a block of trajectory data from the file and preprocess it as much as possible
         """
 
-        _inds = self.block_inds[block_index,:]
+        _inds = self.block_inds[block_index]
 
         if self.trajectory_format == 'lammps_hdf5':
             self._read_pos_lammps_hdf5(_inds)            
@@ -337,7 +332,7 @@ class c_trajectory:
                 """
                 # read positions
                 self.pos[:,:,:] = in_db['particles']['all']['position']['value'] \
-                                    [inds,:,:]
+                                    [inds[0]:inds[1],:,:]
 
         except Exception as _ex:
             msg = f'the hdf5 file\n  \'{self.trajectory_file}\'\ncould not be read!\n'
@@ -362,7 +357,7 @@ class c_trajectory:
             with h5py.File(self.trajectory_file,'r') as in_db:
 
                 # read positions
-                self.pos[:,:,:] = in_db['cartesian_pos'][inds,:,:]
+                self.pos[:,:,:] = in_db['cartesian_pos'][inds[0]:inds[1],:,:]
 
         except Exception as _ex:
             msg = f'the hdf5 file\n  \'{self.trajectory_file}\'\ncould not be read!\n'
@@ -379,7 +374,7 @@ class c_trajectory:
         simply slice data from previously specified array
         """
 
-        self.pos[:,:,:] = self.external_pos[inds,:,:]
+        self.pos[:,:,:] = self.external_pos[inds[0]:inds[1],:,:]
 
     # ----------------------------------------------------------------------------------------------
 
