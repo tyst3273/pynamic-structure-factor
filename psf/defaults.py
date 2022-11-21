@@ -91,6 +91,7 @@ num_trajectory_blocks = 10
 description: which blocks to actually use. split trajectory in 'num_trajectory_blocks' number
     of blocks and calculate on the ones given in this list. e.g. only use every other block
     to make sure that the S(Q,w) for each block are uncorrelated
+    if trajectory_blocks == None, all are used
 type: list
 """
 trajectory_blocks = None
