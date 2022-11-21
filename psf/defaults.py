@@ -140,9 +140,11 @@ calc_sqw = True
 
 # --------------------------------------------------------------------------------------------------
 """
-description: time step in the file (not in the simulation!) and NOT accounting for 
-    'trajectory_stride' above. the effective step is md_time_step*trajectory_stride, but this
-    is calculated inside the code and the user doesnt have to care about it
+description: time step in the file in femtoseconds.
+    not the timestep in the simulation!
+    and NOT accounting for 'trajectory_stride' above. 
+    the effective step is md_time_step*trajectory_stride, but this is calculated inside 
+    the code and the user doesnt have to care about it
 type: int
 """
 md_time_step = 16 
@@ -172,7 +174,8 @@ md_supercell_reps = [6,6,30]
 """
 description: lattice vectors of unitcell. these used to calculate the Q points and to 'unwrap'
     the trajectories. they can be arbitrary, but keep in mind the Q-points have to be commensurate
-    with the supercell to get sensible data
+    with the supercell to get sensible data. note that these should be in whatever length units
+    are in the trajectory file.
 type: [3]x[3] list of floats
 """
 lattice_vectors = [[4.593,0.000,0.000], 

@@ -74,7 +74,8 @@ class c_lattice:
         """
         check if lattice vectors are numerically orthorhombic 
         """
-        
+       
+        self.ortho_lattice_vectors = True
         for ii in range(3):
             for jj in range(3):
                 if ii == jj:
