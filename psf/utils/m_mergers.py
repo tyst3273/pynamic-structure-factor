@@ -25,6 +25,11 @@ from timeit import default_timer
 from psf.m_error import crash, check_file
 
 
+"""
+this is a file of tools to combine trajectories in text files written by other codes.
+it's a bit messy and not necessarily bug free... but it does seem to work! 
+"""
+
 
 class c_lammpstrj_reader:
 
