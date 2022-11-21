@@ -29,7 +29,8 @@ class c_trajectory:
     def __init__(self,config,comm,timers):
 
         """
-        template
+        class for handling MD trajectory I/O. reads different file types. it's modular
+        but a little clumsy to add new parsers to.
         """
 
         # copy refs to stuff
