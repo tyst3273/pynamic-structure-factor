@@ -22,7 +22,7 @@ pair_style      tersoff
 pair_coeff      * * SiCGe.tersoff Si(D) 
 
 ### timestep and temp
-timestep        0.0005				
+timestep        0.001				
 variable        T equal 300
 
 ### what to print and how often
@@ -33,7 +33,7 @@ thermo          2000
 
 ### NVT thermalization
 velocity        all create ${T} 123456 mom yes rot yes dist gaussian
-fix             NVT all nvt temp $T $T $(dt*100) tchain 10
+fix             NVT all nvt temp ${T} ${T} $(dt*100) tchain 10
 run             10000
 unfix           NVT
 
@@ -45,7 +45,7 @@ unfix           NVE
 # -------------------- sample the data -----------------------
 
 ### vels/pos print frequency
-variable	dt_dump equal 32
+variable	dt_dump equal 24
 
 ### print pos to hdf5 file
 dump            pos all h5md ${dt_dump} pos.h5 position species
@@ -53,7 +53,7 @@ dump_modify     pos sort id
 
 ### run to collect pos/vels
 fix             NVE all nve
-run             262144
+run             100000
 unfix           NVE
 
 
