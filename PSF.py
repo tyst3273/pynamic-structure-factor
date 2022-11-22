@@ -20,11 +20,6 @@
 #   !                                                                           !
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-"""
-'driver' script for psf code. gonna put 'tasks' in here, i.e. macros for calculating 
-all kinds of stuff in here... but for now, its just the main script.
-"""
-
 import psf.m_communicator as m_communicator
 import psf.m_config as m_config
 import psf.m_timing as m_timing
