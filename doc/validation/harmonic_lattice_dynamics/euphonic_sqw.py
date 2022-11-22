@@ -44,7 +44,7 @@ Q_fwhm = 0.05*ureg('1/angstrom')
 # temperature
 T = 300*ureg('K')
 
-fc = ForceConstants.from_phonopy(path='phonopy')
+fc = ForceConstants.from_phonopy(path='./')
 
 # get DW factor
 q_grid = mp_grid([25,25,25])
@@ -65,11 +65,11 @@ e = sqw['y_data'][:]
 sf = sqw['z_data'][:,:]
 
 # plot it
-fig, ax = plt.subplots(figsize=(12,9))
+fig, ax = plt.subplots(figsize=(12,6))
 
 extent = (0,1,e.min(),e.max())
 im = ax.imshow(sf.T,aspect='auto',origin='lower',cmap='hot',
-        vmin=0,vmax=50,extent=extent)
+        vmin=0,vmax=5,extent=extent)
 fig.colorbar(im,ax=ax,extend='both')
 
 
