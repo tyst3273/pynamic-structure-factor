@@ -27,19 +27,19 @@ variable        T equal 300
 
 ### what to print and how often
 thermo_style    custom step temp pe etotal press pxx pyy pzz lx ly lz fmax fnorm
-thermo          2000
+thermo          500
 
 # -------------------- equilibration ------------------------
 
 ### NVT thermalization
 velocity        all create ${T} 123456 mom yes rot yes dist gaussian
 fix             NVT all nvt temp ${T} ${T} $(dt*100) tchain 10
-run             10000
+run             5000
 unfix           NVT
 
 ### NVE equlibration (de-correlate from thermostats)
 fix             NVE all nve
-run             10000
+run             5000
 unfix           NVE
 
 # -------------------- sample the data -----------------------
