@@ -1,0 +1,63 @@
+# =============================================================
+# ----------------------- tersoff Si --------------------------
+# =============================================================
+
+# ----------------------- set up calc -------------------------
+
+### units
+atom_style      atomic
+units           metal
+
+### periodicity
+dimension       3
+boundary        p p p
+processors      * * *
+
+### read structure
+read_data	si.prim
+replicate       12 12 12
+ 
+### potential
+pair_style      tersoff				
+pair_coeff      * * SiCGe.tersoff Si(D) 
+
+### timestep and temp
+timestep        0.0005				
+variable        T equal 300
+
+### what to print and how often
+thermo_style    custom step temp pe etotal press pxx pyy pzz lx ly lz fmax fnorm
+thermo          2000
+
+# -------------------- equilibration ------------------------
+
+### NVT thermalization
+velocity        all create ${T} 123456 mom yes rot yes dist gaussian
+fix             NVT all nvt temp $T $T $(dt*100) tchain 10
+run             10000
+unfix           NVT
+
+### NVE equlibration (de-correlate from thermostats)
+fix             NVE all nve
+run             10000
+unfix           NVE
+
+# -------------------- sample the data -----------------------
+
+### vels/pos print frequency
+variable	dt_dump equal 32
+
+### print pos to hdf5 file
+dump            pos all h5md ${dt_dump} pos.h5 position species
+dump_modify     pos sort id
+
+### run to collect pos/vels
+fix             NVE all nve
+run             262144
+unfix           NVE
+
+
+
+
+
+
