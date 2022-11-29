@@ -232,6 +232,10 @@ class c_Qpoints:
 
         """
         make Q-point mesh on full grid without using spglib
+
+        ought to implement a method that uses spglib to calc on symmetry reduced mesh. 
+        trouble is, the Q-point mesh has to be symmetric about Q=0 to work since spglib creates 
+        symmetric mesh. could probably work around that too but this is good enough for now
         """
 
         _H, _K, _L = np.meshgrid(self.H,self.K,self.L,indexing='ij')
