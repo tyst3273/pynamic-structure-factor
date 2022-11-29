@@ -297,7 +297,7 @@ class c_trajectory:
 
                 # it is assumed that the types are consecutive integers starting at 1
                 # so that 1 is subtracted to match the python index starting at 0 ...
-                self.types[:] = in_db['particles']['all']['species']['value'][0,:]-1
+                self.types[:] = in_db['particles/all/species/value'][0,:]-1
 
             # error check
             if self.num_atoms != self.types.size:
@@ -330,15 +330,14 @@ class c_trajectory:
                 # not currently used ...
                 """
                 self.box_lengths[0] = np.mean(
-                    in_db['particles']['all']['box']['edges']['value'][inds[0]:inds[1],0],axis=0)
+                    in_db['particles/all/box/edges/value']inds[0]:inds[1],0],axis=0)
                 self.box_lengths[1] = np.mean(
-                    in_db['particles']['all']['box']['edges']['value'][inds[0]:inds[1],1],axis=0)
+                    in_db['particles/all/box/edges/value'][inds[0]:inds[1],1],axis=0)
                 self.box_lengths[2] = np.mean(
-                    in_db['particles']['all']['box']['edges']['value'][inds[0]:inds[1],2],axis=0)
+                    in_db['particles/all/box/edges/value'][inds[0]:inds[1],2],axis=0)
                 """
                 # read positions
-                self.pos[:,:,:] = in_db['particles']['all']['position']['value'] \
-                                    [inds,:,:]
+                self.pos[:,:,:] = in_db['particles/all/position/value'][inds,:,:]
 
         except Exception as _ex:
             msg = f'the hdf5 file\n  \'{self.trajectory_file}\'\ncould not be read!\n'
