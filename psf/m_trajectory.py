@@ -43,8 +43,6 @@ class c_trajectory:
         self.trajectory_format = self.config.trajectory_format
         self.md_time_step = self.config.md_time_step    
         self.effective_time_step = self.config.trajectory_stride*self.md_time_step
-        print(self.effective_time_step)
-        print(self.md_time_step)
         self.unwrap_trajectory = self.config.unwrap_trajectory
 
         # set up the 'blocks' of indices for calculating on
