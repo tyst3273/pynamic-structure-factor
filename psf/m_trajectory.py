@@ -271,7 +271,7 @@ class c_trajectory:
 
             # error check
             if self.num_atoms != self.types.size:
-                msg = 'number of atoms in file dont match the input info.'
+                msg = 'number of atoms in file doesnt match the input info.'
                 msg += 'correct the configuration or check your trajectory file!\n'
                 crash(msg)
 
