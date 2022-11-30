@@ -81,7 +81,9 @@ class c_config:
         trajectory_skip=None,trajectory_trim=None):
 
         """
-        get args from file; if new arg is added, has to be passed as default = None above
+        get args from file; if new arg is added, has to be passed as default = None above. if
+        args is given in function call, it overwrites whatever is read from input and default. 
+        priority is arg > input > default.
         """
 
         allowed = vars(self.defaults).keys()
