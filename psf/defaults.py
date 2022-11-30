@@ -187,10 +187,30 @@ lattice_vectors = [[4.593,0.000,0.000],
 description: the atoms types in the simulation. the code expects the types are consecutive
     integers starting at 1 and that there is one for each type. note, these are used to set the
     scattering lengths and form factors. e.g. if you want to calculate scattering from 
-    deuterium rather than hydrogen, set the type to 2H rather than H.
+    deuterium rather than hydrogen, set the type to 2H rather than H etc
+        note that this can be given as a unique list: e.g. if there are two types, Ti and O,
+    in the unitcell, you can enter ['Ti','Ti','O','O','O','O'] or ['Ti','O']. the former case
+    is REQUIRED if using symmetry to reduce the number of Q-points on a mesh since each type
+    is mapped to a coordinate in the 'basis_potiions' variable below. if not using symmetry,
+    the latter (['Ti','O']) is fine since, for two types 1 and 2 in the trajectory file, this
+    will be mapped correctly.
 type: list of str.
 """
-atom_types = ['Ti','O']
+atom_types = ['Ti','Ti','O','O','O']
+
+# --------------------------------------------------------------------------------------------------
+"""
+description: reduced coordinates of atoms in unitcell corresponding to 'lattice_vectors' variable
+    and to 'atom_types'. the order given here should be the same as 'atom_types' above. these are 
+    passed (with 'lattice_vectors' and 'atom_types') to spglib; use the idealized positions here.
+type: nx3 list of floats.
+"""
+basis_positions = [[0.5000000000000000,  0.5000000000000000,  0.5000000000000000],
+                   [0.0000000000000000,  0.0000000000000000,  0.0000000000000000],
+                   [0.1953400114833092,  0.8046599885166907,  0.5000000000000000],
+                   [0.8046599885166907,  0.1953400114833092,  0.5000000000000000],
+                   [0.3046599885166907,  0.3046599885166907,  0.0000000000000000],
+                   [0.6953400114833093,  0.6953400114833093,  0.0000000000000000]]
 
 # --------------------------------------------------------------------------------------------------
 """
@@ -280,7 +300,6 @@ description: number of processes to split Q-points over. Q-points are split-up r
 type: int
 """
 num_Qpoint_procs = 1
-
 
 
 
