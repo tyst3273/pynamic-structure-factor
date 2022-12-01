@@ -20,7 +20,6 @@
 
 # system modules
 import numpy as np
-import importlib
 import argparse
 import os
 
@@ -786,7 +785,7 @@ class c_config:
             self.lattice_vectors = lattice_vectors
 
         # check the shape
-        msg = f'\'lattice_vectors\' seems wrong\n'
+        msg = '\'lattice_vectors\' seems wrong\n'
         try:
             self.lattice_vectors = np.array(self.lattice_vectors,dtype=float)
         except:
@@ -797,7 +796,7 @@ class c_config:
             self.lattice_vectors.shape = [3,3]
 
         # echo to the info file
-        msg = f'lattice_vectors: (Angstrom)'
+        msg = 'lattice_vectors: (Angstrom)'
         for ii in range(3):
             msg += '\n'
             for jj in range(3):
@@ -840,10 +839,10 @@ class c_config:
         if num_Qpoint_procs is None:
             self.num_Qpoint_procs = self._get_attr('num_Qpoint_procs')
         else:
-            self.num_Qpoint_procs = num_Qpoint_proc1s
+            self.num_Qpoint_procs = num_Qpoint_procs
         
         # check if allowed
-        msg = f'\'num_Qpoint_procs\' must be an integer that is > 0\n'
+        msg = '\'num_Qpoint_procs\' must be an integer that is > 0\n'
         try:
             self.num_Qpoint_procs = int(self.num_Qpoint_procs)
         except:
