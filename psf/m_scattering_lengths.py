@@ -97,6 +97,7 @@ class c_scattering_lengths:
         # form factor array
         _num_atoms = self.comm.traj.num_atoms
         _num_Q = self.comm.Qpoints.num_Q
+
         self.form_factors = np.zeros((_num_atoms,_num_Q))
         
           # get stuff for parallelization
@@ -154,6 +155,12 @@ class c_scattering_lengths:
         # work array
         _ffacs = np.zeros(_num_types)
         for ii in range(_num_Q):
+
+            if proc == 0:
+                if ii % 100 == 0:
+                    _ = f'Q[{ii:g}]'
+                    msg = f'now on {_:8} out of {_num_Q:g}'
+                    print(msg)
 
             _Q4pi = (_Q[ii]/4/np.pi)**2
             

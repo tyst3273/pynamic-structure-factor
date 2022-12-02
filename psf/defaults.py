@@ -176,6 +176,9 @@ description: lattice vectors of unitcell. these used to calculate the Q points a
     the trajectories. they can be arbitrary, but keep in mind the Q-points have to be commensurate
     with the supercell to get sensible data. note that these should be in whatever length units
     are in the trajectory file.
+        these are different from 'prim_lattice_vectors' in that these are used to calculate Q 
+    in cartesian coords; 'prim_lattice_vectors' are the idealized lattice vectors used to 
+    determine the space group and reduce the Q-point set using symmetry
 type: [3]x[3] list of floats
 """
 lattice_vectors = [[4.593,0.000,0.000], 
@@ -188,29 +191,9 @@ description: the atoms types in the simulation. the code expects the types are c
     integers starting at 1 and that there is one for each type. note, these are used to set the
     scattering lengths and form factors. e.g. if you want to calculate scattering from 
     deuterium rather than hydrogen, set the type to 2H rather than H etc
-        note that this can be given as a unique list: e.g. if there are two types, Ti and O,
-    in the unitcell, you can enter ['Ti','Ti','O','O','O','O'] or ['Ti','O']. the former case
-    is REQUIRED if using symmetry to reduce the number of Q-points on a mesh since each type
-    is mapped to a coordinate in the 'basis_potiions' variable below. if not using symmetry,
-    the latter (['Ti','O']) is fine since, for two types 1 and 2 in the trajectory file, this
-    will be mapped correctly.
 type: list of str.
 """
-atom_types = ['Ti','Ti','O','O','O']
-
-# --------------------------------------------------------------------------------------------------
-"""
-description: reduced coordinates of atoms in unitcell corresponding to 'lattice_vectors' variable
-    and to 'atom_types'. the order given here should be the same as 'atom_types' above. these are 
-    passed (with 'lattice_vectors' and 'atom_types') to spglib; use the idealized positions here.
-type: nx3 list of floats.
-"""
-basis_positions = [[0.5000000000000000,  0.5000000000000000,  0.5000000000000000],
-                   [0.0000000000000000,  0.0000000000000000,  0.0000000000000000],
-                   [0.1953400114833092,  0.8046599885166907,  0.5000000000000000],
-                   [0.8046599885166907,  0.1953400114833092,  0.5000000000000000],
-                   [0.3046599885166907,  0.3046599885166907,  0.0000000000000000],
-                   [0.6953400114833093,  0.6953400114833093,  0.0000000000000000]]
+atom_types = ['Ti','O']
 
 # --------------------------------------------------------------------------------------------------
 """
@@ -226,7 +209,7 @@ description: how to generate the set of Q-points. currently supported args are:
         and Q_mesh_L
     'path': calculate S(Q,w) on automatically generated path thru Q-space. see Q_path_start,
         Q_path_end, and Q_path_steps below
-    'text_file': calculate S(Q,w) on set of Q-points in csv file. see Q_file 
+    'file': calculate S(Q,w) on set of Q-points in csv file. see Q_file 
 type: str
 """
 Qpoints_option = 'mesh' 
@@ -300,6 +283,56 @@ description: number of processes to split Q-points over. Q-points are split-up r
 type: int
 """
 num_Qpoint_procs = 1
+
+# --------------------------------------------------------------------------------------------------
+"""
+description: used to determine symmetry and reduce the Q-point. they are integer types 
+    corresponding to the atoms in 'symm_positions'. default is unset
+type: list of ints
+example:
+    symm_atom_types = [0,0,1,1,1,1] # 'Ti', 'Ti', 'O', 'O', 'O', 'O'
+"""
+symm_types = None 
+
+# --------------------------------------------------------------------------------------------------
+"""
+description: reduced coordinates of atoms in unitcell corresponding to 'symm_lattice_vectors' 
+    variable and to 'symm_types'. these are passed (with 'symm_lattice_vectors' and 
+    'symm_types') to spglib to determine spacegroup. default is unset
+type: nx3 list of floats.
+example:
+    symm_positions = [[0.5000000000000000,  0.5000000000000000,  0.5000000000000000],
+                      [0.0000000000000000,  0.0000000000000000,  0.0000000000000000],
+                      [0.1953400114833092,  0.8046599885166907,  0.5000000000000000],
+                      [0.8046599885166907,  0.1953400114833092,  0.5000000000000000],
+                      [0.3046599885166907,  0.3046599885166907,  0.0000000000000000],
+                      [0.6953400114833093,  0.6953400114833093,  0.0000000000000000]]
+"""
+symm_positions = None 
+
+# --------------------------------------------------------------------------------------------------
+"""
+description: idealized lattice vectors used to determine spacegroup. passed to spglib
+    these are different from 'lattice_vectors' in that these are only used to determine
+    that space group to reduce the Q-point set. 'lattice_vectors' is used to convert 
+    Q to cartesian coords in 1/Angstrom. default is unset
+type: [3]x[3] list of floats
+example:
+    symm_lattice_vectors = [[4.593,0.000,0.000], 
+                            [0.000,4.593,0.000],
+                            [0.000,0.000,2.959]]
+"""
+symm_lattice_vectors = None
+
+# --------------------------------------------------------------------------------------------------
+"""
+description: use symmetry to reduce number of Q-points. must have mesh centered on Q=0 and must
+    have spglib installed
+type: bool
+"""
+use_Qpoints_symmetry = False
+
+
 
 
 

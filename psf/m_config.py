@@ -77,7 +77,8 @@ class c_config:
         num_trajectory_blocks=None,trajectory_blocks=None,experiment_type=None,
         num_Qpoint_procs=None,Qpoints_option=None,Q_mesh_H=None,Q_mesh_K=None,Q_mesh_L=None,
         Q_file=None,Q_path_start=None,Q_path_end=None,Q_path_steps=None,trajectory_stride=None,
-        trajectory_skip=None,trajectory_trim=None):
+        trajectory_skip=None,trajectory_trim=None,symm_types=None,symm_positions=None,
+        symm_lattice_vectors=None,use_Qpoints_symmetry=None):
 
         """
         get args from file; if new arg is added, has to be passed as default = None above. if
@@ -132,15 +133,19 @@ class c_config:
             self._set_Q_mesh_K(Q_mesh_K)
             self._set_Q_mesh_L(Q_mesh_L)
 
-        elif self.Qpoints_option == 'text_file' \
-                or self.Qpoints_option == 'mesh_file' \
-                or self.Qpoints_option == 'write_mesh':
+        elif self.Qpoints_option == 'file':
             self._set_Q_file(Q_file) 
 
         elif self.Qpoints_option == 'path':
             self._set_Q_path_start(Q_path_start)
             self._set_Q_path_end(Q_path_end)
             self._set_Q_path_steps(Q_path_steps)
+            
+        self._set_use_Qpoints_symmetry(use_Qpoints_symmetry)
+        if self.use_Qpoints_symmetry:
+            self._set_symm_types(symm_types)
+            self._set_symm_positions(symm_positions)
+            self._set_symm_lattice_vectors(symm_lattice_vectors)
    
         # --- add new variables parsers here ---
         # ...
@@ -154,10 +159,7 @@ class c_config:
         get the attribute
         """
 
-        if trajectory_stride is None:
-            self.trajectory_stride = self._get_attr('trajectory_stride')
-        else:
-            self.trajectory_stride = trajectory_stride
+        self._get_attr(trajectory_stride,'trajectory_stride')
 
         try:
             self.trajectory_stride = int(self.trajectory_stride)
@@ -179,10 +181,7 @@ class c_config:
         get the attribute
         """
 
-        if trajectory_skip is None:
-            self.trajectory_skip = self._get_attr('trajectory_skip')
-        else:
-            self.trajectory_skip = trajectory_skip
+        self._get_attr(trajectory_skip,'trajectory_skip')
 
         try:
             self.trajectory_skip = int(self.trajectory_skip)
@@ -204,10 +203,7 @@ class c_config:
         get the attribute
         """
 
-        if trajectory_trim is None:
-            self.trajectory_trim = self._get_attr('trajectory_trim')
-        else:
-            self.trajectory_trim = trajectory_trim
+        self._get_attr(trajectory_trim,'trajectory_trim')
 
         try:
             self.trajectory_trim = int(self.trajectory_trim)
@@ -229,10 +225,7 @@ class c_config:
         get the attribute
         """
 
-        if num_trajectory_blocks is None:
-            self.num_trajectory_blocks = self._get_attr('num_trajectory_blocks')
-        else:
-            self.num_trajectory_blocks = num_trajectory_blocks
+        self._get_attr(num_trajectory_blocks,'num_trajectory_blocks')
 
         try:
             self.num_trajectory_blocks = int(self.num_trajectory_blocks)
@@ -254,10 +247,7 @@ class c_config:
         get the attribute
         """
 
-        if trajectory_blocks is None:
-            self.trajectory_blocks = self._get_attr('trajectory_blocks')
-        else:
-            self.trajectory_blocks = trajectory_blocks
+        self._get_attr(trajectory_blocks,'trajectory_blocks')
 
         if self.trajectory_blocks is None:
             self.trajectory_blocks = np.arange(self.num_trajectory_blocks)
@@ -290,10 +280,7 @@ class c_config:
         get the attribute
         """
 
-        if Q_path_steps is None:
-            self.Q_path_steps = self._get_attr('Q_path_steps')
-        else:
-            self.Q_path_steps = Q_path_steps
+        self._get_attr(Q_path_steps,'Q_path_steps')
 
         msg = 'Q_path_steps seems wrong\n'
         try:
@@ -329,10 +316,7 @@ class c_config:
         get the attribute
         """
 
-        if Q_path_end is None:
-            self.Q_path_end = self._get_attr('Q_path_end')
-        else:
-            self.Q_path_end = Q_path_end
+        self._get_attr(Q_path_end,'Q_path_end')
 
         msg = 'Q_path_end seems wrong\n'
         try:
@@ -356,10 +340,7 @@ class c_config:
         get the attribute
         """
 
-        if Q_path_start is None:
-            self.Q_path_start = self._get_attr('Q_path_start')
-        else:
-            self.Q_path_start = Q_path_start
+        self._get_attr(Q_path_start,'Q_path_start')
         
         msg = 'Q_path_start seems wrong\n'
         try:
@@ -383,10 +364,8 @@ class c_config:
         get the attribute
         """
 
-        if Q_file is None:
-            self.Q_file = self._get_attr('Q_file')
-        else:
-            self.Q_file = Q_file
+        self._get_attr(Q_file,'Q_file')
+            
         self.Q_file = str(self.Q_file)
         self.Q_file = os.path.abspath(self.Q_file)
 
@@ -403,10 +382,7 @@ class c_config:
         get the attribute
         """
 
-        if Q_mesh_K is None:
-            self.Q_mesh_K = self._get_attr('Q_mesh_K')
-        else:
-            self.Q_mesh_K = Q_mesh_K
+        self._get_attr(Q_mesh_K,'Q_mesh_K')
 
         msg = 'Q_mesh_K seems wrong\n'
         try:
@@ -435,10 +411,7 @@ class c_config:
         get the attribute
         """
 
-        if Q_mesh_L is None:
-            self.Q_mesh_L = self._get_attr('Q_mesh_L')
-        else:
-            self.Q_mesh_L = Q_mesh_L
+        self._get_attr(Q_mesh_L,'Q_mesh_L')
 
         msg = 'Q_mesh_L seems wrong\n'
         try:
@@ -467,10 +440,7 @@ class c_config:
         get the attribute 
         """
 
-        if Q_mesh_H is None:
-            self.Q_mesh_H = self._get_attr('Q_mesh_H')
-        else:
-            self.Q_mesh_H = Q_mesh_H
+        self._get_attr(Q_mesh_H,'Q_mesh_H')
 
         msg = 'Q_mesh_H seems wrong\n'
         try:
@@ -499,14 +469,12 @@ class c_config:
         get the attribute
         """
 
-        if Qpoints_option is None:
-            self.Qpoints_option = self._get_attr('Qpoints_option')
-        else:
-            self.Qpoints_option = Qpoints_option
+        self._get_attr(Qpoints_option,'Qpoints_option')
+
         self.Qpoints_option = str(self.Qpoints_option)
 
         msg = 'Qpoints_option seems wrong\n'
-        if self.Qpoints_option not in ['text_file','mesh_file','write_mesh','mesh','path']:
+        if self.Qpoints_option not in ['file','mesh','path']:
             crash(msg)
 
         print(f'Qpoints_option:\n  {self.Qpoints_option}')
@@ -519,10 +487,8 @@ class c_config:
         get the attribute
         """
 
-        if experiment_type is None:
-            self.experiment_type = self._get_attr('experiment_type')
-        else:
-            self.experiment_type = experiment_type
+        self._get_attr(experiment_type,'experiment_type')
+
         self.experiment_type = str(self.experiment_type)
 
         msg = 'experiment_type seems wrong\n'
@@ -539,10 +505,7 @@ class c_config:
         get the attribute
         """
 
-        if md_supercell_reps is None:
-            self.md_supercell_reps = self._get_attr('md_supercell_reps')
-        else:
-            self.md_supercell_reps = md_supercell_reps
+        self._get_attr(md_supercell_reps,'md_supercell_reps')
 
         msg = 'md_supercell_reps seems wrong\n'
         try:
@@ -568,10 +531,8 @@ class c_config:
         get the attribute
         """
 
-        if md_num_atoms is None:
-            self.md_num_atoms = self._get_attr('md_num_atoms')
-        else:
-            self.md_num_atoms = md_num_atoms
+        self._get_attr(md_num_atoms,'md_num_atoms')
+
         self.md_num_atoms = int(self.md_num_atoms)
 
         msg = 'md_num_atoms must be > 0'
@@ -588,10 +549,8 @@ class c_config:
         get the attribute
         """
 
-        if md_num_steps is None:
-            self.md_num_steps = self._get_attr('md_num_steps')
-        else:
-            self.md_num_steps = md_num_steps
+        self._get_attr(md_num_steps,'md_num_steps')
+
         self.md_num_steps = int(self.md_num_steps)
 
         msg = 'md_num_steps must be > 0'
@@ -608,10 +567,8 @@ class c_config:
         get the attribute
         """
 
-        if md_time_step is None:
-            self.md_time_step = self._get_attr('md_time_step')
-        else:
-            self.md_time_step = md_time_step
+        self._get_attr(md_time_step,'md_time_step')
+            
         self.md_time_step = float(self.md_time_step)
 
         msg = 'md_time_step must be > 0'
@@ -628,10 +585,8 @@ class c_config:
         get the attribute
         """
 
-        if output_prefix is None:
-            self.output_prefix = self._get_attr('output_prefix')
-        else:
-            self.output_prefix = output_prefix
+        self._get_attr(output_prefix,'output_prefix')
+            
         self.output_prefix = str(self.output_prefix)
         print(f'output_prefix:\n  {self.output_prefix}')
 
@@ -643,10 +598,7 @@ class c_config:
         get the attribute
         """
 
-        if output_directory is None:
-            self.output_directory = self._get_attr('output_directory')
-        else:
-            self.output_directory = output_directory
+        self._get_attr(output_directory,'output_directory')
 
         # get the directory
         if self.output_directory is None:
@@ -664,10 +616,8 @@ class c_config:
         get the attribute
         """
 
-        if calc_rho_squared is None:
-            self.calc_rho_squared = self._get_attr('calc_rho_squared')
-        else:
-            self.calc_rho_squared = calc_rho_squared
+        self._get_attr(calc_rho_squared,'calc_rho_squared')
+
         self.calc_rho_squared = bool(self.calc_rho_squared)
         print(f'calc_rho_squared:\n  {self.calc_rho_squared}')
 
@@ -679,10 +629,8 @@ class c_config:
         get the attribute
         """
 
-        if calc_bragg is None:
-            self.calc_bragg = self._get_attr('calc_bragg')
-        else:
-            self.calc_bragg = calc_bragg
+        self._get_attr(calc_bragg,'calc_bragg')
+            
         self.calc_bragg = bool(self.calc_bragg)
         print(f'calc_bragg:\n  {self.calc_bragg}')
 
@@ -694,10 +642,8 @@ class c_config:
         get the attribute
         """
 
-        if calc_diffuse is None:
-            self.calc_diffuse = self._get_attr('calc_diffuse')
-        else:
-            self.calc_diffuse = calc_diffuse
+        self._get_attr(calc_diffuse,'calc_diffuse')
+            
         self.calc_diffuse = bool(self.calc_diffuse)
         print(f'calc_diffuse:\n  {self.calc_diffuse}')
 
@@ -709,10 +655,8 @@ class c_config:
         get the attribute
         """
 
-        if calc_sqw is None:
-            self.calc_sqw = self._get_attr('calc_sqw')
-        else:
-            self.calc_sqw = calc_sqw
+        self._get_attr(calc_sqw,'calc_sqw')
+            
         self.calc_sqw = bool(self.calc_sqw)
         print(f'calc_sqw:\n  {self.calc_sqw}')
 
@@ -724,10 +668,8 @@ class c_config:
         get the attribute
         """
 
-        if unwrap_trajectory is None:
-            self.unwrap_trajectory = self._get_attr('unwrap_trajectory')
-        else:
-            self.unwrap_trajectory = unwrap_trajectory
+        self._get_attr(unwrap_trajectory,'unwrap_trajectory')
+
         self.unwrap_trajectory = bool(self.unwrap_trajectory)
         print(f'unwrap_trajectory:\n  {self.unwrap_trajectory}')
 
@@ -739,10 +681,8 @@ class c_config:
         get the attribute
         """
 
-        if trajectory_file is None:
-            self.trajectory_file = self._get_attr('trajectory_file')
-        else:
-            self.trajectory_file = trajectory_file
+        self._get_attr(trajectory_file,'trajectory_file')
+            
         self.trajectory_file = str(self.trajectory_file)
         self.trajectory_file = os.path.abspath(self.trajectory_file)
 
@@ -759,12 +699,8 @@ class c_config:
         get the attribute
         """
 
-        if trajectory_format is None:
-            self.trajectory_format = self._get_attr('trajectory_format')
-        else:
-            self.trajectory_format = trajectory_format
-        self.trajectory_format = str(self.trajectory_format)
-        
+        self._get_attr(trajectory_format,'trajectory_format')
+
         msg = 'trajectory_format \'{self.trajectory_format}\' is unknown'
         if self.trajectory_format not in ['lammps_hdf5','external','user_hdf5']:
             crash(msg)
@@ -779,10 +715,7 @@ class c_config:
         get the attribute
         """
     
-        if lattice_vectors is None:
-            self.lattice_vectors = self._get_attr('lattice_vectors')
-        else:
-            self.lattice_vectors = lattice_vectors
+        self._get_attr(lattice_vectors,'lattice_vectors')
 
         # check the shape
         msg = '\'lattice_vectors\' seems wrong\n'
@@ -814,10 +747,7 @@ class c_config:
         types
         """
         
-        if atom_types is None:
-            self.atom_types = self._get_attr('atom_types')
-        else:
-            self.atom_types = atom_types
+        self._get_attr(atom_types,'atom_types')
 
         self.num_types = len(self.atom_types)
 
@@ -836,10 +766,7 @@ class c_config:
         get the attribute
         """
 
-        if num_Qpoint_procs is None:
-            self.num_Qpoint_procs = self._get_attr('num_Qpoint_procs')
-        else:
-            self.num_Qpoint_procs = num_Qpoint_procs
+        self._get_attr(num_Qpoint_procs,'num_Qpoint_procs')
         
         # check if allowed
         msg = '\'num_Qpoint_procs\' must be an integer that is > 0\n'
@@ -856,22 +783,138 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _get_attr(self,attr):
-
+    def _set_symm_positions(self,symm_positions=None):
+        
         """
-        check if input file has the attr we want. get it if so. 
-        otherwise use default
+        get the attribute
         """
+    
+        self._get_attr(symm_positions,'symm_positions')
+        
+        if self.symm_positions is None:
+            msg = '\'symm_positions\' must be set if use_Qpoints_symmetry == True\n'
+            crash(msg)
 
-        # check if input file
-        if hasattr(self.input,attr):
-            return getattr(self.input,attr)
+        # check the shape
+        msg = '\'symm_positions\' seems wrong\n'
+        try:
+            self.symm_positions = np.array(self.symm_positions,dtype=float)
+        except:
+            crash(msg)
+        if self.symm_positions.shape[1] != 3:
+            crash(msg)
+            
+        if self.symm_positions.shape[0] != self.num_symm_types:
+            crash(msg)
 
-        # otherwise use default
-        else:
-            return getattr(self.defaults,attr)
+        # echo to the info file
+        msg = 'symm_positions: (crystal coords)'
+        for ii in range(self.num_symm_types):
+            msg += '\n'
+            for jj in range(3):
+                msg += f'{self.symm_positions[ii,jj]: 10.6f} '
+        print(msg)
 
     # ----------------------------------------------------------------------------------------------
+
+    def _set_symm_lattice_vectors(self,symm_lattice_vectors=None):
+        
+        """
+        get the attribute
+        """
+    
+        self._get_attr(symm_lattice_vectors,'symm_lattice_vectors')
+        
+        if self.symm_lattice_vectors is None:
+            msg = '\'symm_lattice_vectors\' must be set if use_Qpoints_symmetry == True\n'
+            crash(msg)
+
+        # check the shape
+        msg = '\'symm_lattice_vectors\' seems wrong\n'
+        try:
+            self.symm_lattice_vectors = np.array(self.symm_lattice_vectors,dtype=float)
+        except:
+            crash(msg)
+        if self.symm_lattice_vectors.size != 9:
+            crash(msg)
+        else:
+            self.symm_lattice_vectors.shape = [3,3]
+
+        # echo to the info file
+        msg = 'symm_lattice_vectors: (arbitrary)'
+        for ii in range(3):
+            msg += '\n'
+            for jj in range(3):
+                msg += f'{self.symm_lattice_vectors[ii,jj]: 10.6f} '
+        print(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_symm_types(self,symm_types=None):
+
+        """
+        get the attribute.
+        """
+        
+        self._get_attr(symm_types,'symm_types')
+        
+        if self.symm_types is None:
+            msg = '\'symm_types\' must be set if use_Qpoints_symmetry == True\n'
+            crash(msg)
+
+        self.num_symm_types = len(self.symm_types)
+        
+        msg = '\'symm_types\' seems wrong\n'
+        try: 
+            self.symm_types = [int(x) for x in self.symm_types]
+        except:
+            crash(msg)
+        
+        # echo to the info file
+        msg = 'symm_types:\n  '
+        for ii in range(len(self.symm_types)):
+            msg += f'{self.symm_types[ii]} '
+        print(msg)
+        
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_use_Qpoints_symmetry(self,use_Qpoints_symmetry=None):
+
+        """
+        get the attribute
+        """
+
+        self._get_attr(use_Qpoints_symmetry,'use_Qpoints_symmetry')
+            
+        self.use_Qpoints_symmetry = bool(self.use_Qpoints_symmetry)
+        print(f'use_Qpoints_symmetry:\n  {self.use_Qpoints_symmetry}')
+
+    # ----------------------------------------------------------------------------------------------
+    
+    def _get_attr(self,arg,attr):
+
+        """
+        check if given as arg. if so, use arg. if not, check if given in
+        input file. if not, use default.
+        """
+        
+        # check if arg is not given
+        if arg is None:
+            
+            # check if in input file
+            if hasattr(self.input,attr):
+                setattr(self,attr,getattr(self.input,attr))
+
+            # otherwise use default
+            else:
+                setattr(self,attr,getattr(self.defaults,attr))
+                
+        # use arg from function call
+        else:
+            setattr(self,attr,arg)
+
+    # ----------------------------------------------------------------------------------------------
+
 
 
 

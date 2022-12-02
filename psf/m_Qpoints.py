@@ -39,10 +39,11 @@ class c_Qpoints:
         self.timers = timers
 
         self.Qpoints_option = config.Qpoints_option
-
-        # a convenient flag
+        self.use_Qpoints_symmetry = config.use_Qpoints_symmetry
+        
+        # a convenience flag
         self.use_mesh = False
-        if self.Qpoints_option in ['write_mesh','mesh']:
+        if self.Qpoints_option == 'mesh':
             self.use_mesh = True
 
     # ----------------------------------------------------------------------------------------------
@@ -58,42 +59,24 @@ class c_Qpoints:
 
         """
 
-        if self.Qpoints_option == 'text_file':
-
+        if self.Qpoints_option == 'file':
             """
             read Q-points (in rlu) from txt file 
             """
             self.Q_file = self.config.Q_file
             self._read_Q_text_file()
 
-        elif self.Qpoints_option == 'mesh_file':
-
-            """
-            read Q-points and other mesh data from hdf5 file.
-            can be used to calculate on same mesh as another calculation
-            """
-            self.Q_file = self.config.Q_file
-            #self._read_Q_mesh_file()
-            crash('\'mesh_file\' is not available yet!\n')
-
         elif self.Qpoints_option == 'path':
-            
             """
             generate Q-points along paths thru reciprocal space. 
             """
             self._get_Q_along_paths()
 
-        elif self.Qpoints_option == 'mesh' or self.Qpoints_option == 'write_mesh':
-
+        elif self.Qpoints_option == 'mesh':
             """
             generate a mesh in reciprocal space to calculate on
             """
             self._get_Q_on_mesh()
-
-            if self.Qpoints_option == 'write_mesh':
-                self.Q_file = self.config.Q_file
-                #self._write_mesh_file()
-                crash('\'write_mesh\' is not available yet!\n')
         
         # also need Qpts in cartesian coords
         self.get_cartesian_Qpoints()
@@ -186,7 +169,7 @@ class c_Qpoints:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _Q_steps(self,Q_mesh,eps=0.0001):
+    def _Q_steps(self,num_Q,Q_range):
         
         """
         return steps along Q axis based on mesh args
@@ -195,14 +178,37 @@ class c_Qpoints:
         Q point on the requested mesh
         """
         
+        if num_Q == 1:
+            Q = np.array([Q_range[0]])
+        else:
+            Q = np.linspace(Q_range[0],Q_range[1],num_Q+1)[1:] # trim off lowest point in mesh ...
+
+        return Q
+    
+    # ----------------------------------------------------------------------------------------------
+
+    def _Q_range(self,Q_mesh):
+        
+        """
+        parse Q_mesh_* arg and find number of Q-points and range. also return
+        wheter it is symmetric about Q=0
+        """
+        
+        _eps = 1e-6
+        
+        symmetric = False
+        
         if Q_mesh.size == 1:
             num_Q = 1
-            Q = np.copy(Q_mesh).reshape(1,)
+            Q_range = np.array([Q_mesh,Q_mesh])
+            symmetric = True
         else:
             num_Q = int(Q_mesh[2])
-            Q = np.linspace(Q_mesh[0],Q_mesh[1],num_Q+1)[1:] # trim off lowest point in mesh ...
+            Q_range = np.array([Q_mesh[0],Q_mesh[1]])
+            if np.abs(Q_range.mean()) < _eps:
+                symmetric = True
 
-        return num_Q, Q
+        return num_Q, Q_range, symmetric
 
     # ----------------------------------------------------------------------------------------------
 
@@ -219,12 +225,90 @@ class c_Qpoints:
         self.Q_mesh_K = self.config.Q_mesh_K
         self.Q_mesh_L = self.config.Q_mesh_L
 
+        # get number and range of Q on each axis
+        self.num_H, self.H_range, self.H_symmetric = self._Q_range(self.Q_mesh_H)
+        self.num_K, self.K_range, self.K_symmetric = self._Q_range(self.Q_mesh_K)
+        self.num_L, self.L_range, self.L_symmetric = self._Q_range(self.Q_mesh_L)
+        self.symmetric_mesh = bool(self.H_symmetric*self.K_symmetric*self.L_symmetric)
+        
         # get steps along each Q axis
-        self.num_H, self.H = self._Q_steps(self.Q_mesh_H)
-        self.num_K, self.K = self._Q_steps(self.Q_mesh_K)
-        self.num_L, self.L = self._Q_steps(self.Q_mesh_L)
+        self.H = self._Q_steps(self.num_H,self.H_range)
+        self.K = self._Q_steps(self.num_K,self.K_range)
+        self.L = self._Q_steps(self.num_L,self.L_range)
 
-        self._get_full_Q_mesh()
+        if self.use_Qpoints_symmetry:
+            self._get_Q_mesh_from_spglib()
+        else:
+            self._get_full_Q_mesh()
+            
+        # for 'reshaping' the intensity grids
+        self.mesh_shape = [self.num_H,self.num_K,self.num_L]
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _get_Q_mesh_from_spglib(self):
+
+        """
+        get Q-point mesh on reduced grid using spglib
+
+        the Q-point mesh has to be symmetric about Q=0 to work since spglib creates 
+        symmetric mesh. could probably work around that too but this is good enough for now
+        
+        NOTE: it is assumed that if an axis has only one Q point, it is symmetric about that 
+        axis. this is unlikely to be correct... but is a hack for now. e.g. to calculate
+        S(Q) in a plane perpendicular to L, the Q-point grid is reduced with L=0 and then 
+        shifted such that L = whatever the user requested. 
+        ... i should undo this in a later version
+        """
+        
+        self.timers.start_timer('Q_from_spglib',units='s')
+
+        try:
+            import spglib
+        except Exception as _ex:
+            msg = 'spglib could not be imported! check the installation and try again\n' \
+                  'or set use_Qpoints_symmetry = False. Printing the exception below.\n'
+            crash(msg,exception=_ex)
+            
+        if not self.symmetric_mesh:
+            msg = 'to use spglib to reduce number of Q-points, the mesh must be symmetric\n' \
+                  'about Q=0. pick a new symmetric mesh of set use_Qpoints_symmetry=False\n'
+            crash(msg)
+            
+        # spglib needs a tuple of lists
+        _vecs = self.config.symm_lattice_vectors.tolist()
+        _pos = self.config.symm_positions.tolist()
+        _nums = self.config.symm_types
+        _cell = (_vecs,_pos,_nums)
+        _mesh = [self.num_H,self.num_K,self.num_L]
+        
+        # call spglib to get irreducible mesh
+        mapping, self.Q_rlu_full = spglib.get_ir_reciprocal_mesh(
+                        _mesh,_cell,is_shift=[0,0,0])
+        
+        # full Qpoints mesh in rlu
+        self.Q_rlu_full = self.Q_rlu_full.astype(float)
+        self.Q_rlu_full[:,0] *= self.H_range[1]*2/_mesh[0]
+        self.Q_rlu_full[:,1] *= self.K_range[1]*2/_mesh[1]
+        self.Q_rlu_full[:,2] *= self.L_range[1]*2/_mesh[2]
+        self.num_Q_full = self.Q_rlu_full.shape[0]
+        
+        # if the axes have only 1 Qpt, then we set that axis to be equal to the requested Q
+        if self.num_H == 1:
+            self.Q_rlu_full[:,0] = self.H[0]
+        if self.num_K == 1:
+            self.Q_rlu_full[:,1] = self.K[0]
+        if self.num_L == 1:
+            self.Q_rlu_full[:,2] = self.L[0]
+        
+        # inds of irr Q in full mesh and inds mapping full mesh to irr Q
+        self.Q_irr_inds, self.Q_full_to_irr_map = np.unique(mapping,return_inverse=True)
+        
+        # irreducible Q-points in rlu
+        self.num_Q = self.Q_irr_inds.size
+        self.Q_rlu = self.Q_rlu_full[self.Q_irr_inds]
+    
+        self.timers.stop_timer('Q_from_spglib')
     
     # ----------------------------------------------------------------------------------------------
 
@@ -232,10 +316,6 @@ class c_Qpoints:
 
         """
         make Q-point mesh on full grid without using spglib
-
-        ought to implement a method that uses spglib to calc on symmetry reduced mesh. 
-        trouble is, the Q-point mesh has to be symmetric about Q=0 to work since spglib creates 
-        symmetric mesh. could probably work around that too but this is good enough for now
         """
 
         _H, _K, _L = np.meshgrid(self.H,self.K,self.L,indexing='ij')
@@ -245,12 +325,24 @@ class c_Qpoints:
         self.Q_rlu = np.zeros((self.num_Q,3),dtype=float)
         self.Q_rlu[:,0] = _H; self.Q_rlu[:,1] = _K; self.Q_rlu[:,2] = _L
 
-        # for 'reshaping' the intensity grids
-        self.mesh_shape = [self.num_H,self.num_K,self.num_L] 
-
         msg = 'number of Q-points on full grid:\n'
         msg += f'  {self.num_Q:g}\n'
         print(msg)
+        
+    # ----------------------------------------------------------------------------------------------
+    
+    def _put_on_full_mesh(self,arr):
+        
+        """
+        unfold from reduced mesh on to full mesh
+        """
+        
+        _shape = arr.shape
+        if len(_shape) != 1:
+            _full_arr = arr[self.Q_full_to_irr_map,:]
+        else:
+            _full_arr = arr[self.Q_full_to_irr_map]
+        return _full_arr
 
     # ----------------------------------------------------------------------------------------------
 
@@ -259,6 +351,9 @@ class c_Qpoints:
         """
         put data onto Q-point on 'mesh'
         """
+        
+        if self.use_Qpoints_symmetry:
+            arr = self._put_on_full_mesh(arr)
 
         _shape = list(arr.shape)
         if len(_shape) != 1:
@@ -268,6 +363,9 @@ class c_Qpoints:
             _mesh_shape = deepcopy(self.mesh_shape)
 
         arr.shape = _mesh_shape
+        
+        if self.use_Qpoints_symmetry:
+            arr = np.fft.fftshift(arr,axes=(0,1,2))
 
         return arr
 

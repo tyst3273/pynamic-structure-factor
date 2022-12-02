@@ -63,11 +63,10 @@ class c_communicator:
         self.traj = m_trajectory.c_trajectory(self.config,self,self.timers)
 
         # setup using external data if requested
-        if self.config.trajectory_format == 'external':
-            if not types is None:
-                self.traj.set_external_types(types)
-            if not pos is None:
-                self.traj.set_external_pos(pos)
+        if not types is None:
+            self.traj.set_external_types(types)
+        if not pos is None:
+            self.traj.set_external_pos(pos)
 
         # scattering lengths for the S(Q,w) calculation
         self.xlengths = m_scattering_lengths.c_scattering_lengths(self.config,self,self.timers)
