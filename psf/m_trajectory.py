@@ -73,7 +73,6 @@ class c_trajectory:
         """
 
         # inds in file
-        _md_steps = self.config.md_num_steps
         _inds = np.arange(self.config.trajectory_skip,
             self.config.md_num_steps-self.config.trajectory_trim,self.config.trajectory_stride)
         _num_steps = _inds.size
