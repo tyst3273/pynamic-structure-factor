@@ -88,7 +88,11 @@ class c_PSF:
 
         # 'communicator' to conveniently pass objects in/out of stuff
         self.comm = m_communicator.c_communicator(self.config,self.timers)
-        self.comm.setup_calculation(pos,types)
+
+        if self.config.trajectory_format in ['external']:
+            self.comm.setup_calculation(pos,types)
+        else:
+            self.comm.setup_calculation()
 
     # ----------------------------------------------------------------------------------------------
 

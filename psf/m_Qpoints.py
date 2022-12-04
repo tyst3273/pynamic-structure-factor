@@ -81,6 +81,9 @@ class c_Qpoints:
         # also need Qpts in cartesian coords
         self.get_cartesian_Qpoints()
 
+        np.savetxt('Qrlu',self.Q_rlu,fmt='%4.3f')
+        np.savetxt('Qcart',self.Q_cart,fmt='%4.3f')
+
         # print the Q-points to user
         msg = f'\n*** Q-points ***\nnumber of Q-points: {self.num_Q:g}\n'
         if self.num_Q >= 50:
@@ -240,7 +243,7 @@ class c_Qpoints:
             self._get_Q_mesh_from_spglib()
         else:
             self._get_full_Q_mesh()
-            
+
         # for 'reshaping' the intensity grids
         self.mesh_shape = [self.num_H,self.num_K,self.num_L]
 
@@ -281,6 +284,9 @@ class c_Qpoints:
         _nums = self.config.symm_types
         _cell = (_vecs,_pos,_nums)
         _mesh = [self.num_H,self.num_K,self.num_L]
+
+        # print spacegroup info for diagnostrics
+        _spg = spglib.get_spacegroup(_cell,symprec=1e-5,angle_tolerance=-1.0,symbol_type=0)
         
         # call spglib to get irreducible mesh
         mapping, self.Q_rlu_full = spglib.get_ir_reciprocal_mesh(
@@ -292,7 +298,7 @@ class c_Qpoints:
         self.Q_rlu_full[:,1] *= self.K_range[1]*2/_mesh[1]
         self.Q_rlu_full[:,2] *= self.L_range[1]*2/_mesh[2]
         self.num_Q_full = self.Q_rlu_full.shape[0]
-        
+
         # if the axes have only 1 Qpt, then we set that axis to be equal to the requested Q
         if self.num_H == 1:
             self.Q_rlu_full[:,0] = self.H[0]
@@ -307,6 +313,11 @@ class c_Qpoints:
         # irreducible Q-points in rlu
         self.num_Q = self.Q_irr_inds.size
         self.Q_rlu = self.Q_rlu_full[self.Q_irr_inds]
+
+        msg = f'\nspace group found by spglib: {_spg}\n'
+        msg += f'number of Q-points on full mesh: {self.num_Q_full}\n'
+        msg += f'number of Q-points on irreducible mesh: {self.num_Q}'
+        print(msg)
     
         self.timers.stop_timer('Q_from_spglib')
     

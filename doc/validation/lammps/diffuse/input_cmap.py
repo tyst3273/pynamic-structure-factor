@@ -1,7 +1,7 @@
 
 # options for where to get data/preprocessing
 trajectory_format = 'lammps_hdf5' 
-trajectory_file = 'pos.h5'
+trajectory_file = '../pos.h5'
 
 # '/home/ty/research/projects/psf_data/pos.h5'
 unwrap_trajectory = True
@@ -12,7 +12,7 @@ trajectory_blocks = None
 
 # options for writing results
 output_directory = None
-output_prefix = 'cmap'
+output_prefix = 'diffuse'
 calc_bragg = True
 calc_rho_squared = True
 calc_diffuse = True
@@ -31,24 +31,28 @@ lattice_vectors = [[5.431,0.000,0.000],
 atom_types = ['Si']
 
 # experiment info
-experiment_type = 'neutrons' 
+experiment_type = 'xrays' 
 
 # options for how to generate Q-points for calculation
-Qpoints_option = 'path'
+Qpoints_option = 'mesh'
+Q_mesh_H = [-4,4,12*8]
+Q_mesh_K = [-4,4,12*8]
+Q_mesh_L = 1 #[-4,4,12*8]
 
-# 'Qpoints_option' == 'file'
-Q_file = 'Qpts.dat'
-
-# 'Qpoints_option' == 'path'
-Q_path_start = [[0,0,0],
-                [5,0,0],
-                [5,5,0],
-                [5,5,5]]
-Q_path_end = [[5,0,0],
-              [5,5,0],
-              [5,5,5],
-              [0,0,0]]
-Q_path_steps = [60,60,60,60]
+# symmetry
+use_Qpoints_symmetry = True
+symm_types = [1,1,1,1,1,1,1,1]
+symm_lattice_vectors = [[1,0,0],
+                        [0,1,0],
+                        [0,0,1]]
+symm_positions = [[0.00,0.00,0.00],
+                  [0.00,0.50,0.50],
+                  [0.50,0.00,0.50],
+                  [0.50,0.50,0.00],
+                  [0.25,0.25,0.25],
+                  [0.75,0.75,0.25],
+                  [0.25,0.75,0.75],
+                  [0.75,0.25,0.75]]
 
 # number of processes to split Q-point parallelization over
 num_Qpoint_procs = 4

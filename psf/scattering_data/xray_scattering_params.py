@@ -227,7 +227,7 @@ scattering_params = { \
                  'a4'  :  0.528137,
                  'b4'  :  8.285240,
                  'c'   :  0.706786},
-       'Siv' : { 'a1'  :  6.291500,
+        'Si' : { 'a1'  :  6.291500,  # was originally labeled 'Siv' with no option for silicon ...
                  'b1'  :  2.438600,
                  'a2'  :  3.035300,
                  'b2'  : 32.333700,

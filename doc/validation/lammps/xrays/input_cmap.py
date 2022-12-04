@@ -1,7 +1,7 @@
 
 # options for where to get data/preprocessing
 trajectory_format = 'lammps_hdf5' 
-trajectory_file = 'pos.h5'
+trajectory_file = '../pos.h5'
 
 # '/home/ty/research/projects/psf_data/pos.h5'
 unwrap_trajectory = True
@@ -31,10 +31,10 @@ lattice_vectors = [[5.431,0.000,0.000],
 atom_types = ['Si']
 
 # experiment info
-experiment_type = 'neutrons' 
+experiment_type = 'xrays' 
 
 # options for how to generate Q-points for calculation
-Qpoints_option = 'path'
+Qpoints_option = 'path' 
 
 # 'Qpoints_option' == 'file'
 Q_file = 'Qpts.dat'
