@@ -50,6 +50,8 @@ class c_trajectory:
 
         # the times for time correlation functions
         self.time = np.arange(0,self.num_block_steps,self.md_time_step)
+        msg = f'trajectory duration: {self.time[-1]/100:4.3} (ps)'
+        print(msg)
 
         # initialize the positions; they are cartesian coords in whatever units are in the file
         self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
