@@ -48,9 +48,8 @@ class c_trajectory:
         # set up the 'blocks' of indices for calculating on
         self._get_block_inds()
 
-        # the times for time correlation functions
-        self.time = np.arange(0,self.num_block_steps,self.md_time_step)
-        msg = f'trajectory duration: {self.time[-1]/100:4.3} (ps)'
+        _duration = self.num_block_steps*self.effective_time_step/1000 # ps
+        msg = f'trajectory duration: {_duration:6.2f} (ps)'
         print(msg)
 
         # initialize the positions; they are cartesian coords in whatever units are in the file
