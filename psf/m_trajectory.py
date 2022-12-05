@@ -117,7 +117,7 @@ class c_trajectory:
 
         it is MANDATORY that data are sorted in the exact same way each timestep... the
         code assumes the order of the types of atoms doesnt change over time, so only calculates
-        the scattering info at the first timestep
+        the scattering meta-data (e.g. xray form factors) at the first timestep
         """
 
         if self.trajectory_format == 'lammps_hdf5':
