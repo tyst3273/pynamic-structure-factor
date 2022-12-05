@@ -81,9 +81,6 @@ class c_Qpoints:
         # also need Qpts in cartesian coords
         self.get_cartesian_Qpoints()
 
-        np.savetxt('Qrlu',self.Q_rlu,fmt='%4.3f')
-        np.savetxt('Qcart',self.Q_cart,fmt='%4.3f')
-
         # print the Q-points to user
         msg = f'\n*** Q-points ***\nnumber of Q-points: {self.num_Q:g}\n'
         if self.num_Q >= 50:
