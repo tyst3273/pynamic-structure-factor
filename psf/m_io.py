@@ -185,9 +185,6 @@ class c_writer:
                         shape=self.comm.strufacs.rho_sq.shape,dtype=float)
                 db['rho_sq'][...] = self.comm.strufacs.rho_sq[...]
 
-                db.create_dataset('time',self.comm.traj.time.shape,dtype=float)
-                db['time'][...] = self.comm.traj.time[...]
-
         except Exception as _ex:
             crash(self.crash_msg,_ex)
 
@@ -333,7 +330,6 @@ class c_reader:
         try:
             with h5py.File(self.input_file,'r') as db:
                 self.rho_sq = db['rho_sq'][...]
-                self.time = db['time'][...]
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
