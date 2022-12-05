@@ -255,13 +255,12 @@ class c_structure_factors:
         get empty arrays that are used repeatedly to keep from having to allocate/reallocate
         """
 
-        _num_steps = self.comm.traj.num_block_steps
-        
         if self.calc_sqw:
             _num_energy = self.num_energy
             self._sqw = np.zeros((_nQ,_num_energy),dtype=float)
 
         if self.calc_diffuse or self.calc_rho_squared:
+            _num_steps = self.comm.traj.num_block_steps
             self._rho_sq = np.zeros((_nQ,_num_steps),dtype=float)
 
         if self.calc_diffuse:
