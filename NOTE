@@ -1,0 +1,8 @@
+
+
+for MAPI calculation, I think I have the atom types wrong for Elif's data! I modified the input file 
+for Rappe's data which has type [Pb,I,H,N,C] to [Pb,I,H,H,N,C] ... IIRC, the correct order for Elif's
+data is [C,N,H,H,Pb,I]
+
+fuck yea!
+
