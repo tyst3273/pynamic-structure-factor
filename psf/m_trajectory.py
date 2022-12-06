@@ -48,8 +48,10 @@ class c_trajectory:
         # set up the 'blocks' of indices for calculating on
         self._get_block_inds()
 
-        _duration = self.num_block_steps*self.effective_time_step/1000 # ps
-        msg = f'trajectory duration: {_duration:6.2f} (ps)'
+        _eff_step = self.effective_time_step/1000 # ps
+        _duration = self.num_block_steps*_eff_step
+        msg = f'effective timestep: {_eff_step} (ps)\n'
+        msg += f'trajectory duration: {_duration:6.2f} (ps)'
         print(msg)
 
         # initialize the positions; they are cartesian coords in whatever units are in the file
