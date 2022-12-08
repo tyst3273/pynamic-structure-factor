@@ -374,7 +374,11 @@ class c_Qpoints:
         
         if self.use_Qpoints_symmetry:
             arr = np.fft.fftshift(arr,axes=(0,1,2))
-        
+
+        msg = 'for an unknown reason, we have to \'flip\' the mesh arrays along the Q-axes...\n' \
+              'this needs to be sorted out and is just a hack for now.\n'
+        print('*** warning ***\n')
+        print(msg)
         arr = np.flip(arr,axes=(0,1,2))
 
         return arr
