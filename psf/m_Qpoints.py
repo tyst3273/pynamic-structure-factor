@@ -63,7 +63,6 @@ class c_Qpoints:
             """
             read Q-points (in rlu) from txt file 
             """
-            self.Q_file = self.config.Q_file
             self._read_Q_text_file()
 
         elif self.Qpoints_option == 'path':
@@ -145,6 +144,7 @@ class c_Qpoints:
         read Qpoints from text file    
         """
 
+        self.Q_file = self.config.Q_file
         msg = f'\ngetting Q-points from text file:\n  \'{self.Q_file}\''
         print(msg)
 
@@ -357,7 +357,7 @@ class c_Qpoints:
     def unfold_onto_Q_mesh(self,arr=None):
 
         """
-        put data onto Q-point on 'mesh'
+        put data onto Q-points 'mesh'
         """
         
         if self.use_Qpoints_symmetry:

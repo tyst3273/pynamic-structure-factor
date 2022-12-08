@@ -261,7 +261,6 @@ class c_trajectory:
         self.types = np.zeros(self.num_atoms,dtype=int)
 
         try:
-
             import h5py
             with h5py.File(self.trajectory_file,'r') as in_db:
 
@@ -293,10 +292,8 @@ class c_trajectory:
         self.types = np.zeros(self.num_atoms,dtype=int)
 
         try:
-
             import h5py
             with h5py.File(self.trajectory_file,'r') as in_db:
-
                 # it is assumed that the types are consecutive integers starting at 1
                 # so that 1 is subtracted to match the python index starting at 0 ...
                 self.types[:] = in_db['particles/all/species/value'][0,:]-1
@@ -325,10 +322,8 @@ class c_trajectory:
         self.timers.start_timer('read_lammps_hdf5',units='s')
 
         try:
-
             import h5py
             with h5py.File(self.trajectory_file,'r') as in_db:
-
                 # not currently used ...
                 """
                 self.box_lengths[0] = np.mean(
@@ -359,10 +354,8 @@ class c_trajectory:
         self.timers.start_timer('read_user_hdf5',units='s')
 
         try:
-
             import h5py
             with h5py.File(self.trajectory_file,'r') as in_db:
-
                 # read positions
                 self.pos[:,:,:] = in_db['cartesian_pos'][inds,:,:]
 
