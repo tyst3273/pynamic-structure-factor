@@ -374,6 +374,8 @@ class c_Qpoints:
         
         if self.use_Qpoints_symmetry:
             arr = np.fft.fftshift(arr,axes=(0,1,2))
+        
+        arr = np.flip(arr,axes=(0,1,2))
 
         return arr
 
