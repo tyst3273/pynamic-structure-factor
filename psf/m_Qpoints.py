@@ -379,7 +379,7 @@ class c_Qpoints:
               'this needs to be sorted out and is just a hack for now.\n'
         print('*** warning ***\n')
         print(msg)
-        arr = np.flip(arr,axes=(0,1,2))
+        arr = np.flip(arr,axis=(0,1,2))
 
         return arr
 
