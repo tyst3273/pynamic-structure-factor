@@ -12,5 +12,7 @@ please contact me at:
     ty.sterling@colorado.edu
 if you really want to use my code and I can try to help. 
 
+![image](https://user-images.githubusercontent.com/35535765/220440178-00a59db5-2dae-4774-9e0d-2f3de4752dfd.png)
+
 thanks,
 Ty
