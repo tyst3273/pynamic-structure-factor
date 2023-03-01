@@ -47,7 +47,7 @@ class c_PSF:
 
     # ----------------------------------------------------------------------------------------------
 
-    def setup_calculation(self,pos=None,types=None,**kwargs)
+    def setup_calculation(self,pos=None,types=None,**kwargs):
 
         """
         set up the 'communicator' object to pass stuff back and forth
@@ -69,19 +69,15 @@ class c_PSF:
         writes the results, the exits.
         """
 
-        self.timers.start_timer('standard_run',units='m')
-
         # read input file and setup communicator
         self.setup_calculation()
 
         # run the calculation 
         self.run()
 
-        self.timers.stop_timer('standard_run')
-
     # ----------------------------------------------------------------------------------------------
 
-    def finalize(self)
+    def finalize(self):
 
         """
         set up the 'communicator' object to pass stuff back and forth
@@ -116,12 +112,18 @@ class c_PSF:
         run the calculation
         """
 
+        self.timers.start_timer('PSF',units='m')
+
         # this loops over all blocks, calculating errything
         self.comm.strufacs.calculate_structure_factors()
 
         # if calculated on a mesh, unfold mesh onto full reciprocal space
         if self.comm.Qpoints.use_mesh:
             self.comm.strufacs.put_on_mesh()
+
+        self.timers.stop_timer('PSF')
+
+        self.finalize()
 
     # ----------------------------------------------------------------------------------------------
 
@@ -139,7 +141,6 @@ if __name__ == '__main__':
 
     PSF = c_PSF()
     PSF.standard_run()
-    PSF.finalize()
 
 # --------------------------------------------------------------------------------------------------
 
