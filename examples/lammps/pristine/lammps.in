@@ -52,7 +52,7 @@ dump_modify     POS sort id
 
 ### run to collect pos/vels
 fix             NVE all nve
-run             100000
+run             24000
 unfix           NVE
 
 

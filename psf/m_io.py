@@ -100,29 +100,23 @@ class c_writer:
         try:
             with h5py.File(self.output_file,'a') as db:
 
-                db.create_dataset('lattice_vectors',shape=(3,3),dtype=float)
-                db['lattice_vectors'][...] = self.comm.lattice.lattice_vectors[...]
+                db.create_dataset('lattice_vectors',
+                        data=self.comm.lattice.lattice_vectors)
 
-                db.create_dataset('reciprocal_lattice_vectors',shape=(3,3),dtype=float)
-                db['reciprocal_lattice_vectors'][...] = \
-                        self.comm.lattice.reciprocal_lattice_vectors[...]
+                db.create_dataset('reciprocal_lattice_vectors',
+                        data=self.comm.lattice.reciprocal_lattice_vectors)
     
                 db.create_dataset('mesh',shape=(1),dtype=int)
 
                 if self.comm.Qpoints.use_mesh:
                     db['mesh'][...] = int(True)
-                    db.create_dataset('H',shape=_Qpoints.num_H,dtype=float)
-                    db['H'][...] = _Qpoints.H[...]
-                    db.create_dataset('K',shape=_Qpoints.num_K,dtype=float)
-                    db['K'][...] = _Qpoints.K[...]
-                    db.create_dataset('L',shape=_Qpoints.num_L,dtype=float)
-                    db['L'][...] = _Qpoints.L[...]
+                    db.create_dataset('H',data=_Qpoints.H)
+                    db.create_dataset('K',data=_Qpoints.K)
+                    db.create_dataset('L',data=_Qpoints.L)
                 else:
                     db['mesh'][...] = int(False)
-                    db.create_dataset('Q_rlu',shape=_Qpoints.Q_rlu.shape,dtype=float)
-                    db['Q_rlu'][...] = _Qpoints.Q_rlu[...]
-                    db.create_dataset('Q_cart',shape=_Qpoints.Q_cart.shape,dtype=float)
-                    db['Q_cart'][...] = _Qpoints.Q_cart[...]
+                    db.create_dataset('Q_rlu',data=_Qpoints.Q_rlu)
+                    db.create_dataset('Q_cart',data=_Qpoints.Q_cart)
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -139,12 +133,8 @@ class c_writer:
 
         try:
             with h5py.File(self.output_file,'a') as db:
-
-                db.create_dataset('sqw',shape=self.comm.strufacs.sqw.shape,dtype=float)
-                db['sqw'][...] = self.comm.strufacs.sqw[...]
-
-                db.create_dataset('energy',shape=self.comm.strufacs.energy.shape,dtype=float)
-                db['energy'][...] = self.comm.strufacs.energy[...]
+                db.create_dataset('sqw',data=self.comm.strufacs.sqw)
+                db.create_dataset('energy',data=self.comm.strufacs.energy)
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -161,9 +151,7 @@ class c_writer:
 
         try:
             with h5py.File(self.output_file,'a') as db:
-
-                db.create_dataset('sq_bragg',shape=self.comm.strufacs.sq_bragg.shape,dtype=float)
-                db['sq_bragg'][...] = self.comm.strufacs.sq_bragg[...]
+                db.create_dataset('sq_bragg',data=self.comm.strufacs.sq_bragg)
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -180,10 +168,7 @@ class c_writer:
 
         try:
             with h5py.File(self.output_file,'a') as db:
-
-                db.create_dataset('rho_sq', \
-                        shape=self.comm.strufacs.rho_sq.shape,dtype=float)
-                db['rho_sq'][...] = self.comm.strufacs.rho_sq[...]
+                db.create_dataset('rho_sq',data=self.comm.strufacs.rho_sq)
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -200,15 +185,13 @@ class c_writer:
 
         try:
             with h5py.File(self.output_file,'a') as db:
-
-                db.create_dataset('sq_diffuse', \
-                        shape=self.comm.strufacs.sq_diffuse.shape,dtype=float)
-                db['sq_diffuse'][...] = self.comm.strufacs.sq_diffuse[...]
+                db.create_dataset('sq_diffuse',data=self.comm.strufacs.sq_diffuse)
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
 
     # ----------------------------------------------------------------------------------------------
+
 
 
 

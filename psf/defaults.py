@@ -172,13 +172,15 @@ md_supercell_reps = [6,6,30]
 
 # --------------------------------------------------------------------------------------------------
 """
-description: lattice vectors of unitcell. these used to calculate the Q points and to 'unwrap'
-    the trajectories. they can be arbitrary, but keep in mind the Q-points have to be commensurate
-    with the supercell to get sensible data. note that these should be in whatever length units
-    are in the trajectory file.
+description: lattice vectors of unitcell. these used to calculate the reciprocal lattice vectors
+    to calculate Q points. they can be arbitrary, but keep in mind the Q-points have to be 
+    commensurate  with the supercell to get sensible data. note that these should be in whatever 
+    length units are in the trajectory file.
         these are different from 'prim_lattice_vectors' in that these are used to calculate Q 
-    in cartesian coords; 'prim_lattice_vectors' are the idealized lattice vectors used to 
-    determine the space group and reduce the Q-point set using symmetry
+    in cartesian coords; 'symm_lattice_vectors' are the idealized lattice vectors used to 
+    determine the space group and reduce the Q-point set using symmetry.
+        moreover, 'box_vectors' are different in that they are used to unwrap the trajectories
+        if requested by the user. if 'None', then box vectors are read from file 
 type: [3]x[3] list of floats
 """
 lattice_vectors = [[4.593,0.000,0.000], 
@@ -186,6 +188,16 @@ lattice_vectors = [[4.593,0.000,0.000],
                    [0.000,0.000,2.959]]
 
 # --------------------------------------------------------------------------------------------------
+"""
+description: vectors of the 'box' used for the simulation. the simulation assumes PBC and these
+    are the vectors of the 'unit cell' containing the simulation. i.e. supercell lattice vectors.
+        if None, they are read from the file
+type: [3]x[3] list of floats or None
+"""
+box_vectors = None
+
+# --------------------------------------------------------------------------------------------------
+
 """
 description: the atoms types in the simulation. the code expects the types are consecutive
     integers starting at 1 and that there is one for each type. note, these are used to set the
@@ -285,56 +297,4 @@ type: int
 num_Qpoint_procs = 1
 
 # --------------------------------------------------------------------------------------------------
-"""
-description: used to determine symmetry and reduce the Q-point. they are integer types 
-    corresponding to the atoms in 'symm_positions'. default is unset
-type: list of ints
-example:
-    symm_atom_types = [0,0,1,1,1,1] # 'Ti', 'Ti', 'O', 'O', 'O', 'O'
-"""
-symm_types = None 
-
-# --------------------------------------------------------------------------------------------------
-"""
-description: reduced coordinates of atoms in unitcell corresponding to 'symm_lattice_vectors' 
-    variable and to 'symm_types'. these are passed (with 'symm_lattice_vectors' and 
-    'symm_types') to spglib to determine spacegroup. default is unset
-type: nx3 list of floats.
-example:
-    symm_positions = [[0.5000000000000000,  0.5000000000000000,  0.5000000000000000],
-                      [0.0000000000000000,  0.0000000000000000,  0.0000000000000000],
-                      [0.1953400114833092,  0.8046599885166907,  0.5000000000000000],
-                      [0.8046599885166907,  0.1953400114833092,  0.5000000000000000],
-                      [0.3046599885166907,  0.3046599885166907,  0.0000000000000000],
-                      [0.6953400114833093,  0.6953400114833093,  0.0000000000000000]]
-"""
-symm_positions = None 
-
-# --------------------------------------------------------------------------------------------------
-"""
-description: idealized lattice vectors used to determine spacegroup. passed to spglib
-    these are different from 'lattice_vectors' in that these are only used to determine
-    that space group to reduce the Q-point set. 'lattice_vectors' is used to convert 
-    Q to cartesian coords in 1/Angstrom. default is unset
-type: [3]x[3] list of floats
-example:
-    symm_lattice_vectors = [[4.593,0.000,0.000], 
-                            [0.000,4.593,0.000],
-                            [0.000,0.000,2.959]]
-"""
-symm_lattice_vectors = None
-
-# --------------------------------------------------------------------------------------------------
-"""
-description: use symmetry to reduce number of Q-points. must have mesh centered on Q=0 and must
-    have spglib installed
-type: bool
-"""
-use_Qpoints_symmetry = False
-
-
-
-
-
-
 

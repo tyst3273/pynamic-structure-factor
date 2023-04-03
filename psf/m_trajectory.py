@@ -57,6 +57,15 @@ class c_trajectory:
         # initialize the positions; they are cartesian coords in whatever units are in the file
         self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
 
+        # determine whether or not to read box vectors from file
+        if self.config.box_vectors is None:
+            print('\ngetting box vectors from file')
+            self.read_box = True
+            self.box_vectors = np.zeros((3,3),dtype=float)
+        else:
+            self.read_box = False
+            self.box_vectors = self.config.box_vectors
+
         # if setting types and pos externally, dont do anything else here
         if self.trajectory_format in ['external']:
             return
@@ -146,7 +155,7 @@ class c_trajectory:
 
         _types = np.unique(self.types)
         if _types.max() >= self.comm.config.num_types or _types.min() < 0 \
-            or _types.size > self.comm.config.num_types:
+            or _types.size != self.comm.config.num_types:
             msg = 'given external types are incompatible with types in input file\n'
             crash(msg)
 
@@ -184,22 +193,29 @@ class c_trajectory:
         get a block of trajectory data from the file and preprocess it as much as possible
         """
 
-        _inds = self.block_inds[block_index,:]
+        inds = self.block_inds[block_index,:]
 
         if self.trajectory_format == 'lammps_hdf5':
-            self._read_pos_lammps_hdf5(_inds)            
+            self._read_pos_lammps_hdf5(inds)            
 
         if self.trajectory_format == 'user_hdf5':
-            self._read_pos_user_hdf5(_inds)
+            self._read_pos_user_hdf5(inds)
 
         elif self.trajectory_format == 'external':
-            self._read_pos_external(_inds)
+            self._read_pos_external(inds)
+
+        # check if simulation box is orthorhombic
+        self.box_is_ortho = True
+        _tmp = np.abs(self.box_vectors)
+        _tmp[0,0] = 0.0; _tmp[1,1] = 0.0; _tmp[2,2] = 0.0
+        if np.any(_tmp > 1e-3):
+            self.box_is_ortho = False
 
         if self.unwrap_trajectory:
             self._unwrap_positions()
 
-     # ----------------------------------------------------------------------------------------------
-
+    # ----------------------------------------------------------------------------------------------
+    
     def _unwrap_positions(self):
 
         """
@@ -209,22 +225,20 @@ class c_trajectory:
         see 'note about unwrapping' in the README
         """
 
-        self.timers.start_timer('unwrap_positions',units='s')
-
-        if self.trajectory_format == 'user_hdf5':
-            msg = 'if the trajectory file was created using the merger built into\n' \
-                  'this code, then the data should already be unwrapped, i.e. unwrapping\n' \
-                  'trajectories again is a waste of time. set unwrap_trajectory=False and\n' \
-                  'run again\n'
+        if not self.box_is_ortho:
+            msg = 'unwrapping positions is not supported for non-orthorhombic simulation\n' \
+                  'boxes yet. either use a different box or turn off unwrapping (okay..)\n'
             crash(msg)
+
+        self.timers.start_timer('unwrap_positions',units='s')
 
         msg = '\nunwrapping positions!\n'
         print(msg)
 
         # get box lengths... assumes the simulation cell and underlying unitcell are orthorhombic
-        lx = self.comm.lattice.lattice_vectors[0,0]*self.config.md_supercell_reps[0]
-        ly = self.comm.lattice.lattice_vectors[1,1]*self.config.md_supercell_reps[1]
-        lz = self.comm.lattice.lattice_vectors[2,2]*self.config.md_supercell_reps[2]
+        lx = self.box_vectors[0,0]
+        ly = self.box_vectors[1,1]
+        lz = self.box_vectors[2,2]
 
         # build an array to be added to the positions to shift them 
         shift = self.pos-np.tile(self.pos[0,:,:].reshape((1,self.num_atoms,3)),
@@ -294,6 +308,7 @@ class c_trajectory:
         try:
             import h5py
             with h5py.File(self.trajectory_file,'r') as in_db:
+
                 # it is assumed that the types are consecutive integers starting at 1
                 # so that 1 is subtracted to match the python index starting at 0 ...
                 self.types[:] = in_db['particles/all/species/value'][0,:]-1
@@ -324,15 +339,15 @@ class c_trajectory:
         try:
             import h5py
             with h5py.File(self.trajectory_file,'r') as in_db:
-                # not currently used ...
-                """
-                self.box_lengths[0] = np.mean(
-                    in_db['particles/all/box/edges/value']inds[0]:inds[1],0],axis=0)
-                self.box_lengths[1] = np.mean(
-                    in_db['particles/all/box/edges/value'][inds[0]:inds[1],1],axis=0)
-                self.box_lengths[2] = np.mean(
-                    in_db['particles/all/box/edges/value'][inds[0]:inds[1],2],axis=0)
-                """
+
+                if self.read_box:
+                    self.box_vectors[0,0] = np.mean(
+                            in_db['particles/all/box/edges/value'][inds,0],axis=0)
+                    self.box_vectors[1,1] = np.mean(
+                            in_db['particles/all/box/edges/value'][inds,1],axis=0)
+                    self.box_vectors[2,2] = np.mean(
+                            in_db['particles/all/box/edges/value'][inds,2],axis=0)
+
                 # read positions
                 self.pos[:,:,:] = in_db['particles/all/position/value'][inds,:,:]
 
@@ -352,6 +367,10 @@ class c_trajectory:
         """
 
         self.timers.start_timer('read_user_hdf5',units='s')
+
+        if self.read_box:
+            msg = '\nbox vectors must be given by user to use user_hdf5 positions (for now)'
+            crash(msg)
 
         try:
             import h5py
@@ -373,6 +392,10 @@ class c_trajectory:
         """
         simply slice data from previously specified array
         """
+
+        if self.read_box:
+            msg = '\nbox vectors must be given by user to use external positions'
+            crash(msg)
 
         self.pos[:,:,:] = self.external_pos[inds,:,:]
 

@@ -48,10 +48,12 @@ class c_structure_factors:
         self.calc_bragg = config.calc_bragg
         self.calc_rho_squared = config.calc_rho_squared
 
+        _num_Q = self.comm.Qpoints.num_Q
+
         # set stuff up
         if self.calc_sqw:
             self._setup_energies()
-            self.sqw = np.zeros((self.comm.Qpoints.num_Q,self.num_energy),dtype=float)
+            self.sqw = np.zeros((_num_Q,self.num_energy),dtype=float)
 
             msg = '\n*** dynamic structure factor ***\n'
             msg += f'num_energy: {self.num_energy}\n'
@@ -62,22 +64,21 @@ class c_structure_factors:
             print(msg)
 
         if self.calc_rho_squared:
-            self.rho_sq = np.zeros((self.comm.Qpoints.num_Q, \
-                        self.comm.traj.num_block_steps),dtype=float)
+            self.rho_sq = np.zeros((_num_Q,self.comm.traj.num_block_steps),dtype=float)
 
             msg = '\n*** rho squared ***\ncalculating \'rho squared\'\n'
             msg += '  |exp(iQ.r(t))|**2'
             print(msg)
 
         if self.calc_diffuse:   
-            self.sq_diffuse = np.zeros(self.comm.Qpoints.num_Q,dtype=float)
+            self.sq_diffuse = np.zeros(_num_Q,dtype=float)
 
             msg = '\n*** diffuse intensity ***\ncalculating diffuse intensity \n'
             msg += '  <|exp(iQ.r(t))|**2> '
             print(msg)
 
         if self.calc_bragg:
-            self.sq_bragg = np.zeros(self.comm.Qpoints.num_Q,dtype=float)
+            self.sq_bragg = np.zeros(_num_Q,dtype=float)
 
             msg = '\n*** bragg intensity ***\ncalculating bragg intensity\n'
             msg += '  |<exp(iQ.r(t))>|**2 '
@@ -367,10 +368,10 @@ class c_structure_factors:
 
         if self.calc_sqw:
             self.sqw = self.comm.Qpoints.unfold_onto_Q_mesh(self.sqw)
-        if self.calc_diffuse:
-            self.sq_diffuse = self.comm.Qpoints.unfold_onto_Q_mesh(self.sq_diffuse)
         if self.calc_rho_squared:
             self.rho_sq = self.comm.Qpoints.unfold_onto_Q_mesh(self.rho_sq)
+        if self.calc_diffuse:
+            self.sq_diffuse = self.comm.Qpoints.unfold_onto_Q_mesh(self.sq_diffuse)
         if self.calc_bragg:
             self.sq_bragg = self.comm.Qpoints.unfold_onto_Q_mesh(self.sq_bragg)
 

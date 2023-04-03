@@ -103,14 +103,16 @@ class c_config:
         self._set_calc_bragg()
         self._set_calc_diffuse()
         self._set_calc_sqw()
+
         self._set_lattice_vectors()
+        self._set_box_vectors()
+
         self._set_atom_types()
         self._set_output_directory()
         self._set_output_prefix()
         self._set_md_time_step()
         self._set_md_num_steps()
         self._set_md_num_atoms()
-        self._set_md_supercell_reps()
         self._set_trajectory_stride()
         self._set_trajectory_skip()
         self._set_trajectory_trim()
@@ -134,12 +136,6 @@ class c_config:
             self._set_Q_path_end()
             self._set_Q_path_steps()
             
-        self._set_use_Qpoints_symmetry()
-        if self.use_Qpoints_symmetry:
-            self._set_symm_types()
-            self._set_symm_positions()
-            self._set_symm_lattice_vectors()
-   
         # --- add new variables parsers here ---
         # ...
         # ...
@@ -387,9 +383,10 @@ class c_config:
         if self.Q_mesh_K.size == 3:
             if self.Q_mesh_K[2] < 1:
                 crash(msg)
-
         # if only 1 num, print it
         if self.Q_mesh_K.size == 1:
+            if self.Q_mesh_K.ndim == 1:
+                self.Q_mesh_K = self.Q_mesh_K[0]
             msg = f'Q_mesh_K:\n  {self.Q_mesh_K: 8.5f}'
         else:
             msg = 'Q_mesh_K:\n  '
@@ -419,6 +416,8 @@ class c_config:
 
         # if only 1 num, print it
         if self.Q_mesh_L.size == 1:
+            if self.Q_mesh_L.ndim == 1:
+                self.Q_mesh_L = self.Q_mesh_L[0]
             msg = f'Q_mesh_L:\n  {self.Q_mesh_L: 8.5f}'
         else:
             msg = 'Q_mesh_L:\n  '
@@ -448,6 +447,8 @@ class c_config:
 
         # if only 1 num, print it
         if self.Q_mesh_H.size == 1:
+            if self.Q_mesh_H.ndim == 1:
+                self.Q_mesh_H = self.Q_mesh_H[0]
             msg = f'Q_mesh_H:\n  {self.Q_mesh_H: 8.5f}'
         else:
             msg = 'Q_mesh_H:\n  '
@@ -489,32 +490,6 @@ class c_config:
             crash(msg)
 
         print(f'experiment_type:\n  {self.experiment_type}')
-
-    # ----------------------------------------------------------------------------------------------
-
-    def _set_md_supercell_reps(self):
-
-        """
-        get the attribute
-        """
-
-        self._get_attr('md_supercell_reps')
-
-        msg = 'md_supercell_reps seems wrong\n'
-        try:
-            self.md_supercell_reps = np.array(self.md_supercell_reps,dtype=int)
-        except:
-            crash(msg)
-        if self.md_supercell_reps.size != 3:
-            crash(msg)
-
-        if np.any(self.md_supercell_reps < 1):
-            crash(msg)
-
-        msg ='md_supercell_reps:\n  '
-        for ii in range(3):
-            msg = msg+f'{self.md_supercell_reps[ii]} '
-        print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -730,6 +705,39 @@ class c_config:
         print(msg)
 
     # ----------------------------------------------------------------------------------------------
+    
+    def _set_box_vectors(self):
+
+        """
+        get the attribute
+        """
+
+        self._get_attr('box_vectors')
+
+        if self.box_vectors is None:
+            msg = 'box_vectors:\n read from file\n'
+        return
+
+        # check the shape
+        msg = '\'box_vectors\' seems wrong\n'
+        try:
+            self.box_vectors = np.array(self.box_vectors,dtype=float)
+        except:
+            crash(msg)
+        if self.box_vectors.size != 9:
+            crash(msg)
+        else:
+            self.box_vectors.shape = [3,3]
+
+        # echo to the info file
+        msg = 'box_vectors: (Angstrom)'
+        for ii in range(3):
+            msg += '\n'
+            for jj in range(3):
+                msg += f'{self.box_vectors[ii,jj]: 10.6f} '
+        print(msg)
+
+    # ----------------------------------------------------------------------------------------------
 
     def _set_atom_types(self):
 
@@ -776,114 +784,6 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_symm_positions(self):
-        
-        """
-        get the attribute
-        """
-    
-        self._get_attr('symm_positions')
-        
-        if self.symm_positions is None:
-            msg = '\'symm_positions\' must be set if use_Qpoints_symmetry == True\n'
-            crash(msg)
-
-        # check the shape
-        msg = '\'symm_positions\' seems wrong\n'
-        try:
-            self.symm_positions = np.array(self.symm_positions,dtype=float)
-        except:
-            crash(msg)
-        if self.symm_positions.shape[1] != 3:
-            crash(msg)
-            
-        if self.symm_positions.shape[0] != self.num_symm_types:
-            crash(msg)
-
-        # echo to the info file
-        msg = 'symm_positions: (crystal coords)'
-        for ii in range(self.num_symm_types):
-            msg += '\n'
-            for jj in range(3):
-                msg += f'{self.symm_positions[ii,jj]: 10.6f} '
-        print(msg)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def _set_symm_lattice_vectors(self):
-        
-        """
-        get the attribute
-        """
-    
-        self._get_attr('symm_lattice_vectors')
-        
-        if self.symm_lattice_vectors is None:
-            msg = '\'symm_lattice_vectors\' must be set if use_Qpoints_symmetry == True\n'
-            crash(msg)
-
-        # check the shape
-        msg = '\'symm_lattice_vectors\' seems wrong\n'
-        try:
-            self.symm_lattice_vectors = np.array(self.symm_lattice_vectors,dtype=float)
-        except:
-            crash(msg)
-        if self.symm_lattice_vectors.size != 9:
-            crash(msg)
-        else:
-            self.symm_lattice_vectors.shape = [3,3]
-
-        # echo to the info file
-        msg = 'symm_lattice_vectors: (arbitrary)'
-        for ii in range(3):
-            msg += '\n'
-            for jj in range(3):
-                msg += f'{self.symm_lattice_vectors[ii,jj]: 10.6f} '
-        print(msg)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def _set_symm_types(self):
-
-        """
-        get the attribute.
-        """
-        
-        self._get_attr('symm_types')
-        
-        if self.symm_types is None:
-            msg = '\'symm_types\' must be set if use_Qpoints_symmetry == True\n'
-            crash(msg)
-
-        self.num_symm_types = len(self.symm_types)
-        
-        msg = '\'symm_types\' seems wrong\n'
-        try: 
-            self.symm_types = [int(x) for x in self.symm_types]
-        except:
-            crash(msg)
-        
-        # echo to the info file
-        msg = 'symm_types:\n  '
-        for ii in range(len(self.symm_types)):
-            msg += f'{self.symm_types[ii]} '
-        print(msg)
-        
-    # ----------------------------------------------------------------------------------------------
-
-    def _set_use_Qpoints_symmetry(self):
-
-        """
-        get the attribute
-        """
-
-        self._get_attr('use_Qpoints_symmetry')
-            
-        self.use_Qpoints_symmetry = bool(self.use_Qpoints_symmetry)
-        print(f'use_Qpoints_symmetry:\n  {self.use_Qpoints_symmetry}')
-
-    # ----------------------------------------------------------------------------------------------
-    
     def _get_attr(self,attr):
 
         """
