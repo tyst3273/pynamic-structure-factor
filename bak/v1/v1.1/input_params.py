@@ -1,7 +1,10 @@
 
 # options for where to get data/preprocessing
 trajectory_format = 'lammps_hdf5' 
-trajectory_file = '../lammps/pristine/pos.h5'
+trajectory_file = \
+    '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/pos.h5'
+#    '/home/ty/research/projects/psf_data/pos.h5'
+#    '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/pos.h5'
 
 # '/home/ty/research/projects/psf_data/pos.h5'
 unwrap_trajectory = True
@@ -18,17 +21,17 @@ calc_rho_squared = True
 calc_diffuse = True
 calc_sqw = True
 
-# simulation inputs
-md_time_step = 24 # femtoseconds; time step IN FILE, not used in simulation
-md_num_steps = 4000
-md_num_atoms = 13824
-md_supercell_reps = [12,12,12] 
+# simulation options
+md_time_step = 16 # femtoseconds; time step IN FILE, not used in simulation
+md_num_steps = 6250
+md_num_atoms = 6480
+md_supercell_reps = [6,6,30] 
 
 # unit cell/ crystal info
 lattice_vectors = [[4.593,0.000,0.000], # angstroms
                    [0.000,4.593,0.000],
                    [0.000,0.000,2.959]]
-atom_types = ['Si']
+atom_types = ['Ti','Ti','O','O','O','O']
 
 # experiment info
 experiment_type = 'neutrons' # 'neutrons' or 'xrays'
@@ -52,7 +55,7 @@ Q_path_end = [[1,0,2],
 Q_path_steps = [20,20]
 
 # number of processes to split Q-point parallelization over
-num_Qpoint_procs = 4
+num_Qpoint_procs = 16
 
 
 

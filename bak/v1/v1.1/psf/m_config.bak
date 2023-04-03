@@ -67,78 +67,85 @@ class c_config:
 
         # get defaults which are the allowed keywords... probably shouldt be hard-coded
         self.defaults = m_import.import_module('psf.defaults')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def set_config(self,trajectory_format=None,trajectory_file=None,unwrap_trajectory=None,
+        calc_rho_squared=None,calc_bragg=None,calc_diffuse=None,calc_sqw=None,
+        lattice_vectors=None,atom_types=None,output_directory=None,output_prefix=None,
+        md_time_step=None,md_num_steps=None,md_num_atoms=None,md_supercell_reps=None,
+        num_trajectory_blocks=None,trajectory_blocks=None,experiment_type=None,
+        num_Qpoint_procs=None,Qpoints_option=None,Q_mesh_H=None,Q_mesh_K=None,Q_mesh_L=None,
+        Q_file=None,Q_path_start=None,Q_path_end=None,Q_path_steps=None,trajectory_stride=None,
+        trajectory_skip=None,trajectory_trim=None,symm_types=None,symm_positions=None,
+        symm_lattice_vectors=None,use_Qpoints_symmetry=None):
+
+        """
+        get args from file; if new arg is added, has to be passed as default = None above. if
+        args is given in function call, it overwrites whatever is read from input and default. 
+        priority is arg > input > default.
+        """
+
         allowed = vars(self.defaults).keys()
 
         # load input file
         self.input = m_import.import_module_from_path(self.input_file)
 
-        # check that all keywords in input file are allowed
+        # check that all keywords are allowed
         for key in vars(self.input).keys():
             if key not in allowed:
                 msg = f'the keyword \'{key}\' is unknown\n'
                 crash(msg)
 
-    # ----------------------------------------------------------------------------------------------
-
-    def set_config(self,**kwargs):
-
-        """
-        get args from file; if args are given in function call, they are put in self.kwargs and 
-        overwrite whatever is read from input and default.  priority is arg > input > default.
-        """
-
-        # these are args passed into api
-        self.kwargs = kwargs
-
         print('\n*** input-args ***')
         print('echoing input args to the screen!\n')
 
         # now get the variables
-        self._set_trajectory_format()
+        self._set_trajectory_format(trajectory_format)
         if not self.trajectory_format in ['external']:
-            self._set_trajectory_file()
+            self._set_trajectory_file(trajectory_file)
 
-        self._set_unwrap_trajectory()
-        self._set_calc_rho_squared()
-        self._set_calc_bragg()
-        self._set_calc_diffuse()
-        self._set_calc_sqw()
-        self._set_lattice_vectors()
-        self._set_atom_types()
-        self._set_output_directory()
-        self._set_output_prefix()
-        self._set_md_time_step()
-        self._set_md_num_steps()
-        self._set_md_num_atoms()
-        self._set_md_supercell_reps()
-        self._set_trajectory_stride()
-        self._set_trajectory_skip()
-        self._set_trajectory_trim()
-        self._set_num_trajectory_blocks()
-        self._set_trajectory_blocks()
-        self._set_experiment_type() 
-        self._set_num_Qpoint_procs()
-        self._set_Qpoints_option() 
+        self._set_unwrap_trajectory(unwrap_trajectory)
+        self._set_calc_rho_squared(calc_rho_squared)
+        self._set_calc_bragg(calc_bragg)
+        self._set_calc_diffuse(calc_diffuse)
+        self._set_calc_sqw(calc_sqw)
+        self._set_lattice_vectors(lattice_vectors)
+        self._set_atom_types(atom_types)
+        self._set_output_directory(output_directory)
+        self._set_output_prefix(output_prefix)
+        self._set_md_time_step(md_time_step)
+        self._set_md_num_steps(md_num_steps)
+        self._set_md_num_atoms(md_num_atoms)
+        self._set_md_supercell_reps(md_supercell_reps)
+        self._set_trajectory_stride(trajectory_stride)
+        self._set_trajectory_skip(trajectory_skip)
+        self._set_trajectory_trim(trajectory_trim)
+        self._set_num_trajectory_blocks(num_trajectory_blocks)
+        self._set_trajectory_blocks(trajectory_blocks)
+        self._set_experiment_type(experiment_type) 
+        self._set_num_Qpoint_procs(num_Qpoint_procs)
+        self._set_Qpoints_option(Qpoints_option) 
 
         # could just read all of this stuff; this is just to make it lightweight 
         if self.Qpoints_option == 'mesh':
-            self._set_Q_mesh_H()
-            self._set_Q_mesh_K()
-            self._set_Q_mesh_L()
+            self._set_Q_mesh_H(Q_mesh_H)
+            self._set_Q_mesh_K(Q_mesh_K)
+            self._set_Q_mesh_L(Q_mesh_L)
 
         elif self.Qpoints_option == 'file':
-            self._set_Q_file() 
+            self._set_Q_file(Q_file) 
 
         elif self.Qpoints_option == 'path':
-            self._set_Q_path_start()
-            self._set_Q_path_end()
-            self._set_Q_path_steps()
+            self._set_Q_path_start(Q_path_start)
+            self._set_Q_path_end(Q_path_end)
+            self._set_Q_path_steps(Q_path_steps)
             
-        self._set_use_Qpoints_symmetry()
+        self._set_use_Qpoints_symmetry(use_Qpoints_symmetry)
         if self.use_Qpoints_symmetry:
-            self._set_symm_types()
-            self._set_symm_positions()
-            self._set_symm_lattice_vectors()
+            self._set_symm_types(symm_types)
+            self._set_symm_positions(symm_positions)
+            self._set_symm_lattice_vectors(symm_lattice_vectors)
    
         # --- add new variables parsers here ---
         # ...
@@ -146,13 +153,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_trajectory_stride(self):
+    def _set_trajectory_stride(self,trajectory_stride=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('trajectory_stride')
+        self._get_attr(trajectory_stride,'trajectory_stride')
 
         try:
             self.trajectory_stride = int(self.trajectory_stride)
@@ -168,13 +175,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_trajectory_skip(self):
+    def _set_trajectory_skip(self,trajectory_skip=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('trajectory_skip')
+        self._get_attr(trajectory_skip,'trajectory_skip')
 
         try:
             self.trajectory_skip = int(self.trajectory_skip)
@@ -190,13 +197,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_trajectory_trim(self):
+    def _set_trajectory_trim(self,trajectory_trim=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('trajectory_trim')
+        self._get_attr(trajectory_trim,'trajectory_trim')
 
         try:
             self.trajectory_trim = int(self.trajectory_trim)
@@ -212,13 +219,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_num_trajectory_blocks(self):
+    def _set_num_trajectory_blocks(self,num_trajectory_blocks=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('num_trajectory_blocks')
+        self._get_attr(num_trajectory_blocks,'num_trajectory_blocks')
 
         try:
             self.num_trajectory_blocks = int(self.num_trajectory_blocks)
@@ -234,13 +241,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_trajectory_blocks(self):
+    def _set_trajectory_blocks(self,trajectory_blocks=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('trajectory_blocks')
+        self._get_attr(trajectory_blocks,'trajectory_blocks')
 
         if self.trajectory_blocks is None:
             self.trajectory_blocks = np.arange(self.num_trajectory_blocks)
@@ -267,13 +274,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_Q_path_steps(self):
+    def _set_Q_path_steps(self,Q_path_steps=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('Q_path_steps')
+        self._get_attr(Q_path_steps,'Q_path_steps')
 
         msg = 'Q_path_steps seems wrong\n'
         try:
@@ -303,13 +310,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_Q_path_end(self):
+    def _set_Q_path_end(self,Q_path_end=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('Q_path_end')
+        self._get_attr(Q_path_end,'Q_path_end')
 
         msg = 'Q_path_end seems wrong\n'
         try:
@@ -327,13 +334,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_Q_path_start(self):
+    def _set_Q_path_start(self,Q_path_start=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('Q_path_start')
+        self._get_attr(Q_path_start,'Q_path_start')
         
         msg = 'Q_path_start seems wrong\n'
         try:
@@ -351,13 +358,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_Q_file(self):
+    def _set_Q_file(self,Q_file=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('Q_file')
+        self._get_attr(Q_file,'Q_file')
             
         self.Q_file = str(self.Q_file)
         self.Q_file = os.path.abspath(self.Q_file)
@@ -369,13 +376,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_Q_mesh_K(self):
+    def _set_Q_mesh_K(self,Q_mesh_K=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('Q_mesh_K')
+        self._get_attr(Q_mesh_K,'Q_mesh_K')
 
         msg = 'Q_mesh_K seems wrong\n'
         try:
@@ -398,13 +405,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_Q_mesh_L(self):
+    def _set_Q_mesh_L(self,Q_mesh_L=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('Q_mesh_L')
+        self._get_attr(Q_mesh_L,'Q_mesh_L')
 
         msg = 'Q_mesh_L seems wrong\n'
         try:
@@ -427,13 +434,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_Q_mesh_H(self):
+    def _set_Q_mesh_H(self,Q_mesh_H=None):
 
         """ 
         get the attribute 
         """
 
-        self._get_attr('Q_mesh_H')
+        self._get_attr(Q_mesh_H,'Q_mesh_H')
 
         msg = 'Q_mesh_H seems wrong\n'
         try:
@@ -456,13 +463,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_Qpoints_option(self):
+    def _set_Qpoints_option(self,Qpoints_option=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('Qpoints_option')
+        self._get_attr(Qpoints_option,'Qpoints_option')
 
         self.Qpoints_option = str(self.Qpoints_option)
 
@@ -474,13 +481,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_experiment_type(self):
+    def _set_experiment_type(self,experiment_type=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('experiment_type')
+        self._get_attr(experiment_type,'experiment_type')
 
         self.experiment_type = str(self.experiment_type)
 
@@ -492,13 +499,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_md_supercell_reps(self):
+    def _set_md_supercell_reps(self,md_supercell_reps=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('md_supercell_reps')
+        self._get_attr(md_supercell_reps,'md_supercell_reps')
 
         msg = 'md_supercell_reps seems wrong\n'
         try:
@@ -518,13 +525,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_md_num_atoms(self):
+    def _set_md_num_atoms(self,md_num_atoms=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('md_num_atoms')
+        self._get_attr(md_num_atoms,'md_num_atoms')
 
         self.md_num_atoms = int(self.md_num_atoms)
 
@@ -536,13 +543,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_md_num_steps(self):
+    def _set_md_num_steps(self,md_num_steps=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('md_num_steps')
+        self._get_attr(md_num_steps,'md_num_steps')
 
         self.md_num_steps = int(self.md_num_steps)
 
@@ -554,13 +561,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_md_time_step(self):
+    def _set_md_time_step(self,md_time_step=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('md_time_step')
+        self._get_attr(md_time_step,'md_time_step')
             
         self.md_time_step = float(self.md_time_step)
 
@@ -572,26 +579,26 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_output_prefix(self):
+    def _set_output_prefix(self,output_prefix=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('output_prefix')
+        self._get_attr(output_prefix,'output_prefix')
             
         self.output_prefix = str(self.output_prefix)
         print(f'output_prefix:\n  {self.output_prefix}')
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_output_directory(self):
+    def _set_output_directory(self,output_directory=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('output_directory')
+        self._get_attr(output_directory,'output_directory')
 
         # get the directory
         if self.output_directory is None:
@@ -603,78 +610,78 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_calc_rho_squared(self):
+    def _set_calc_rho_squared(self,calc_rho_squared=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('calc_rho_squared')
+        self._get_attr(calc_rho_squared,'calc_rho_squared')
 
         self.calc_rho_squared = bool(self.calc_rho_squared)
         print(f'calc_rho_squared:\n  {self.calc_rho_squared}')
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_calc_bragg(self):
+    def _set_calc_bragg(self,calc_bragg=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('calc_bragg')
+        self._get_attr(calc_bragg,'calc_bragg')
             
         self.calc_bragg = bool(self.calc_bragg)
         print(f'calc_bragg:\n  {self.calc_bragg}')
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_calc_diffuse(self):
+    def _set_calc_diffuse(self,calc_diffuse=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('calc_diffuse')
+        self._get_attr(calc_diffuse,'calc_diffuse')
             
         self.calc_diffuse = bool(self.calc_diffuse)
         print(f'calc_diffuse:\n  {self.calc_diffuse}')
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_calc_sqw(self):
+    def _set_calc_sqw(self,calc_sqw=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('calc_sqw')
+        self._get_attr(calc_sqw,'calc_sqw')
             
         self.calc_sqw = bool(self.calc_sqw)
         print(f'calc_sqw:\n  {self.calc_sqw}')
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_unwrap_trajectory(self):
+    def _set_unwrap_trajectory(self,unwrap_trajectory=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('unwrap_trajectory')
+        self._get_attr(unwrap_trajectory,'unwrap_trajectory')
 
         self.unwrap_trajectory = bool(self.unwrap_trajectory)
         print(f'unwrap_trajectory:\n  {self.unwrap_trajectory}')
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_trajectory_file(self):
+    def _set_trajectory_file(self,trajectory_file=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('trajectory_file')
+        self._get_attr(trajectory_file,'trajectory_file')
             
         self.trajectory_file = str(self.trajectory_file)
         self.trajectory_file = os.path.abspath(self.trajectory_file)
@@ -686,13 +693,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_trajectory_format(self):
+    def _set_trajectory_format(self,trajectory_format=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('trajectory_format')
+        self._get_attr(trajectory_format,'trajectory_format')
 
         msg = 'trajectory_format \'{self.trajectory_format}\' is unknown'
         if self.trajectory_format not in ['lammps_hdf5','external','user_hdf5']:
@@ -702,13 +709,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_lattice_vectors(self):
+    def _set_lattice_vectors(self,lattice_vectors=None):
         
         """
         get the attribute
         """
     
-        self._get_attr('lattice_vectors')
+        self._get_attr(lattice_vectors,'lattice_vectors')
 
         # check the shape
         msg = '\'lattice_vectors\' seems wrong\n'
@@ -731,7 +738,7 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_atom_types(self):
+    def _set_atom_types(self,atom_types=None):
 
         """
         get the attribute.
@@ -740,7 +747,7 @@ class c_config:
         types
         """
         
-        self._get_attr('atom_types')
+        self._get_attr(atom_types,'atom_types')
 
         self.num_types = len(self.atom_types)
 
@@ -753,13 +760,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_num_Qpoint_procs(self):
+    def _set_num_Qpoint_procs(self,num_Qpoint_procs=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('num_Qpoint_procs')
+        self._get_attr(num_Qpoint_procs,'num_Qpoint_procs')
         
         # check if allowed
         msg = '\'num_Qpoint_procs\' must be an integer that is > 0\n'
@@ -776,13 +783,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_symm_positions(self):
+    def _set_symm_positions(self,symm_positions=None):
         
         """
         get the attribute
         """
     
-        self._get_attr('symm_positions')
+        self._get_attr(symm_positions,'symm_positions')
         
         if self.symm_positions is None:
             msg = '\'symm_positions\' must be set if use_Qpoints_symmetry == True\n'
@@ -810,13 +817,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_symm_lattice_vectors(self):
+    def _set_symm_lattice_vectors(self,symm_lattice_vectors=None):
         
         """
         get the attribute
         """
     
-        self._get_attr('symm_lattice_vectors')
+        self._get_attr(symm_lattice_vectors,'symm_lattice_vectors')
         
         if self.symm_lattice_vectors is None:
             msg = '\'symm_lattice_vectors\' must be set if use_Qpoints_symmetry == True\n'
@@ -843,13 +850,13 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _set_symm_types(self):
+    def _set_symm_types(self,symm_types=None):
 
         """
         get the attribute.
         """
         
-        self._get_attr('symm_types')
+        self._get_attr(symm_types,'symm_types')
         
         if self.symm_types is None:
             msg = '\'symm_types\' must be set if use_Qpoints_symmetry == True\n'
@@ -871,42 +878,43 @@ class c_config:
         
     # ----------------------------------------------------------------------------------------------
 
-    def _set_use_Qpoints_symmetry(self):
+    def _set_use_Qpoints_symmetry(self,use_Qpoints_symmetry=None):
 
         """
         get the attribute
         """
 
-        self._get_attr('use_Qpoints_symmetry')
+        self._get_attr(use_Qpoints_symmetry,'use_Qpoints_symmetry')
             
         self.use_Qpoints_symmetry = bool(self.use_Qpoints_symmetry)
         print(f'use_Qpoints_symmetry:\n  {self.use_Qpoints_symmetry}')
 
     # ----------------------------------------------------------------------------------------------
     
-    def _get_attr(self,attr):
+    def _get_attr(self,arg,attr):
 
         """
-        check if given as arg in kwargs. if so, use arg. if not, check if given in
+        check if given as arg. if so, use arg. if not, check if given in
         input file. if not, use default.
         """
-
-        # check if arg is in kwargs
-        if attr in self.kwargs.keys():
-            arg = self.kwargs[attr]
-
-        # otherwise get from input file or defaults
-        else:
-
+        
+        # check if arg is not given
+        if arg is None:
+            
             # check if in input file
             if hasattr(self.input,attr):
-                arg = getattr(self.input,attr)
+                setattr(self,attr,getattr(self.input,attr))
 
             # otherwise use default
             else:
-                arg = getattr(self.defaults,attr)
-
-        setattr(self,attr,arg)
+                setattr(self,attr,getattr(self.defaults,attr))
+                
+        # use arg from function call
+        else:
+            setattr(self,attr,arg)
 
     # ----------------------------------------------------------------------------------------------
+
+
+
 
