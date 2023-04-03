@@ -28,7 +28,7 @@ def print_preamble():
     """
 
     preamble = '\n\n#######################################################################\n'
-    preamble += 'Pynamic Structure Factors \n'
+    preamble += 'Pynamic Structure Factor \n'
     preamble += 'author: Tyler C. Sterling\n'
     preamble += 'email: ty.sterling@colorado.edu\n'
     preamble += 'affil: Physics Dept., University of Colorado Boulder\n'

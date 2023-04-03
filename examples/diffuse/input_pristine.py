@@ -8,11 +8,11 @@ unwrap_trajectory = True
 
 # options for splitting up trajectory
 num_trajectory_blocks = 10
-trajectory_blocks = [0,4,8] 
+trajectory_blocks = [0,4,8]
 
 # options for writing results
 output_directory = 'out' #None
-output_prefix = 'psf'
+output_prefix = 'pristine'
 calc_bragg = True
 calc_rho_squared = True
 calc_diffuse = True
@@ -39,19 +39,10 @@ atom_types = ['Si']
 Qpoints_option = 'mesh' # mesh, file, or path
 
 # for 'Qpoints_option' == 'mesh' ; 
-Q_mesh_H = [0,6,73]
-Q_mesh_K = [0,6,73]
-Q_mesh_L = 0 
+Q_mesh_H = [-3,3,73]
+Q_mesh_K = [-3,3,73]
+Q_mesh_L = 2
 
-# 'Qpoints_option' == 'file'
-Q_file = 'Qpts.dat'
-
-# 'Qpoints_option' == 'path'
-Q_path_start = [[0,0,0],
-                [1,0,2]]
-Q_path_end = [[1,0,2],
-              [3,0,2]]
-Q_path_steps = [20,20]
 
 # number of processes to split Q-point parallelization over
 num_Qpoint_procs = 16
