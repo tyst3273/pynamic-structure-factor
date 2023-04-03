@@ -1,4 +1,4 @@
-the phonopy dir contains the POSCAR and FORCESETS file from a finite-difference 
+this dir contains the POSCAR and FORCESETS file from a finite-difference 
 harmonic phonon calculation using phonopy interfaced to LAMMPS. it used a 4x4x4
 expansion of the *conventional* cell and the SiCGe.tersoff Tersoff potential
 that is in the LAMMPS directory. using LAMMPS with phonopy is non-standard so i 

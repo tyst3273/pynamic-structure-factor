@@ -29,13 +29,10 @@ note about unwrapping:
         deviated by half a box length (i.e. outside the cell since the atom is at the
         center), shift it back. See e.g. Allen: "Computer Simulation of Liquids".
 
-        NOTE: this methods assumes lattice vectors and coordinates in traj file are in 
-        2*pi/whatever is used for the lattice vectors in the input file.
-
-        it also assumes that the simulationcell and underlying unitcell are orthorhombic. this
+        i also assume that the simulation cell and underlying unitcell are orthorhombic. this
         last restriction isnt super important and can be fixed by using the simulation box vectors
         to go to reduced coordinates in the simulation cell. then unwrapping is as easy as shifting
-        along each cartesian axis by +- 1.
+        along each cartesian axis by +- 1. I just haven't implemented this yet.
 
         the crystal lattice vectors don't really need to be orthorhombic at all... they are used
         to get Q in cartesian coords, at which point scattering for any simulation cell can be
@@ -48,6 +45,6 @@ new features ...
     can pretty easily calculate van-hove function. if we calculate S(Q,w) on uniform grid spanning
     large enough part of reciprocal space (large enough that intensity falls off ~> 0 for large Q)
     then we can inverse space FT to get G(r,t) (i.e. the green function). 
-    HAS to be done on mesh tho
+    HAS to be done on uniform mesh tho
 
 

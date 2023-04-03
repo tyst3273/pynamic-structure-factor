@@ -67,17 +67,6 @@ class c_config:
 
         # get defaults which are the allowed keywords... probably shouldt be hard-coded
         self.defaults = m_import.import_module('psf.defaults')
-        allowed = vars(self.defaults).keys()
-
-        # load input file
-        if self.input_file is not None:
-            self.input = m_import.import_module_from_path(self.input_file)
-
-            # check that all keywords in input file are allowed
-            for key in vars(self.input).keys():
-                if key not in allowed:
-                    msg = f'the keyword \'{key}\' is unknown\n'
-                    crash(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -902,29 +891,30 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
     
-    def _get_attr(self,attr):
+    def _get_attr(self,arg,attr):
 
         """
-        check if given as arg in kwargs. if so, use arg. if not, check if given in
+        check if given as arg. if so, use arg. if not, check if given in
         input file. if not, use default.
         """
-
-        # check if arg is in kwargs
-        if attr in self.kwargs.keys():
-            arg = self.kwargs[attr]
-
-        # otherwise get from input file or defaults
-        else:
-
+        
+        # check if arg is not given
+        if arg is None:
+            
             # check if in input file
             if hasattr(self.input,attr):
-                arg = getattr(self.input,attr)
+                setattr(self,attr,getattr(self.input,attr))
 
             # otherwise use default
             else:
-                arg = getattr(self.defaults,attr)
-
-        setattr(self,attr,arg)
+                setattr(self,attr,getattr(self.defaults,attr))
+                
+        # use arg from function call
+        else:
+            setattr(self,attr,arg)
 
     # ----------------------------------------------------------------------------------------------
+
+
+
 
