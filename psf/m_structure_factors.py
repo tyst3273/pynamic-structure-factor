@@ -44,15 +44,19 @@ class c_structure_factors:
         self.timers = timers
 
         self.calc_sqw = config.calc_sqw
-        self.calc_diffuse = config.calc_diffuse
-        self.calc_bragg = config.calc_bragg
 
         _num_Q = self.comm.Qpoints.num_Q
         _num_steps = self.comm.traj.num_block_steps
 
         self.exp_iQr = np.zeros((_num_Q,_num_steps),dtype=complex)
 
-        # set stuff up
+        # always calculated
+        self.sq_elastic = np.zeros(_num_Q,dtype=float)
+        msg = '\n*** elastic intensity ***\ncalculating elastic intensity\n'
+        msg += '  |<exp(iQ.r(t))>|**2 '
+        print(msg)
+
+        # optional
         if self.calc_sqw:
             self._setup_energies()
             self.sqw = np.zeros((_num_Q,self.num_energy),dtype=float)
@@ -64,20 +68,6 @@ class c_structure_factors:
             msg += f' {self.energy_step/_thz2meV: 8.6f} (tHz)\n'
             msg += f'energy_max:\n {self.energy_max: 8.4f} (meV)\n'
             msg += f' {self.energy_max/_thz2meV: 8.4f} (tHz)'
-            print(msg)
-
-        if self.calc_diffuse:   
-            self.sq_diffuse = np.zeros(_num_Q,dtype=float)
-
-            msg = '\n*** diffuse intensity ***\ncalculating diffuse intensity \n'
-            msg += '  <|exp(iQ.r(t))|**2> '
-            print(msg)
-
-        if self.calc_bragg:
-            self.sq_bragg = np.zeros(_num_Q,dtype=float)
-
-            msg = '\n*** bragg intensity ***\ncalculating bragg intensity\n'
-            msg += '  |<exp(iQ.r(t))>|**2 '
             print(msg)
 
     # ----------------------------------------------------------------------------------------------
@@ -138,10 +128,9 @@ class c_structure_factors:
         # and by number of steps to normalize vs traj. length
         _num_steps = self.comm.traj.num_block_steps
         _num_atoms = self.comm.traj.num_atoms
-        if self.calc_bragg:
-            self.sq_bragg /= _num_blocks*_num_atoms*_num_steps
-        if self.calc_diffuse:
-            self.sq_diffuse /= _num_blocks*_num_atoms*_num_steps
+
+        self.sq_elastic /= _num_blocks*_num_atoms*_num_steps
+
         if self.calc_sqw:
             self.sqw /= _num_blocks*_num_atoms*_num_steps 
 
@@ -203,14 +192,10 @@ class c_structure_factors:
         take exp_iQr and calculate everything from it
         """
 
-        if self.calc_bragg:
-            self.sq_bragg += np.abs(np.mean(exp_iQr,axis=1))**2
-
-        if self.calc_diffuse:
-            self.sq_diffuse += np.mean(np.abs(exp_iQr)**2,axis=1)
+        self.sq_elastic += np.abs(np.mean(exp_iQr,axis=1))**2
 
         if self.calc_sqw:
-            self.sqw += np.abs(fft(exp_iQr,axis=1))**2
+            self.sqw += np.abs(fft(exp_iQr,axis=1,norm='forward'))**2
 
     # ----------------------------------------------------------------------------------------------
 
@@ -284,10 +269,8 @@ class c_structure_factors:
 
         if self.calc_sqw:
             self.sqw = self.comm.Qpoints.unfold_onto_Q_mesh(self.sqw)
-        if self.calc_diffuse:
-            self.sq_diffuse = self.comm.Qpoints.unfold_onto_Q_mesh(self.sq_diffuse)
-        if self.calc_bragg:
-            self.sq_bragg = self.comm.Qpoints.unfold_onto_Q_mesh(self.sq_bragg)
+
+        self.sq_elastic = self.comm.Qpoints.unfold_onto_Q_mesh(self.sq_elastic)
 
     # ----------------------------------------------------------------------------------------------
 

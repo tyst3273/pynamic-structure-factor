@@ -112,20 +112,6 @@ output_prefix = 'psf'
 
 # --------------------------------------------------------------------------------------------------
 """
-description: calculate bragg scattering: |<exp(iQ.r(t))>|**2
-type: bool
-"""
-calc_bragg = True
-
-# --------------------------------------------------------------------------------------------------
-"""
-description: calculate diffuse scattering: <|exp(iQ.r(t))|>**2
-type: bool
-"""
-calc_diffuse = True
-
-# --------------------------------------------------------------------------------------------------
-"""
 description: calculate S(Q,w): S(Q,w) =  | \int dt exp(iQ.r(t)-iwt) |**2
 type: bool
 """

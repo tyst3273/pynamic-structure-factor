@@ -8,8 +8,8 @@ PSF = c_PSF(input_file)
 
 
 # options can be over written here and passed as args below
-num_trajectory_blocks = 4
-trajectory_blocks = None
+num_trajectory_blocks = 40
+trajectory_blocks = 0 #None
 num_Qpoint_procs = 16
 
 

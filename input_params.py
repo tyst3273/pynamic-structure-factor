@@ -1,24 +1,17 @@
 
 # options for where to get data/preprocessing
 trajectory_format = 'lammps_hdf5' 
-trajectory_file = \
-    '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/pos.h5'
-#    '/home/ty/research/projects/psf_data/pos.h5'
-#    '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/pos.h5'
+trajectory_file = '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/pos.h5'
 
-# '/home/ty/research/projects/psf_data/pos.h5'
 unwrap_trajectory = True
 
 # options for splitting up trajectory
 num_trajectory_blocks = 10
-trajectory_blocks = [0] #None 
+trajectory_blocks = None 
 
 # options for writing results
-output_directory = 'out' #None
+output_directory = 'out' 
 output_prefix = 'psf'
-calc_bragg = True
-calc_diffuse = True
-calc_sqw = True
 
 # simulation options
 md_time_step = 16 # femtoseconds; time step IN FILE, not used in simulation

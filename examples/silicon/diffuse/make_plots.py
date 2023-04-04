@@ -19,16 +19,13 @@ fig_name = 'silicon_elastic_neutrons.pdf'
 
 reader = c_reader('./out/pristine_neutrons_STRUFACS.hdf5')
 reader.read_diffuse()
+pn_sqw = reader.sq_diffuse[:,:,0]
 
 H = reader.H
 K = reader.K
 
-pn_sqw = reader.sq_diffuse[:,:,0]
-
-
 reader = c_reader('./out/substitutions_neutrons_STRUFACS.hdf5')
 reader.read_diffuse()
-
 vn_sqw = reader.sq_diffuse[:,:,0]
 
 cmap = 'viridis'

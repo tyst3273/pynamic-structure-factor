@@ -13,9 +13,6 @@ trajectory_blocks = [0,4,8]
 # options for writing results
 output_directory = 'out' #None
 output_prefix = 'pristine'
-calc_bragg = True
-calc_diffuse = True
-calc_sqw = True
 
 # simulation inputs
 md_time_step = 16     # femtoseconds; time step IN FILE, not Verlet time step

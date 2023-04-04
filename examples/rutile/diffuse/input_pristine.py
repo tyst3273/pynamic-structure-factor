@@ -8,14 +8,11 @@ unwrap_trajectory = True
 
 # options for splitting up trajectory
 num_trajectory_blocks = 10
-trajectory_blocks = 0
+trajectory_blocks = [0]
 
 # options for writing results
 output_directory = 'out' #None
 output_prefix = 'pristine'
-calc_bragg = True
-calc_diffuse = True
-calc_sqw = True
 
 # simulation inputs
 md_time_step = 16     # femtoseconds; time step IN FILE, not Verlet time step
@@ -37,13 +34,16 @@ experiment_type = 'neutrons' # 'neutrons' or 'xrays'
 atom_types = ['Ti','O']
 
 # options for how to generate Q-points for calculation
-Qpoints_option = 'mesh' # mesh, file, or path
+Qpoints_option = 'mesh' #'mesh' # mesh, file, or path
 
 # for 'Qpoints_option' == 'mesh' ; 
-Q_mesh_H = [0,6,73]
-Q_mesh_K = [0,6,73]
-Q_mesh_L = 2
+#Q_mesh_H = [0,6,73]
+#Q_mesh_K = [0,6,73]
+#Q_mesh_L = 2
 
+Q_mesh_H = [0,4,49]
+Q_mesh_K = [0,4,49]
+Q_mesh_L = 2
 
 # number of processes to split Q-point parallelization over
 num_Qpoint_procs = 16

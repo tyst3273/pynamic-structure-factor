@@ -99,8 +99,6 @@ class c_config:
             self._set_trajectory_file()
 
         self._set_unwrap_trajectory()
-        self._set_calc_bragg()
-        self._set_calc_diffuse()
         self._set_calc_sqw()
 
         self._set_lattice_vectors()
@@ -576,32 +574,6 @@ class c_config:
             self.output_directory = os.path.abspath(self.output_directory)
 
         print(f'output_directory:\n  {self.output_directory}')
-
-    # ----------------------------------------------------------------------------------------------
-
-    def _set_calc_bragg(self):
-
-        """
-        get the attribute
-        """
-
-        self._get_attr('calc_bragg')
-            
-        self.calc_bragg = bool(self.calc_bragg)
-        print(f'calc_bragg:\n  {self.calc_bragg}')
-
-    # ----------------------------------------------------------------------------------------------
-
-    def _set_calc_diffuse(self):
-
-        """
-        get the attribute
-        """
-
-        self._get_attr('calc_diffuse')
-            
-        self.calc_diffuse = bool(self.calc_diffuse)
-        print(f'calc_diffuse:\n  {self.calc_diffuse}')
 
     # ----------------------------------------------------------------------------------------------
 

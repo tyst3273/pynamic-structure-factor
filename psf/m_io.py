@@ -73,12 +73,10 @@ class c_writer:
         # write header now; otherwise the other methods do if called independently
         self._write_header()
 
+        self._write_elastic()
+
         if self.config.calc_sqw:
-            self.write_sqw()
-        if self.config.calc_diffuse:
-            self.write_diffuse()
-        if self.config.calc_bragg:
-            self.write_bragg()
+            self._write_sqw()
 
     # ----------------------------------------------------------------------------------------------
 
@@ -121,7 +119,7 @@ class c_writer:
 
     # ----------------------------------------------------------------------------------------------
     
-    def write_sqw(self):
+    def _write_sqw(self):
 
         """
         write S(Q,w) info to file
@@ -139,34 +137,17 @@ class c_writer:
 
     # ----------------------------------------------------------------------------------------------
 
-    def write_bragg(self):
+    def _write_elastic(self):
 
         """
-        write bragg info to file
-        """
-
-        self._write_header()
-
-        try:
-            with h5py.File(self.output_file,'a') as db:
-                db.create_dataset('sq_bragg',data=self.comm.strufacs.sq_bragg)
-
-        except Exception as _ex:
-            crash(self.crash_msg,_ex)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def write_diffuse(self):
-
-        """
-        write S(Q,w) info to file
+        write elastic info to file
         """
 
         self._write_header()
 
         try:
             with h5py.File(self.output_file,'a') as db:
-                db.create_dataset('sq_diffuse',data=self.comm.strufacs.sq_diffuse)
+                db.create_dataset('sq_elastic',data=self.comm.strufacs.sq_elastic)
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -249,34 +230,17 @@ class c_reader:
 
     # ----------------------------------------------------------------------------------------------
 
-    def read_bragg(self):
+    def read_elastic(self):
 
         """
-        read bragg intensity
-        """
-
-        self._read_header()
-
-        try:
-            with h5py.File(self.input_file,'r') as db:
-                self.sq_bragg = db['sq_bragg'][...]
-
-        except Exception as _ex:
-            crash(self.crash_msg,_ex)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def read_diffuse(self):
-
-        """
-        read diffuse intensity
+        read elastic intensity
         """
 
         self._read_header()
 
         try:
             with h5py.File(self.input_file,'r') as db:
-                self.sq_diffuse = db['sq_diffuse'][...]
+                self.sq_elastic = db['sq_elastic'][...]
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)

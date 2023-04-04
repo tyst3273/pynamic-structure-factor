@@ -17,24 +17,28 @@ def get_inds(energy,emin,emax):
 fig_name = 'rutile_elastic_neutrons.pdf'
 
 
-reader = c_reader('./out/pristine_neutrons_STRUFACS.hdf5')
-reader.read_diffuse()
+reader = c_reader('./out/pristine_STRUFACS.hdf5')
+reader.read_elastic()
 
 H = reader.H
 K = reader.K
 
-pn_sqw = reader.sq_diffuse[:,:,0]
+pn_sqw = reader.sq_elastic[:,:,0]
 
 
-reader = c_reader('./out/vacancies_neutrons_STRUFACS.hdf5')
-reader.read_diffuse()
+# reader = c_reader('./out/vacancies_neutrons_STRUFACS.hdf5')
+# reader.read_diffuse()
+# vn_sqw = reader.sq_diffuse[:,:,0]
 
-vn_sqw = reader.sq_diffuse[:,:,0]
+reader = c_reader('./out/pristine_STRUFACS.hdf5')
+reader.read_sqw()
+
+vn_sqw = reader.sqw[:,:,0,:].sum(axis=2)
 
 cmap = 'viridis'
 interp = 'none'
 vmin = 0
-vmax = 1
+vmax = 15
 c = (1,1,1)
 
 fig, ax = plt.subplots(1,2,figsize=(8,3.25),gridspec_kw={'wspace':0.1,'hspace':0.1})
