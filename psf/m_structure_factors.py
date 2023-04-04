@@ -206,7 +206,7 @@ class c_structure_factors:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _calculate_on_block(self,_block):
+    def _calculate_on_block(self,block):
 
         """
         reads data for a block, distributes data over procs, runs them, collects data, 
@@ -219,7 +219,7 @@ class c_structure_factors:
         _num_procs = self.comm.paral.num_Qpoint_procs
 
         # get the trajectory from the file
-        self.comm.traj.read_trajectory_block(_block)
+        self.comm.traj.read_trajectory_block(block)
 
         # Queue for passing data between procs
         self.queue = mp.Queue()

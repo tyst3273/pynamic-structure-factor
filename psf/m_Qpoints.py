@@ -80,6 +80,7 @@ class c_Qpoints:
         self.get_cartesian_Qpoints()
 
         #np.savetxt('Qrlu',self.Q_rlu,fmt='%5.3f')
+        #np.savetxt('Qcart',self.Q_cart,fmt='%5.3f')
 
         # print the Q-points to user
         msg = f'\n*** Q-points ***\nnumber of Q-points: {self.num_Q:g}\n'
