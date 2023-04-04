@@ -9,16 +9,16 @@ mpl.rcParams['text.latex.preamble'] = r"\usepackage{bm}"
 from psf.m_io import c_reader
 
 
-fig_name = 'rutile_phonons_neutrons.pdf'
+fig_name = 'rutile_phonons_xrays.pdf'
 
 
-reader = c_reader('./out/pristine_neutrons_STRUFACS.hdf5')
+reader = c_reader('./out/pristine_xrays_STRUFACS.hdf5')
 reader.read_sqw()
 Q_rlu = reader.Q_rlu
 energy = reader.energy
 pn_sqw = reader.sqw
 
-reader = c_reader('./out/vacancies_neutrons_STRUFACS.hdf5')
+reader = c_reader('./out/vacancies_xrays_STRUFACS.hdf5')
 reader.read_sqw()
 Q_rlu = reader.Q_rlu
 vn_sqw = reader.sqw
