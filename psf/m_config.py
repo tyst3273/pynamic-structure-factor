@@ -247,6 +247,8 @@ class c_config:
             except:
                 crash(msg)
 
+        if self.trajectory_blocks.ndim == 0:
+            self.trajectory_blocks.shape = [1,]
         if len(self.trajectory_blocks.shape) != 1:
             crash(msg)
 
