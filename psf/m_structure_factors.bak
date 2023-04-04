@@ -19,7 +19,7 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
-from scipy.fft import fft
+from scipy.fft import fft, ifft
 import multiprocessing as mp
 
 from psf.m_timing import _timer
@@ -46,11 +46,9 @@ class c_structure_factors:
         self.calc_sqw = config.calc_sqw
         self.calc_diffuse = config.calc_diffuse
         self.calc_bragg = config.calc_bragg
+        self.calc_rho_squared = config.calc_rho_squared
 
         _num_Q = self.comm.Qpoints.num_Q
-        _num_steps = self.comm.traj.num_block_steps
-
-        self.exp_iQr = np.zeros((_num_Q,_num_steps),dtype=complex)
 
         # set stuff up
         if self.calc_sqw:
@@ -58,12 +56,18 @@ class c_structure_factors:
             self.sqw = np.zeros((_num_Q,self.num_energy),dtype=float)
 
             msg = '\n*** dynamic structure factor ***\n'
-            msg += '  |FT[exp(iQ.r(t))]|**2 \n\n'
             msg += f'num_energy: {self.num_energy}\n'
             msg += f'energy_step:\n {self.energy_step: 8.6f} (meV)\n'
             msg += f' {self.energy_step/_thz2meV: 8.6f} (tHz)\n'
             msg += f'energy_max:\n {self.energy_max: 8.4f} (meV)\n'
             msg += f' {self.energy_max/_thz2meV: 8.4f} (tHz)'
+            print(msg)
+
+        if self.calc_rho_squared:
+            self.rho_sq = np.zeros((_num_Q,self.comm.traj.num_block_steps),dtype=float)
+
+            msg = '\n*** rho squared ***\ncalculating \'rho squared\'\n'
+            msg += '  |exp(iQ.r(t))|**2'
             print(msg)
 
         if self.calc_diffuse:   
@@ -144,8 +148,61 @@ class c_structure_factors:
             self.sq_diffuse /= _num_blocks*_num_atoms*_num_steps
         if self.calc_sqw:
             self.sqw /= _num_blocks*_num_atoms*_num_steps 
+        if self.calc_rho_squared:
+            self.rho_sq /= _num_blocks*_num_atoms*_num_steps
 
         self.timers.stop_timer('calc_strufacs')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _get_res_list(self,proc):
+
+        """
+        parse the 'results' list returned by _proc_loop_on_Q(); put the data in appropriate
+        arrays
+        """
+
+        res = [proc]
+        if self.calc_bragg:
+            res.append(self._sq_bragg)
+        if self.calc_rho_squared:
+            res.append(self._rho_sq)
+        if self.calc_diffuse:
+            res.append(self._sq_diffuse)
+        if self.calc_sqw:
+            res.append(self._sqw)
+
+        return res
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _get_arrays_from_res(self,res):
+
+        """
+        parse the 'results' list returned by _proc_loop_on_Q(); put the data in appropriate
+        arrays
+        """
+
+        # get the proc
+        proc = res[0]
+        res.pop(0)
+
+        # get the Q-point indices this proc did
+        Q_inds = self.comm.paral.Qpts_on_proc[proc]
+
+        # get the data and put on correct Qpts
+        if self.calc_bragg:
+            self.sq_bragg[Q_inds] += res[0]
+            res.pop(0)
+        if self.calc_rho_squared:
+            self.rho_sq[Q_inds,:] += res[0]
+            res.pop(0)
+        if self.calc_diffuse:
+            self.sq_diffuse[Q_inds] += res[0]
+            res.pop(0)
+        if self.calc_sqw:
+            self.sqw[Q_inds,:] += res[0]
+            res.pop(0)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -177,10 +234,8 @@ class c_structure_factors:
 
         # get the results from queue
         for _proc in range(_num_procs):
-
-            proc, exp_iQr = self.queue.get()
-            Q_inds = self.comm.paral.Qpts_on_proc[proc]
-            self.exp_iQr[Q_inds,:] = exp_iQr[...]
+            _res = self.queue.get()
+            self._get_arrays_from_res(_res)
 
         # close queue, kill it
         self.queue.close()
@@ -191,26 +246,49 @@ class c_structure_factors:
             _proc.join()
             _proc.close()
 
-        self._calc_strufacs(self.exp_iQr)
-
         self.timers.stop_timer('calc_on_block')
 
     # ----------------------------------------------------------------------------------------------
 
-    def _calc_strufacs(self,exp_iQr):
+    def _get_empty_strufac_arrays(self,nQ,proc=0):
 
         """
-        take exp_iQr and calculate everything from it
+        get empty arrays that are used repeatedly to keep from having to allocate/reallocate
+        """
+
+        if self.calc_sqw:
+            _num_energy = self.num_energy
+            self._sqw = np.zeros((nQ,_num_energy),dtype=float)
+
+        if self.calc_diffuse or self.calc_rho_squared:
+            _num_steps = self.comm.traj.num_block_steps
+            self._rho_sq = np.zeros((nQ,_num_steps),dtype=float)
+
+        if self.calc_diffuse:
+            self._sq_diffuse = np.zeros(nQ,dtype=float)
+
+        if self.calc_bragg:
+            self._sq_bragg = np.zeros(nQ,dtype=float)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _calc_strufacs(self,exp_iQr,ind):
+
+        """
+        calculate whatever was requested ... sorry for the spaghetti logic
         """
 
         if self.calc_bragg:
-            self.sq_bragg += np.abs(np.mean(exp_iQr,axis=1))**2
+            self._sq_bragg[ind] = np.abs((exp_iQr).mean())**2
+
+        if self.calc_diffuse or self.calc_rho_squared:
+            self._rho_sq[ind,:] = np.abs(exp_iQr)**2
 
         if self.calc_diffuse:
-            self.sq_diffuse += np.mean(np.abs(exp_iQr)**2,axis=1)
+            self._sq_diffuse[ind] = self._rho_sq[ind,:].mean()
 
         if self.calc_sqw:
-            self.sqw += np.abs(fft(exp_iQr,axis=1))**2
+            self._sqw[ind,:] = np.abs(fft(exp_iQr))**2
 
     # ----------------------------------------------------------------------------------------------
 
@@ -230,7 +308,8 @@ class c_structure_factors:
         _Qpts = self.comm.Qpoints.Q_cart[_Qpt_inds,:]
         _nQ = _Qpts.shape[0]
 
-        exp_iQr = np.zeros((_nQ,_num_steps),dtype=complex)
+        # get empty arrays
+        self._get_empty_strufac_arrays(_nQ)
 
         # get this for neutrons once and for all
         if _exp_type == 'neutrons':
@@ -261,10 +340,14 @@ class c_structure_factors:
             _exp_iQr = np.exp(1j*_exp_iQr)*_x_tile
             _exp_iQr = np.sum(_exp_iQr,axis=1)
 
-            exp_iQr[ii,:] = _exp_iQr
+            # get different arrays depending on what is requested
+            self._calc_strufacs(_exp_iQr,ii)
+
+        # return list of results
+        res = self._get_res_list(proc)
 
         # put results in queue to be passed to main proc
-        self.queue.put([proc,exp_iQr])
+        self.queue.put(res)
         
     # ---------------------------------------------------------------------------------------------- 
 
@@ -284,6 +367,8 @@ class c_structure_factors:
 
         if self.calc_sqw:
             self.sqw = self.comm.Qpoints.unfold_onto_Q_mesh(self.sqw)
+        if self.calc_rho_squared:
+            self.rho_sq = self.comm.Qpoints.unfold_onto_Q_mesh(self.rho_sq)
         if self.calc_diffuse:
             self.sq_diffuse = self.comm.Qpoints.unfold_onto_Q_mesh(self.sq_diffuse)
         if self.calc_bragg:

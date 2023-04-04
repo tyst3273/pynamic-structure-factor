@@ -79,8 +79,6 @@ class c_writer:
             self.write_diffuse()
         if self.config.calc_bragg:
             self.write_bragg()
-        if self.config.calc_rho_squared:
-            self.write_rho_squared()
 
     # ----------------------------------------------------------------------------------------------
 
@@ -152,23 +150,6 @@ class c_writer:
         try:
             with h5py.File(self.output_file,'a') as db:
                 db.create_dataset('sq_bragg',data=self.comm.strufacs.sq_bragg)
-
-        except Exception as _ex:
-            crash(self.crash_msg,_ex)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def write_rho_squared(self):
-
-        """
-        write |exp(iQ.r(t))|**2 to file
-        """
-
-        self._write_header()
-
-        try:
-            with h5py.File(self.output_file,'a') as db:
-                db.create_dataset('rho_sq',data=self.comm.strufacs.rho_sq)
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -302,22 +283,6 @@ class c_reader:
 
     # ----------------------------------------------------------------------------------------------
 
-    def read_rho_squared(self):
-
-        """
-        read rho squared
-        """
-
-        self._read_header()
-
-        try:
-            with h5py.File(self.input_file,'r') as db:
-                self.rho_sq = db['rho_sq'][...]
-
-        except Exception as _ex:
-            crash(self.crash_msg,_ex)
-
-    # ----------------------------------------------------------------------------------------------
 
 
 

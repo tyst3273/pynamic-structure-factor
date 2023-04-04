@@ -7,14 +7,13 @@ trajectory_file = '../lammps/pristine/pos.h5'
 unwrap_trajectory = True
 
 # options for splitting up trajectory
-num_trajectory_blocks = 4
+num_trajectory_blocks = 10
 trajectory_blocks = 0
 
 # options for writing results
 output_directory = 'out' #None
 output_prefix = 'pristine'
 calc_bragg = True
-calc_rho_squared = True
 calc_diffuse = True
 calc_sqw = True
 

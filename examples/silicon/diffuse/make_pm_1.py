@@ -26,8 +26,8 @@ K = reader.K
 energy = reader.energy
 pn_sqw = reader.sqw[:,:,0,:]
 
-e_inds = get_inds(energy,-1,1)
-print(energy[e_inds])
+e_inds = get_inds(energy,-0.01,0.01)
+
 
 pn_sqw = pn_sqw[:,:,e_inds]
 pn_sqw = pn_sqw.sum(axis=2)
@@ -49,7 +49,7 @@ num_e = energy.size//2
 cmap = 'viridis'
 interp = 'none'
 vmin = 0
-vmax = 5000
+vmax = 2000
 c = (1,1,1)
 
 fig, ax = plt.subplots(1,2,figsize=(8,3.25),gridspec_kw={'wspace':0.1,'hspace':0.1})

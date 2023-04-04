@@ -34,7 +34,7 @@ vn_sqw = reader.sq_diffuse[:,:,0]
 cmap = 'viridis'
 interp = 'none'
 vmin = 0
-vmax = 0.2
+vmax = 1
 c = (1,1,1)
 
 fig, ax = plt.subplots(1,2,figsize=(8,3.25),gridspec_kw={'wspace':0.1,'hspace':0.1})

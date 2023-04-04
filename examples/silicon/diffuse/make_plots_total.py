@@ -44,7 +44,7 @@ num_e = energy.size//2
 cmap = 'viridis'
 interp = 'none'
 vmin = 0
-vmax = 5000
+vmax = 8000
 c = (1,1,1)
 
 fig, ax = plt.subplots(1,2,figsize=(8,3.25),gridspec_kw={'wspace':0.1,'hspace':0.1})

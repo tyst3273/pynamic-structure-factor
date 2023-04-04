@@ -17,7 +17,6 @@ trajectory_blocks = [0] #None
 output_directory = 'out' #None
 output_prefix = 'psf'
 calc_bragg = True
-calc_rho_squared = True
 calc_diffuse = True
 calc_sqw = True
 

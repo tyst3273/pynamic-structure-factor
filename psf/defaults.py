@@ -119,13 +119,6 @@ calc_bragg = True
 
 # --------------------------------------------------------------------------------------------------
 """
-description: calculate 'rho' squared: rho = exp(iQ.r(t)), rho squared = |exp(iQ.r(t))|**2
-type: bool
-"""
-calc_rho_squared = True
-
-# --------------------------------------------------------------------------------------------------
-"""
 description: calculate diffuse scattering: <|exp(iQ.r(t))|>**2
 type: bool
 """

@@ -14,7 +14,6 @@ trajectory_blocks = [0,4,8]
 output_directory = 'out' #None
 output_prefix = 'pristine'
 calc_bragg = True
-calc_rho_squared = True
 calc_diffuse = True
 calc_sqw = True
 
