@@ -14,27 +14,27 @@ def get_inds(energy,emin,emax):
 
 
 
-fig_name = 'rutile_elastic_xrays.pdf'
+fig_name = 'silicon_elastic_xrays.pdf'
 
 
-reader = c_reader('./out/pristine_xrays_STRUFACS.hdf5')
-reader.read_diffuse()
+reader = c_reader('./../out/pristine_xrays_STRUFACS.hdf5')
+reader.read_elastic()
 
 H = reader.H
 K = reader.K
 
-pn_sqw = reader.sq_diffuse[:,:,0]
+pn_sqw = reader.sq_elastic[:,:,0]
 
 
-reader = c_reader('./out/vacancies_xrays_STRUFACS.hdf5')
-reader.read_diffuse()
+reader = c_reader('./../out/substitutions_xrays_STRUFACS.hdf5')
+reader.read_elastic()
 
-vn_sqw = reader.sq_diffuse[:,:,0]
+vn_sqw = reader.sq_elastic[:,:,0]
 
 cmap = 'viridis'
 interp = 'none'
 vmin = 0
-vmax = 1
+vmax = 5e-1
 c = (1,1,1)
 
 fig, ax = plt.subplots(1,2,figsize=(8,3.25),gridspec_kw={'wspace':0.1,'hspace':0.1})
@@ -59,8 +59,8 @@ for ii in range(2):
     ax[ii].tick_params(which='both',width=1,labelsize='medium')
     ax[ii].tick_params(which='major',length=5)
     ax[ii].tick_params(which='minor',length=2)
-    ax[ii].set_xticks([0,1,2,3,4,5,6])
-    ax[ii].set_yticks([0,1,2,3,4,5,6])
+    ax[ii].set_xticks([-3,-2,-1,0,1,1,3])
+    ax[ii].set_xticks([-3,-2,-1,0,1,1,3])
     ax[ii].set_rasterized(True)
 
 
@@ -71,7 +71,7 @@ ax[0].set_xlabel('H (rlu)',labelpad=4,fontsize='large')
 ax[1].set_xlabel('H (rlu)',labelpad=4,fontsize='large')
 
 ax[0].annotate(r'pristine',xy=(0.05,0.05),xycoords='axes fraction',fontsize='large',color=c)
-ax[1].annotate('10\% O\nvacancies',xy=(0.02,0.02),
+ax[1].annotate('10\% Ge\nsubstitutions',xy=(0.02,0.02),
                            xycoords='axes fraction',fontsize='large',color=c)
 
 

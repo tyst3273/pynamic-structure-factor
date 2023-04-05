@@ -35,8 +35,8 @@ atom_types = ['Si']
 Qpoints_option = 'mesh' # mesh, file, or path
 
 # for 'Qpoints_option' == 'mesh' ; 
-Q_mesh_H = [0,6,73]
-Q_mesh_K = [0,6,73]
+Q_mesh_H = [-3,3,73]
+Q_mesh_K = [-3,3,73]
 Q_mesh_L = 2
 
 

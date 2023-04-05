@@ -9,15 +9,15 @@ from psf.m_io import c_reader
 
 def get_inds(energy,emin,emax):
     inds = np.flatnonzero(energy <= emax)
-    inds = np.intersect1d(np.flatnonzero(energy >= emin),inds)
+    inds = np.intersect1d(np.flatnonzero(energy >= emin))
     return inds
 
 
 
-fig_name = 'rutile_pm_1_xrays.pdf'
+fig_name = 'rutile_total_xrays.pdf'
 
 
-reader = c_reader('./out/pristine_xrays_STRUFACS.hdf5')
+reader = c_reader('./../out/pristine_xrays_STRUFACS.hdf5')
 reader.read_sqw()
 
 H = reader.H
@@ -26,17 +26,13 @@ K = reader.K
 energy = reader.energy
 pn_sqw = reader.sqw[:,:,0,:]
 
-e_inds = get_inds(energy,-1,1)
-
-pn_sqw = pn_sqw[:,:,e_inds]
 pn_sqw = pn_sqw.sum(axis=2)
 
 
-reader = c_reader('./out/vacancies_xrays_STRUFACS.hdf5')
+reader = c_reader('./../out/vacancies_xrays_STRUFACS.hdf5')
 reader.read_sqw()
 vn_sqw = reader.sqw[:,:,0,:]
 
-vn_sqw = vn_sqw[:,:,e_inds]
 vn_sqw = vn_sqw.sum(axis=2)
 
 

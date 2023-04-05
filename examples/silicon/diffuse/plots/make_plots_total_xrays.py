@@ -9,15 +9,15 @@ from psf.m_io import c_reader
 
 def get_inds(energy,emin,emax):
     inds = np.flatnonzero(energy <= emax)
-    inds = np.intersect1d(np.flatnonzero(energy >= emin),inds)
+    inds = np.intersect1d(np.flatnonzero(energy >= emin))
     return inds
 
 
 
-fig_name = 'silicon_pm_1_neutrons.pdf'
+fig_name = 'silicon_total_xrays.pdf'
 
 
-reader = c_reader('./out/pristine_neutrons_STRUFACS.hdf5')
+reader = c_reader('./../out/pristine_xrays_STRUFACS.hdf5')
 reader.read_sqw()
 
 H = reader.H
@@ -26,20 +26,14 @@ K = reader.K
 energy = reader.energy
 pn_sqw = reader.sqw[:,:,0,:]
 
-e_inds = get_inds(energy,-0.01,0.01)
-
-
-pn_sqw = pn_sqw[:,:,e_inds]
 pn_sqw = pn_sqw.sum(axis=2)
 
 
-reader = c_reader('./out/substitutions_neutrons_STRUFACS.hdf5')
+reader = c_reader('./../out/substitutions_xrays_STRUFACS.hdf5')
 reader.read_sqw()
 vn_sqw = reader.sqw[:,:,0,:]
 
-vn_sqw = vn_sqw[:,:,e_inds]
 vn_sqw = vn_sqw.sum(axis=2)
-
 
 
 
@@ -49,7 +43,7 @@ num_e = energy.size//2
 cmap = 'viridis'
 interp = 'none'
 vmin = 0
-vmax = 2000
+vmax = 0.25
 c = (1,1,1)
 
 fig, ax = plt.subplots(1,2,figsize=(8,3.25),gridspec_kw={'wspace':0.1,'hspace':0.1})
@@ -74,8 +68,9 @@ for ii in range(2):
     ax[ii].tick_params(which='both',width=1,labelsize='medium')
     ax[ii].tick_params(which='major',length=5)
     ax[ii].tick_params(which='minor',length=2)
-    ax[ii].set_xticks([0,1,2,3,4,5,6])
-    ax[ii].set_yticks([0,1,2,3,4,5,6])
+    ax[ii].set_xticks([-3,-2,-1,0,1,1,3])
+    ax[ii].set_xticks([-3,-2,-1,0,1,1,3])
+
     ax[ii].set_rasterized(True)
 
 

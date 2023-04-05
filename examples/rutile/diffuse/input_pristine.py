@@ -7,8 +7,8 @@ trajectory_file = '../lammps/pristine/pos.h5'
 unwrap_trajectory = True
 
 # options for splitting up trajectory
-num_trajectory_blocks = 10
-trajectory_blocks = [0]
+num_trajectory_blocks = 4
+trajectory_blocks = [0,2]
 
 # options for writing results
 output_directory = 'out' #None
@@ -22,9 +22,9 @@ md_num_atoms = 13824
 #md_num_atoms = 13074 # number of atoms in vacancy cell
 
 # unit cell used to define Q-points in cartesian coords
-lattice_vectors = [[ 4.593, 0.000, 0.000], # angstroms
-                   [ 0.000, 4.593, 0.000],
-                   [ 0.000, 0.000, 2.959]]
+lattice_vectors = [[ 4.577, 0.000, 0.000], # angstroms
+                   [ 0.000, 4.577, 0.000],
+                   [ 0.000, 0.000, 2.949]]
 
 # vectors spanning the simulation cell
 box_vectors = None
@@ -37,12 +37,8 @@ atom_types = ['Ti','O']
 Qpoints_option = 'mesh' #'mesh' # mesh, file, or path
 
 # for 'Qpoints_option' == 'mesh' ; 
-#Q_mesh_H = [0,6,73]
-#Q_mesh_K = [0,6,73]
-#Q_mesh_L = 2
-
-Q_mesh_H = [0,4,49]
-Q_mesh_K = [0,4,49]
+Q_mesh_H = [-3,3,73]
+Q_mesh_K = [-3,3,73]
 Q_mesh_L = 2
 
 # number of processes to split Q-point parallelization over

@@ -14,19 +14,22 @@ def get_inds(energy,emin,emax):
 
 
 
-fig_name = 'silicon_elastic_neutrons.pdf'
+fig_name = 'rutile_elastic_xrays.pdf'
 
 
-reader = c_reader('./out/pristine_neutrons_STRUFACS.hdf5')
-reader.read_diffuse()
-pn_sqw = reader.sq_diffuse[:,:,0]
+reader = c_reader('./../out/pristine_xrays_STRUFACS.hdf5')
+reader.read_elastic()
 
 H = reader.H
 K = reader.K
 
-reader = c_reader('./out/substitutions_neutrons_STRUFACS.hdf5')
-reader.read_diffuse()
-vn_sqw = reader.sq_diffuse[:,:,0]
+pn_sqw = reader.sq_elastic[:,:,0]
+
+
+reader = c_reader('./../out/vacancies_xrays_STRUFACS.hdf5')
+reader.read_elastic()
+
+vn_sqw = reader.sq_elastic[:,:,0]
 
 cmap = 'viridis'
 interp = 'none'
@@ -68,7 +71,7 @@ ax[0].set_xlabel('H (rlu)',labelpad=4,fontsize='large')
 ax[1].set_xlabel('H (rlu)',labelpad=4,fontsize='large')
 
 ax[0].annotate(r'pristine',xy=(0.05,0.05),xycoords='axes fraction',fontsize='large',color=c)
-ax[1].annotate('10\% Ge\nsubstitutions',xy=(0.02,0.02),
+ax[1].annotate('10\% O\nvacancies',xy=(0.02,0.02),
                            xycoords='axes fraction',fontsize='large',color=c)
 
 

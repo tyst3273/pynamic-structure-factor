@@ -37,13 +37,11 @@ Qpoints_option = 'path' # mesh, file, or path
 # 'Qpoints_option' == 'path'
 Q_path_start = [[0,0,0],
                 [5,0,0],
-                [5,5,0],
-                [5,5,5]]
+                [5,5,0]]
 Q_path_end = [[5,0,0],
               [5,5,0],
-              [5,5,5],
-              [0,0,0]]
-Q_path_steps = [60,60,60,60]
+              [5,5,5]]
+Q_path_steps = [60,60,60]
 
 # number of processes to split Q-point parallelization over
 num_Qpoint_procs = 16

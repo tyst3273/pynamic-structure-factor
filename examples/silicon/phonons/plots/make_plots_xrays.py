@@ -11,13 +11,13 @@ from psf.m_io import c_reader
 
 fig_name = 'si_xrays_phonons.pdf'
 
-reader = c_reader('./out/pristine_xrays_STRUFACS.hdf5')
+reader = c_reader('./../out/pristine_xrays_STRUFACS.hdf5')
 reader.read_sqw()
 Q_rlu = reader.Q_rlu
 energy = reader.energy
 pn_sqw = reader.sqw
 
-reader = c_reader('./out/substitutions_xrays_STRUFACS.hdf5')
+reader = c_reader('./../out/substitutions_xrays_STRUFACS.hdf5')
 reader.read_sqw()
 Q_rlu = reader.Q_rlu
 sn_sqw = reader.sqw
@@ -29,7 +29,7 @@ num_e = energy.size//2
 cmap = 'viridis'
 interp = 'none'
 vmin = 0
-vmax = 20
+vmax = 5e-5
 c = (1,1,1)
 
 fig, ax = plt.subplots(2,1,figsize=(7,7),gridspec_kw={'wspace':0.1,'hspace':0.1})
@@ -79,5 +79,5 @@ ax[1].annotate('10\% Ge\nsubsitutions',xy=(0.025,0.05),
 plt.savefig(fig_name,dpi=150,bbox_inches='tight')
 
 
-# plt.show()
+plt.show()
 

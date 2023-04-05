@@ -14,37 +14,27 @@ def get_inds(energy,emin,emax):
 
 
 
-fig_name = 'rutile_total_xrays.pdf'
+fig_name = 'rutile_elastic_neutrons.pdf'
 
 
-reader = c_reader('./out/pristine_xrays_STRUFACS.hdf5')
-reader.read_sqw()
+reader = c_reader('./../out/pristine_STRUFACS.hdf5')
+reader.read_elastic()
 
 H = reader.H
 K = reader.K
 
-energy = reader.energy
-pn_sqw = reader.sqw[:,:,0,:]
-
-pn_sqw = pn_sqw.sum(axis=2)
+pn_sqw = reader.sq_elastic[:,:,0]
 
 
-reader = c_reader('./out/vacancies_xrays_STRUFACS.hdf5')
-reader.read_sqw()
-vn_sqw = reader.sqw[:,:,0,:]
+reader = c_reader('./../out/vacancies_neutrons_STRUFACS.hdf5')
+reader.read_elastic()
 
-vn_sqw = vn_sqw.sum(axis=2)
-
-
-
-
-num_verts = 3
-num_e = energy.size//2
+vn_sqw = reader.sq_elastic[:,:,0]
 
 cmap = 'viridis'
 interp = 'none'
 vmin = 0
-vmax = 100000
+vmax = 0.5
 c = (1,1,1)
 
 fig, ax = plt.subplots(1,2,figsize=(8,3.25),gridspec_kw={'wspace':0.1,'hspace':0.1})
@@ -76,9 +66,9 @@ for ii in range(2):
 
 ax[1].set_yticklabels([])
 
-ax[0].set_ylabel('H (rlu)',labelpad=4,fontsize='large')
-ax[0].set_xlabel('K (rlu)',labelpad=4,fontsize='large')
-ax[1].set_xlabel('K (rlu)',labelpad=4,fontsize='large')
+ax[0].set_ylabel('K (rlu)',labelpad=4,fontsize='large')
+ax[0].set_xlabel('H (rlu)',labelpad=4,fontsize='large')
+ax[1].set_xlabel('H (rlu)',labelpad=4,fontsize='large')
 
 ax[0].annotate(r'pristine',xy=(0.05,0.05),xycoords='axes fraction',fontsize='large',color=c)
 ax[1].annotate('10\% O\nvacancies',xy=(0.02,0.02),
@@ -86,7 +76,6 @@ ax[1].annotate('10\% O\nvacancies',xy=(0.02,0.02),
 
 
 plt.savefig(fig_name,dpi=150,bbox_inches='tight')
-
 
 plt.show()
 

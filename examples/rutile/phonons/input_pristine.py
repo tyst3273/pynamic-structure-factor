@@ -22,9 +22,9 @@ md_num_atoms = 13824
 #md_num_atoms = 13074 # number of atoms in vacancy cell
 
 # unit cell used to define Q-points in cartesian coords
-lattice_vectors = [[ 4.593, 0.000, 0.000], # angstroms
-                   [ 0.000, 4.593, 0.000],
-                   [ 0.000, 0.000, 2.959]]
+lattice_vectors = [[ 4.577, 0.000, 0.000], # angstroms
+                   [ 0.000, 4.577, 0.000],
+                   [ 0.000, 0.000, 2.949]]
 
 # vectors spanning the simulation cell
 box_vectors = None

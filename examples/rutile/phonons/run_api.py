@@ -37,6 +37,10 @@ PSF.run()
 
 # --------------------------------------------------------------------------------------------------
 
+vacancy_lattice_vectors = [[ 4.597, 0.000, 0.000], # angstroms
+                           [ 0.000, 4.597, 0.000],
+                           [ 0.000, 0.000, 2.961]]
+
 # vacancies neutrons
 PSF.setup_calculation(trajectory_file = '../lammps/vacancies/pos.h5',
                       output_prefix = 'vacancies_neutrons',

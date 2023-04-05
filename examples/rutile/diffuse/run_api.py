@@ -8,9 +8,10 @@ PSF = c_PSF(input_file)
 
 
 # options can be over written here and passed as args below
-num_trajectory_blocks = 40
-trajectory_blocks = 0 #None
-num_Qpoint_procs = 16
+num_trajectory_blocks = 4
+trajectory_blocks = None
+num_Qpoint_procs = 8
+
 
 
 # --------------------------------------------------------------------------------------------------
@@ -35,7 +36,12 @@ PSF.setup_calculation(trajectory_file = '../lammps/pristine/pos.h5',
                       num_Qpoint_procs = num_Qpoint_procs)
 PSF.run()
 
+
 # --------------------------------------------------------------------------------------------------
+
+vacancy_lattice_vectors = [[ 4.597, 0.000, 0.000], # angstroms
+                           [ 0.000, 4.597, 0.000],
+                           [ 0.000, 0.000, 2.961]]
 
 # vacancies neutrons
 PSF.setup_calculation(trajectory_file = '../lammps/vacancies/pos.h5',
@@ -44,7 +50,8 @@ PSF.setup_calculation(trajectory_file = '../lammps/vacancies/pos.h5',
                       md_num_atoms = 13074,
                       num_trajectory_blocks = num_trajectory_blocks,
                       trajectory_blocks = trajectory_blocks,
-                      num_Qpoint_procs = num_Qpoint_procs)
+                      num_Qpoint_procs = num_Qpoint_procs,
+                      lattice_vectors = vacancy_lattice_vectors)
 PSF.run()
 
 # --------------------------------------------------------------------------------------------------
@@ -56,7 +63,8 @@ PSF.setup_calculation(trajectory_file = '../lammps/vacancies/pos.h5',
                       md_num_atoms = 13074,
                       num_trajectory_blocks = num_trajectory_blocks,
                       trajectory_blocks = trajectory_blocks,
-                      num_Qpoint_procs = num_Qpoint_procs)
+                      num_Qpoint_procs = num_Qpoint_procs,
+                      lattice_vectors = vacancy_lattice_vectors)
 PSF.run()
 
 # --------------------------------------------------------------------------------------------------
