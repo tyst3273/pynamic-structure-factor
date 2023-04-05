@@ -247,6 +247,45 @@ class c_reader:
 
     # ----------------------------------------------------------------------------------------------
 
+    def get_energy_inds(self,e_min,e_max):
+        
+        """
+        get the indices of sqw in specified energy range
+        """
+
+        inds = np.flatnonzero(self.energy <= e_max)
+        inds = np.intersect1d(np.flatnonzero(self.energy >= e_min),inds)
+        return inds
+
+    # ----------------------------------------------------------------------------------------------
+
+    def read_energy_integrated_sqw(self,e_min=None,e_max=None):
+
+        """
+        integrate (sum) sqw over specified energy range
+        """
+
+        self._read_header()
+
+        try:
+            with h5py.File(self.input_file,'r') as db:
+                self.sqw = db['sqw'][...]
+                self.energy = db['energy'][...]
+        except Exception as _ex:
+            crash(self.crash_msg,_ex)
+
+        if e_min is None:
+            e_min = self.energy.min()-1
+        if e_max is None:
+            e_max = self.energy.max()+1
+
+        e_inds = self.get_energy_inds(e_min,e_max)
+
+        self.sqw = self.sqw[...,e_inds].sum(axis=-1)
+
+    # ----------------------------------------------------------------------------------------------
+
+
 
 
 

@@ -1,4 +1,3 @@
-
 # --------------------------------------------------------------------------------------------------
 # cubic CH3NH3PbI3
 
@@ -29,8 +28,8 @@ variable        dt_dump     equal 200   # how often to write pos to file: ~10 TH
 
 variable        seed        equal 864215
 
-variable        therm_run   equal 10000  # thermalize at high T, quench to room T
-variable        sqw_run     equal 100000
+variable        therm_run   equal 20000  # thermalize at high T, quench to room T
+variable        sqw_run     equal 200000
 
 variable        trj_dump    equal 500
 variable        thermo_dump equal 500

@@ -24,6 +24,7 @@ import psf.m_communicator as m_communicator
 import psf.m_config as m_config
 import psf.m_timing as m_timing
 import psf.m_io as m_io
+from psf.m_printing import print_preamble, print_goodbye
 
 
 class c_PSF:
@@ -36,7 +37,7 @@ class c_PSF:
         main class that holds 'macros' to do stuff
         """
 
-        self.print_preamble()
+        print_preamble()
 
         # timers
         self.timers = m_timing.c_timers()
@@ -46,47 +47,16 @@ class c_PSF:
 
     # ----------------------------------------------------------------------------------------------
 
-    def print_preamble(self):
-
-        """
-        self explanatory ...
-        """
-
-        preamble = '\n\n#######################################################################\n'
-        preamble += 'Pynamic Structure Factors \n'
-        preamble += 'author: Tyler C. Sterling\n'
-        preamble += 'email: ty.sterling@colorado.edu\n'
-        preamble += 'affil: Physics Dept., University of Colorado Boulder\n'
-        preamble += '  Neurtron Scattering and Raman Spectroscopy Lab\n'
-        preamble += '#######################################################################\n'
-        print(preamble)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def print_goodbye(self):
-
-        """
-        self explanatory ...
-        """
-
-        self.timers.print_timing()
-
-        goodbye = '#######################################################################\n'
-        goodbye += 'the calculation finished willy-nilly\n' 
-        goodbye += 'as always, check the results carefully\n'
-        goodbye += 'bye!\n'
-        goodbye += '#######################################################################\n'
-        print(goodbye)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def setup_communicator(self,pos=None,types=None):
+    def setup_calculation(self,pos=None,types=None,**kwargs):
 
         """
         set up the 'communicator' object to pass stuff back and forth
         """
 
-        # 'communicator' to conveniently pass objects in/out of stuff
+        # read input file and overwrite input args in file with kwargs
+        self.config.set_config(**kwargs)
+
+        # 'communicator' to conveniently pass objects and data around
         self.comm = m_communicator.c_communicator(self.config,self.timers)
         self.comm.setup_calculation(pos,types)
 
@@ -99,21 +69,28 @@ class c_PSF:
         writes the results, the exits.
         """
 
-        self.timers.start_timer('standard_run',units='m')
-
-        # read input file 
-        self.config.set_config()
-
-        # 'communicator' to conveniently pass objects in/out of stuff
-        self.setup_communicator()
+        # read input file and setup communicator
+        self.setup_calculation()
 
         # run the calculation 
         self.run()
 
+    # ----------------------------------------------------------------------------------------------
+
+    def finalize(self):
+
+        """
+        set up the 'communicator' object to pass stuff back and forth
+        """
+
         # write output files
         self.write_strufacs()
 
-        self.timers.stop_timer('standard_run')
+        # print timing
+        self.timers.print_timing()
+
+        # print 'goodbye' message
+        print_goodbye()
 
     # ----------------------------------------------------------------------------------------------
 
@@ -135,12 +112,18 @@ class c_PSF:
         run the calculation
         """
 
+        self.timers.start_timer('PSF',units='m')
+
         # this loops over all blocks, calculating errything
         self.comm.strufacs.calculate_structure_factors()
 
         # if calculated on a mesh, unfold mesh onto full reciprocal space
         if self.comm.Qpoints.use_mesh:
             self.comm.strufacs.put_on_mesh()
+
+        self.timers.stop_timer('PSF')
+
+        self.finalize()
 
     # ----------------------------------------------------------------------------------------------
 
@@ -158,7 +141,6 @@ if __name__ == '__main__':
 
     PSF = c_PSF()
     PSF.standard_run()
-    PSF.print_goodbye()
 
 # --------------------------------------------------------------------------------------------------
 

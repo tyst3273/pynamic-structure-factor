@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -62,7 +61,10 @@ for ii in range(2):
     # ax[ii].set_yscale('log')
 
 
-ax[1].set_xticklabels(['0,0,0','5,0,0','5,5,0','5,5,5'])
+ax[0].plot([2,2],[0,energy.max()],lw=2,ls='-',c='k')
+ax[1].plot([2,2],[0,energy.max()],lw=2,ls='-',c='k')
+
+ax[1].set_xticklabels(['0,0,0','5,0,0','5,5,0; 2.5,0,0','2.5,5,0'])
 ax[1].set_xlabel(r'$\bm{Q}$ (rlu)',labelpad=4,fontsize='large')
 
 ax[0].set_xticklabels([])
