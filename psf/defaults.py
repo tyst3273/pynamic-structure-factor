@@ -84,7 +84,7 @@ description: split up the remaining trajectory (after skipping, trimming, and do
     the blocks given in 'trajectory_blocks' below. 
 type: int
 """
-num_trajectory_blocks = 10
+num_trajectory_blocks = 1
 
 # --------------------------------------------------------------------------------------------------
 """
