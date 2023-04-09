@@ -17,7 +17,6 @@ output_prefix = 'psf'
 md_time_step = 16 # femtoseconds; time step IN FILE, not used in simulation
 md_num_steps = 6250
 md_num_atoms = 6480
-md_supercell_reps = [6,6,30] 
 
 # unit cell/ crystal info
 lattice_vectors = [[4.593,0.000,0.000], # angstroms
@@ -47,7 +46,7 @@ Q_path_end = [[1,0,2],
 Q_path_steps = [20,20]
 
 # number of processes to split Q-point parallelization over
-num_Qpoint_procs = 16
+num_Qpoint_procs = 7
 
 
 

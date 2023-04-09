@@ -53,12 +53,12 @@ class c_multi_processing:
         distribute the kpts over processes "round-robin" style
         """
 
-        _num_Qpts = self.comm.Qpoints.num_Q
-        _num_procs = self.num_Qpoint_procs
+        num_Qpts = self.comm.Qpoints.num_Q
+        num_procs = self.num_Qpoint_procs
 
         # the indices of the kpts on each process
         self.Qpts_on_proc, self.num_Qpts_per_proc = \
-            self._distribute_round_robin(_num_Qpts,_num_procs)
+            self._distribute_round_robin(num_Qpts,num_procs)
 
         # check if it will work
         if np.any(self.num_Qpts_per_proc == 0):
@@ -85,9 +85,25 @@ class c_multi_processing:
     def _distribute_round_robin(self,num_inds,num_procs):
 
         """
-        distribute inds over procs round-robin style
+        distribute inds over procs round-robin style (done automatically with numpy)
         """
 
+        _on_proc = np.array_split(np.arange(num_inds),num_procs)
+        _num_per_proc = [len(_) for _ in _on_proc]
+        _num_per_proc = np.array(_num_per_proc)
+
+        return _on_proc, _num_per_proc
+
+    # -----------------------------------------------------------------------------------------------
+
+    def _distribute_round_robin_OLD(self,num_inds,num_procs):
+
+        """
+        distribute inds over procs round-robin style
+
+        UPDATE: found an automatic way to do with numpy
+        """
+        
         # the indices on each process
         _on_proc = []
         for ii in range(num_procs):
