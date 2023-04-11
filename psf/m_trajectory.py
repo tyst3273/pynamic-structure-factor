@@ -210,6 +210,13 @@ class c_trajectory:
         _tmp[0,0] = 0.0; _tmp[1,1] = 0.0; _tmp[2,2] = 0.0
         if np.any(_tmp > 1e-3):
             self.box_is_ortho = False
+        
+        if self.read_box:
+            msg = '\n*** box vectors from file ***\n'
+            for ii in range(3):
+                msg += '\n'
+                for jj in range(3):
+                    msg += f'{self.box_vectors[ii,jj]: 10.6f} '            
 
         if self.unwrap_trajectory:
             self._unwrap_positions()

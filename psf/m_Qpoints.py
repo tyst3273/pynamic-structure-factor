@@ -90,14 +90,14 @@ class c_Qpoints:
         else:
             loop = self.num_Q
 
-        msg += '          ---------- (rlu) ---------   --------- (cart) --------' 
+        msg += '          ------------- (rlu) -------------   ------------ (cart) -----------' 
         for ii in range(loop):
             _ = f'\n Q[{ii:g}]:'
             msg += f'{_:10}'
-            msg += f'{self.Q_rlu[ii,0]: 8.5f} {self.Q_rlu[ii,1]: 8.5f}' \
-                    f' {self.Q_rlu[ii,2]: 8.5f}   ' 
-            msg += f'{self.Q_cart[ii,0]: 8.5f} {self.Q_cart[ii,1]: 8.5f}' \
-                    f'{self.Q_cart[ii,2]: 8.5f}'
+            msg += f'{self.Q_rlu[ii,0]: 10.5f} {self.Q_rlu[ii,1]: 10.5f}' \
+                    f' {self.Q_rlu[ii,2]: 10.5f}   ' 
+            msg += f'{self.Q_cart[ii,0]: 10.5f} {self.Q_cart[ii,1]: 10.5f}' \
+                    f'{self.Q_cart[ii,2]: 10.5f}'
         print(msg)
 
     # ----------------------------------------------------------------------------------------------
