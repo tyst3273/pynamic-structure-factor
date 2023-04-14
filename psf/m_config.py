@@ -90,6 +90,13 @@ class c_config:
         # these are args passed into api
         self.kwargs = kwargs
 
+        # check that all keywords args are allowed
+        allowed = vars(self.defaults).keys()
+        for key in self.kwargs.keys():
+            if key not in allowed:
+                msg = f'the keyword \'{key}\' is unknown\n'
+                crash(msg)
+
         print('\n*** input-args ***')
         print('echoing input args to the screen!\n')
 
