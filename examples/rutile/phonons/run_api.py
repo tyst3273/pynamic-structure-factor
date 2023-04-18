@@ -1,5 +1,5 @@
 
-from PSF import c_PSF
+from psf.m_PSF import c_PSF
 
 
 # common configuration options for all calculations are read from input file
