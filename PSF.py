@@ -20,130 +20,16 @@
 #   !                                                                           !
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-import psf.m_communicator as m_communicator
-import psf.m_config as m_config
-import psf.m_timing as m_timing
-import psf.m_io as m_io
-from psf.m_printing import print_preamble, print_goodbye
+"""
+perform a 'standard' calculation by reading config file (file path is read from 
+cmd-line or defaults inside of c_config), doing what is requested, then writing 
+the results and exiting
+"""
 
+from psf.m_PSF import c_PSF
 
-class c_PSF:
-
-    # ----------------------------------------------------------------------------------------------
-    
-    def __init__(self,input_file=None):
-
-        """
-        main class that holds 'macros' to do stuff
-        """
-
-        print_preamble()
-
-        # timers
-        self.timers = m_timing.c_timers()
-
-        # options for the calculation
-        self.config = m_config.c_config(input_file)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def setup_calculation(self,pos=None,types=None,**kwargs):
-
-        """
-        set up the 'communicator' object to pass stuff back and forth
-        """
-
-        # read input file and overwrite input args in file with kwargs
-        self.config.set_config(**kwargs)
-
-        # 'communicator' to conveniently pass objects and data around
-        self.comm = m_communicator.c_communicator(self.config,self.timers)
-        self.comm.setup_calculation(pos,types)
-
-    # ----------------------------------------------------------------------------------------------
-
-    def standard_run(self):
-
-        """
-        the usual way to run the code. it reads the config file, does what was requested, 
-        writes the results, the exits.
-        """
-
-        # read input file and setup communicator
-        self.setup_calculation()
-
-        # run the calculation 
-        self.run()
-
-    # ----------------------------------------------------------------------------------------------
-
-    def finalize(self):
-
-        """
-        set up the 'communicator' object to pass stuff back and forth
-        """
-
-        # write output files
-        self.write_strufacs()
-
-        # print timing
-        self.timers.print_timing()
-
-        # print 'goodbye' message
-        print_goodbye()
-
-    # ----------------------------------------------------------------------------------------------
-
-    def write_strufacs(self):
-
-        """
-        write the data to files
-        """
-
-        # setup io object to write files
-        writer = m_io.c_writer(self.config,self.comm)
-        writer.write_structure_factors()
-    
-    # ----------------------------------------------------------------------------------------------
-
-    def run(self):
-
-        """
-        run the calculation
-        """
-
-        self.timers.start_timer('PSF',units='m')
-
-        # this loops over all blocks, calculating errything
-        self.comm.strufacs.calculate_structure_factors()
-
-        # if calculated on a mesh, unfold mesh onto full reciprocal space
-        if self.comm.Qpoints.use_mesh:
-            self.comm.strufacs.put_on_mesh()
-
-        self.timers.stop_timer('PSF')
-
-        self.finalize()
-
-    # ----------------------------------------------------------------------------------------------
-
-
-
-# --------------------------------------------------------------------------------------------------
-
-if __name__ == '__main__':
-
-    """
-    if not being imported as a module, perform a 'standard' calculation by reading config file
-    (file path is read from cmd-line or defaults in c_config), doing what is requested, then
-    writing the results and exiting
-    """
-
-    PSF = c_PSF()
-    PSF.standard_run()
-
-# --------------------------------------------------------------------------------------------------
-
+PSF = c_PSF()
+PSF.standard_run()
 
 
 
