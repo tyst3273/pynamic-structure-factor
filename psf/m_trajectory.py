@@ -190,19 +190,23 @@ class c_trajectory:
     def read_trajectory_block(self,block_index=0):
 
         """
-        get a block of trajectory data from the file and preprocess it as much as possible
+        get a block of trajectory data from the file and preprocess it as much as possible.
+        note: block_index is the only argument. it labels which 'block' of trajectory data to get.
+        the indices of the steps in the block (accounting for stride, strip, and trim) are already
+        calculated in _get_block_inds() above.
         """
 
+        # step indices to get from file for this block
         inds = self.block_inds[block_index,:]
 
+        # --- add new file type parsers here! ---
         if self.trajectory_format == 'lammps_hdf5':
             self._read_pos_lammps_hdf5(inds)            
-
         if self.trajectory_format == 'user_hdf5':
             self._read_pos_user_hdf5(inds)
-
         elif self.trajectory_format == 'external':
             self._read_pos_external(inds)
+        # ---------------------------------------
 
         # check if simulation box is orthorhombic
         self.box_is_ortho = True
@@ -218,6 +222,7 @@ class c_trajectory:
                 for jj in range(3):
                     msg += f'{self.box_vectors[ii,jj]: 10.6f} '            
 
+        # this is optional
         if self.unwrap_trajectory:
             self._unwrap_positions()
 
