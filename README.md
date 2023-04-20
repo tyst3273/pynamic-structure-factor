@@ -2,7 +2,7 @@
 python code to calculate inelastic neutron and x-ray scattering dynamic structure factors, 
 S(Q,w), from molecular dynamics trajectories using parallelism over Q-points.
 
-look at the manual (manual.pdf) and the examples for how to use it.
+look at the manual (doc/manual.pdf) and the examples for how to use it.
 
 please contact me at:
     ty.sterling@colorado.edu
