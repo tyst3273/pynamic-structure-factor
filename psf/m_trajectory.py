@@ -57,14 +57,20 @@ class c_trajectory:
         # initialize the positions; they are cartesian coords in whatever units are in the file
         self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
 
-        # determine whether or not to read box vectors from file
-        if self.config.box_vectors is None:
-            print('\ngetting box vectors from file')
-            self.read_box = True
-            self.box_vectors = np.zeros((3,3),dtype=float)
-        else:
+        # determine whether or not to read box vectors from file; not need if not unwrapping
+        if not self.unwrap_trajectory:
             self.read_box = False
-            self.box_vectors = self.config.box_vectors
+            self.box_vectors = None
+
+        # if unwrapping, check wheter or not to get from file
+        else:
+            if self.config.box_vectors is None: # read from traj file
+                print('\ngetting box vectors from file')
+                self.read_box = True
+                self.box_vectors = np.zeros((3,3),dtype=float)
+            else: # use input arg
+                self.read_box = False
+                self.box_vectors = self.config.box_vectors
 
         # if setting types and pos externally, dont do anything else here
         if self.trajectory_format in ['external']:
@@ -208,22 +214,22 @@ class c_trajectory:
             self._read_pos_external(inds)
         # ---------------------------------------
 
-        # check if simulation box is orthorhombic
-        self.box_is_ortho = True
-        _tmp = np.abs(self.box_vectors)
-        _tmp[0,0] = 0.0; _tmp[1,1] = 0.0; _tmp[2,2] = 0.0
-        if np.any(_tmp > 1e-3):
-            self.box_is_ortho = False
-        
-        if self.read_box:
-            msg = '\n*** box vectors from file ***\n'
-            for ii in range(3):
-                msg += '\n'
-                for jj in range(3):
-                    msg += f'{self.box_vectors[ii,jj]: 10.6f} '            
-
-        # this is optional
+        # check if simulation box is orthorhombic; only matters if unwrapping
         if self.unwrap_trajectory:
+
+            self.box_is_ortho = True
+            _tmp = np.abs(self.box_vectors)
+            _tmp[0,0] = 0.0; _tmp[1,1] = 0.0; _tmp[2,2] = 0.0
+            if np.any(_tmp > 1e-3):
+                self.box_is_ortho = False
+        
+            if self.read_box:
+                msg = '\n*** box vectors from file ***\n'
+                for ii in range(3):
+                    msg += '\n'
+                    for jj in range(3):
+                        msg += f'{self.box_vectors[ii,jj]: 10.6f} '            
+
             self._unwrap_positions()
 
     # ----------------------------------------------------------------------------------------------

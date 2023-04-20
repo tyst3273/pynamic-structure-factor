@@ -109,7 +109,9 @@ class c_config:
         self._set_calc_sqw()
 
         self._set_lattice_vectors()
-        self._set_box_vectors()
+
+        if self.unwrap_trajectory:
+            self._set_box_vectors()
 
         self._set_atom_types()
         self._set_output_directory()

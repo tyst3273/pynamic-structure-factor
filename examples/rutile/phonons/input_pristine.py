@@ -7,12 +7,12 @@ trajectory_file = '../lammps/pristine/pos.h5'
 unwrap_trajectory = True
 
 # options for splitting up trajectory
-num_trajectory_blocks = 10
-trajectory_blocks = [0,4,8]
+num_trajectory_blocks = 2
+trajectory_blocks = None
 
 # options for writing results
 output_directory = 'out' #None
-output_prefix = 'pristine'
+output_prefix = 'pristine_exe'
 
 # simulation inputs
 md_time_step = 16     # femtoseconds; time step IN FILE, not Verlet time step
