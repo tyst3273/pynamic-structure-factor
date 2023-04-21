@@ -56,6 +56,8 @@ dw = dw.calculate_debye_waller(temperature=T)
 
 # get phonon eigenvectors on path
 sqw = fc.calculate_qpoint_phonon_modes(Qpts,asr='reciprocal')
+freqs = sqw.frequencies
+
 
 # get SQW colormap
 sqw = sqw.calculate_structure_factor(dw=dw)
@@ -92,6 +94,47 @@ ax.set_xlabel(r'$\bm{Q}$ (rlu)',labelpad=1.0,fontsize='large')
 ax.set_ylabel(r'Energy (meV)',labelpad=5.0,fontsize='large')
 
 plt.savefig('euphonic_sqw.pdf',bbox_inches='tight')
+
+plt.clf()
+
+
+
+# --------------------
+
+extent = (0,3,e.min(),e.max())
+
+# plot it
+fig, ax = plt.subplots(figsize=(7,3.5))
+
+im = ax.imshow(sf.T,aspect='auto',origin='lower',cmap='viridis',
+        vmin=0,vmax=4,extent=extent)
+fig.colorbar(im,ax=ax,extend='both',aspect=40,pad=0.02)
+
+nq = freqs.shape[0]
+q = np.linspace(0,3,nq)
+for ii in range(freqs.shape[1]):
+    ax.plot(q,freqs[:,ii],ls=':',lw=1,c='k',ms=0)
+
+
+for axis in ['top','bottom','left','right']:
+    ax.spines[axis].set_linewidth(1.5)
+ax.minorticks_on()
+ax.tick_params(which='both',width=1,labelsize='medium')
+ax.tick_params(which='major',length=5)
+ax.tick_params(which='minor',length=2)
+ax.axis([0,1,0,70])
+ax.set_xticks([0,1,2,3])
+ax.plot([2,2],[0,e.max()],lw=2,ls='-',c='k')
+ax.set_xticklabels(['0,0,0','5,0,0','5,5,0; 2.5,0,0','2.5,5,0'])
+ax.set_rasterized(True)
+
+ax.set_xlabel(r'$\bm{Q}$ (rlu)',labelpad=1.0,fontsize='large')
+ax.set_ylabel(r'Energy (meV)',labelpad=5.0,fontsize='large')
+
+plt.savefig('euphonic_phonons.pdf',bbox_inches='tight')
+
+plt.clf()
+
 
 
 
