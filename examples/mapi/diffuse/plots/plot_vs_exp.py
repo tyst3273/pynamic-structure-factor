@@ -7,11 +7,10 @@ mpl.rcParams['text.latex.preamble'] = r"\usepackage{bm}"
 
 from psf.m_io import c_reader
 
+fig_name = 'mapi_vs_xrays.pdf'
 
-fig_name = 'mapi_pm_1_neutrons.pdf'
 
-
-reader = c_reader('./../out/protonated_neutrons_STRUFACS.hdf5')
+reader = c_reader('./../out/deuterated_neutrons_STRUFACS.hdf5')
 reader.read_energy_integrated_sqw(e_min=-1,e_max=1)
 
 H = reader.H
@@ -21,7 +20,7 @@ L = reader.L[0]
 pn_sq_integrated = reader.sq_integrated[:,:,0]
 
 
-reader = c_reader('./../out/deuterated_neutrons_STRUFACS.hdf5')
+reader = c_reader('./../out/protonated_xrays_STRUFACS.hdf5')
 reader.read_energy_integrated_sqw(e_min=-1,e_max=1)
 
 vn_sq_integrated = reader.sq_integrated[:,:,0]
@@ -40,6 +39,8 @@ extent = [H.min(),H.max(),K.min(),K.max()]
 
 ax[0].imshow(pn_sq_integrated.T,origin='lower',aspect='auto',interpolation=interp,cmap=cmap,
                  vmin=vmin,vmax=vmax,extent=extent)
+
+vmax = 0.8
 im = ax[1].imshow(vn_sq_integrated.T,origin='lower',aspect='auto',interpolation=interp,cmap=cmap,
                  vmin=vmin,vmax=vmax,extent=extent)
 
@@ -65,8 +66,8 @@ ax[0].set_ylabel('K (rlu)',labelpad=4,fontsize='large')
 ax[0].set_xlabel('H (rlu)',labelpad=4,fontsize='large')
 ax[1].set_xlabel('H (rlu)',labelpad=4,fontsize='large')
 
-ax[0].annotate(r'protonated',xy=(0.05,0.05),xycoords='axes fraction',fontsize='large',color=c)
-ax[1].annotate('deuterated',xy=(0.02,0.02),
+ax[0].annotate(r'deuterated',xy=(0.05,0.05),xycoords='axes fraction',fontsize='large',color=c)
+ax[1].annotate('xrays',xy=(0.02,0.02),
                            xycoords='axes fraction',fontsize='large',color=c)
 
 fig.suptitle(f'L={L:3.2f} (rlu)',fontsize='large')

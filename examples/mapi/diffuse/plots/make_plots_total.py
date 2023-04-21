@@ -7,12 +7,6 @@ mpl.rcParams['text.latex.preamble'] = r"\usepackage{bm}"
 
 from psf.m_io import c_reader
 
-def get_inds(energy,emin,emax):
-    inds = np.flatnonzero(energy <= emax)
-    inds = np.intersect1d(np.flatnonzero(energy >= emin))
-    return inds
-
-
 
 fig_name = 'mapi_total_neutrons.pdf'
 
