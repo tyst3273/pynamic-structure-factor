@@ -24,12 +24,12 @@ H = reader.H
 K = reader.K
 L = reader.L[0]
 
-pn_sqw = reader.sqw[:,:,0]
+pn_sq_integrated = reader.sq_integrated[:,:,0]
 
 
 reader = c_reader('./../out/protonated_xrays_STRUFACS.hdf5')
 reader.read_energy_integrated_sqw()
-vn_sqw = reader.sqw[:,:,0]
+vn_sq_integrated = reader.sq_integrated[:,:,0]
 
 
 num_verts = 3
@@ -46,11 +46,11 @@ fig, ax = plt.subplots(1,2,figsize=(8,3.25),gridspec_kw={'wspace':0.1,'hspace':0
 extent = [H.min(),H.max(),K.min(),K.max()]
 
 
-ax[0].imshow(pn_sqw.T,origin='lower',aspect='auto',interpolation=interp,cmap=cmap,
+ax[0].imshow(pn_sq_integrated.T,origin='lower',aspect='auto',interpolation=interp,cmap=cmap,
                  vmin=vmin,vmax=vmax,extent=extent)
 
 vmax = 2.0
-im = ax[1].imshow(vn_sqw.T,origin='lower',aspect='auto',interpolation=interp,cmap=cmap,
+im = ax[1].imshow(vn_sq_integrated.T,origin='lower',aspect='auto',interpolation=interp,cmap=cmap,
                  vmin=vmin,vmax=vmax,extent=extent)
 
 fig.colorbar(im,ax=[ax[0],ax[1]],location='right',extend='both',aspect=40,pad=0.03)

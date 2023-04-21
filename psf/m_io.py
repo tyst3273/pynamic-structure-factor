@@ -269,7 +269,7 @@ class c_reader:
 
         try:
             with h5py.File(self.input_file,'r') as db:
-                self.sqw = db['sqw'][...]
+                _sqw = db['sqw'][...]
                 self.energy = db['energy'][...]
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -281,7 +281,7 @@ class c_reader:
 
         e_inds = self.get_energy_inds(e_min,e_max)
 
-        self.sqw = self.sqw[...,e_inds].sum(axis=-1)
+        self.sq_integrated = _sqw[...,e_inds].sum(axis=-1)
 
     # ----------------------------------------------------------------------------------------------
 
