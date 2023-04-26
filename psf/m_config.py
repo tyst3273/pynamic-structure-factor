@@ -28,7 +28,6 @@ import psf.m_import as m_import
 from psf.m_error import check_file, crash
 
 
-eps = 0.0001
 
 class c_config:
 
