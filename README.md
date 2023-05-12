@@ -1,4 +1,7 @@
 # pynamic-structure-factor
+
+UH OH!!! it has been brought to my attention that my code only works on linux. i am looking for a solution to get it to run on windows and mac... please bear with me unless you are already using linux. or switch to linux!
+
 python code to calculate inelastic neutron and x-ray scattering dynamic structure factors, 
 S(Q,w), from molecular dynamics trajectories using parallelism over Q-points.
 
