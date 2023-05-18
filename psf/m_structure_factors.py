@@ -98,11 +98,14 @@ class c_structure_factors:
 
         _num_blocks = self.comm.traj.num_block_avg
         msg = '\n*** structure factors ***\n'
-        msg += f'calculating structure factors on {_num_blocks} blocks '
-        msg += f'using {self.comm.paral.num_Qpoint_procs} processes\n'
-        msg += f'only printing info for proc-0\n\n'
-        msg += 'proc-0 treats >= the number of Q-points on other processes\n'
-        msg += f'number of Q-points on proc-0: {self.comm.paral.max_num_Qpts_on_procs}\n'
+        msg += f'calculating structure factors on {_num_blocks} blocks\n'
+        if self.comm.paral.num_Qpoint_procs == 1:
+            msg += 'doing calculation with 1 proc (serial)\n'
+        else:
+            msg += f'using {self.comm.paral.num_Qpoint_procs} processes (parallel)\n'
+            msg += f'only printing info for proc-0\n'
+            msg += 'proc-0 treats >= the number of Q-points on other processes\n'
+            msg += f'number of Q-points on proc-0: {self.comm.paral.max_num_Qpts_on_procs}\n'
         print(msg)
 
         for ii, _block in enumerate(self.comm.traj.blocks):
@@ -156,29 +159,37 @@ class c_structure_factors:
         # Queue for passing data between procs
         self.queue = mp.Queue()
 
-        _procs = []
-        for _proc in range(_num_procs):
-            _procs.append(mp.Process(target=self._proc_loop_on_Q,args=[_proc]))
+        # do serial calculation if only 1 proc
+        if _num_procs == 1:
 
-        # start execution
-        for _proc in _procs:
-            _proc.start()
+            self._serial_loop_on_Q()
 
-        # get the results from queue
-        for _proc in range(_num_procs):
+        # do parallel calculation 
+        else:
 
-            proc, exp_iQr = self.queue.get()
-            Q_inds = self.comm.paral.Qpts_on_proc[proc]
-            self.exp_iQr[Q_inds,:] = exp_iQr[...]
+            _procs = []
+            for _proc in range(_num_procs):
+                _procs.append(mp.Process(target=self._parallel_loop_on_Q,args=[_proc]))
 
-        # close queue, kill it
-        self.queue.close()
-        self.queue.join_thread()
+            # start execution
+            for _proc in _procs:
+                _proc.start()
 
-        # blocking; wait for all procs to finish before moving on
-        for _proc in _procs:
-            _proc.join()
-            _proc.close()
+            # get the results from queue
+            for _proc in range(_num_procs):
+
+                proc, exp_iQr = self.queue.get()
+                Q_inds = self.comm.paral.Qpts_on_proc[proc]
+                self.exp_iQr[Q_inds,:] = exp_iQr[...]
+
+            # close queue, kill it
+            self.queue.close()
+            self.queue.join_thread()
+
+            # blocking; wait for all procs to finish before moving on
+            for _proc in _procs:
+                _proc.join()
+                _proc.close()
 
         self._calc_strufacs(self.exp_iQr)
 
@@ -189,7 +200,7 @@ class c_structure_factors:
     def _calc_strufacs(self,exp_iQr):
 
         """
-        take exp_iQr and calculate everything from it
+        take exp_iQr (rho(Q,t)) and calculate everything from it
         """
 
         self.sq_elastic += np.abs(np.mean(exp_iQr,axis=1))**2
@@ -199,10 +210,10 @@ class c_structure_factors:
 
     # ----------------------------------------------------------------------------------------------
 
-    def _proc_loop_on_Q(self,proc=0):
+    def _parallel_loop_on_Q(self,proc=0):
 
         """
-        loops over the Q-points assinged to the proc, calcs S(Q,E) etc, then puts data in queue
+        loops over the Q-points assinged to the proc, calcs rho(Q,t), then puts data in queue
         """
 
         # convenience refs for below
@@ -251,6 +262,55 @@ class c_structure_factors:
         # put results in queue to be passed to main proc
         self.queue.put([proc,exp_iQr])
         
+    # ---------------------------------------------------------------------------------------------- 
+    
+    def _serial_loop_on_Q(self):
+
+        """
+        loops over all of the Q-points on a single proc, calcs rho(Q,t) 
+        """
+
+        # convenience refs for below
+        _exp_type = self.comm.xlengths.experiment_type
+        _num_steps = self.comm.traj.num_block_steps
+        _num_atoms = self.comm.traj.num_atoms
+
+        # get the Q-points that this proc is supposed do
+        _Qpt_inds = self.comm.paral.Qpts_on_proc[0]
+        _Qpts = self.comm.Qpoints.Q_cart[_Qpt_inds,:]
+        _nQ = _Qpts.shape[0]
+
+        #exp_iQr = np.zeros((_nQ,_num_steps),dtype=complex)
+
+        # get this for neutrons once and for all
+        if _exp_type == 'neutrons':
+            _x = self.comm.xlengths.scattering_lengths
+
+        msg = f'there are {_nQ} Q-points to do ...'
+        print(msg)
+
+        # now loop over Q-points on this proc
+        for ii in range(_nQ):
+
+            msg = f'  now on Qpt[{ii}]'
+            print(msg,flush=True)
+
+            _Q_ind = _Qpt_inds[ii]
+
+            # depends on Q for xrays, but calculated earlier (only looked up here)
+            if _exp_type == 'xrays':
+                _x = self.comm.xlengths.form_factors[:,_Q_ind]
+
+            # vectorized Q.r dot product, sum over atoms gives space FT
+            _Q = _Qpts[ii,:].reshape(1,3)
+            _x_tile = np.tile(_x.reshape(1,_num_atoms),reps=(_num_steps,1))
+            _exp_iQr = np.tile(_Q,reps=(_num_steps,_num_atoms,1))
+            _exp_iQr = np.sum(_exp_iQr*self.comm.traj.pos,axis=2)
+            _exp_iQr = np.exp(1j*_exp_iQr)*_x_tile
+            _exp_iQr = np.sum(_exp_iQr,axis=1)
+
+            self.exp_iQr[_Q_ind,:] = _exp_iQr
+
     # ---------------------------------------------------------------------------------------------- 
 
     def put_on_mesh(self):
