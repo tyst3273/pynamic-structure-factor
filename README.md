@@ -1,21 +1,24 @@
 # pynamic-structure-factor
 
 
-## UH OH!!! 
+## BUG REPORT!!! 
 it has been brought to my attention that the parallel part of my code only works on linux. 
 the problem is with multiprocessing. i am looking for a solution to get it to run in 
 parallel on windows and mac ... please bear with me ... or switch to linux!
 you can still run in serial (just set num_Qpoint_procs = 1) on windows and mac. 
 
+## description
 python code to calculate inelastic neutron and x-ray scattering dynamic structure factors, 
 S(Q,w), from molecular dynamics trajectories using parallelism over Q-points.
 
 look at the manual (doc/manual.pdf) and the examples for how to use it.
 
+## contact
 please contact me at:
     ty.sterling@colorado.edu
 if you have any questions. 
 
+## citing
 if you use this code in any publications, please consider citing my github repository and the following 
 publication for which this code and method was developed: 
 
