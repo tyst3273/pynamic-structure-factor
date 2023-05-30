@@ -7,9 +7,6 @@ the problem is with multiprocessing. i am looking for a solution to get it to ru
 parallel on windows and mac ... please bear with me ... or switch to linux!
 you can still run in serial (just set num_Qpoint_procs = 1) on windows and mac. 
 
-UPDATE: I haven't implemented it yet, but I am considering using using numba to speed up
-the c_structure_factors class as a workaround to multiprocessing
-
 ## description
 python code to calculate inelastic neutron and x-ray scattering dynamic structure factors, 
 S(Q,w), from molecular dynamics trajectories using parallelism over Q-points.
