@@ -561,7 +561,10 @@ class c_config:
         """
 
         self._get_attr('output_prefix')
-            
+
+        if self.output_prefix is None:
+            return 
+
         self.output_prefix = str(self.output_prefix)
         print(f'output_prefix:\n  {self.output_prefix}')
 

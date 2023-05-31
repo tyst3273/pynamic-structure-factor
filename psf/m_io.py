@@ -34,10 +34,16 @@ class c_writer:
         """
         write file containing structure factors
         """
-
+        
         # copy refs to stuff
         self.comm = comm
         self.config = config
+
+        # wheter or not to write output file at all
+        self.write_output_file = True
+        if self.config.output_prefix is None:
+            self.write_output_file = False
+            return
 
         # whether or not 'header' has been written to file
         self.write_flag = False
@@ -66,6 +72,11 @@ class c_writer:
         """
         call methods to write everything
         """
+
+        if not self.write_output_file:
+            msg = f'\n*** io ***\nnot writing output file'
+            print(msg)
+            return
 
         msg = f'\n*** io ***\nwriting data to\n  \'{self.output_file}\''
         print(msg)
