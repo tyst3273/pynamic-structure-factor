@@ -68,12 +68,12 @@ class c_scattering_lengths:
         msg = '*** experiment type ***\n'
         if self.experiment_type == 'xrays':
             msg += 'the experiment is using xrays!\n'
-            print(msg)
+            self.comm.printing.print(msg)
             self._get_xray_form_factors()
 
         if self.experiment_type == 'neutrons':
             msg += 'the experiment is using neutrons!'
-            print(msg)
+            self.comm.printing.print(msg)
             self._get_neutron_scattering_lengths()
 
     # ----------------------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ class c_scattering_lengths:
         self.timers.start_timer('get_form_factors',units='s')
 
         msg = 'calculating x-ray form factors. this might take a while ...\n'
-        print(msg)
+        self.comm.printing.print(msg)
 
         # form factor array
         _num_atoms = self.comm.traj.num_atoms
@@ -160,7 +160,7 @@ class c_scattering_lengths:
                 if ii % 100 == 0:
                     _ = f'Q[{ii:g}]'
                     msg = f'now on {_:8} out of {_num_Q:g}'
-                    print(msg)
+                    self.comm.printing.print(msg)
 
             _Q4pi = (_Q[ii]/4/np.pi)**2
             
@@ -235,7 +235,7 @@ class c_scattering_lengths:
                 f' {_x["a2"]:6.2f} {_x["b2"]:6.2f} {_x["a3"]:6.2f} {_x["b3"]:6.2f}' \
                 f' {_x["a4"]:6.2f} {_x["b4"]:6.2f} {_x["c"]:6.2f}\n'
         
-        print(msg)
+        self.comm.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -260,13 +260,13 @@ class c_scattering_lengths:
                 msg += '\nWARNING! the neutron scattering lenght for type ' \
                     f'\'{self.atom_types[ii]}\' has a large\nimaginary part! ' \
                      'i will discard the imaginary part but the results\nmay not be sensible ...\n\n'
-                print(msg)
+                self.comm.printing.print(msg)
             _x = np.real(_x)
             self.neutron_scattering_lengths[ii] = _x
 
             msg += f'  {self.atom_types[ii]:4}  {_x:8.4f}\n'  
 
-        print(msg)
+        self.comm.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 

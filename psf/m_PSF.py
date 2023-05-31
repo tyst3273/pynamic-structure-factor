@@ -24,25 +24,29 @@ import psf.m_communicator as m_communicator
 import psf.m_config as m_config
 import psf.m_timing as m_timing
 import psf.m_io as m_io
-from psf.m_printing import print_preamble, print_goodbye
+from psf.m_printing import print_preamble, print_goodbye, c_printing
 
 class c_PSF:
 
     # ----------------------------------------------------------------------------------------------
     
-    def __init__(self,input_file=None):
+    def __init__(self,input_file=None,silent=False):
 
         """
         main class that holds 'macros' to do stuff
         """
+        
+        # handles printing so has to be setup now and passed into stuff immediately
+        self.printing = c_printing(silent)
 
-        print_preamble()
+        # prints author info etc.
+        print_preamble(self.printing)
 
         # timers
-        self.timers = m_timing.c_timers()
+        self.timers = m_timing.c_timers(self.printing)
 
         # options for the calculation
-        self.config = m_config.c_config(input_file)
+        self.config = m_config.c_config(input_file,self.printing)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -56,7 +60,7 @@ class c_PSF:
         self.config.set_config(**kwargs)
 
         # 'communicator' to conveniently pass objects and data around
-        self.comm = m_communicator.c_communicator(self.config,self.timers)
+        self.comm = m_communicator.c_communicator(self.config,self.timers,self.printing)
         self.comm.setup_calculation(pos,types)
 
     # ----------------------------------------------------------------------------------------------
@@ -89,7 +93,7 @@ class c_PSF:
         self.timers.print_timing()
 
         # print 'goodbye' message
-        print_goodbye()
+        print_goodbye(self.printing)
 
     # ----------------------------------------------------------------------------------------------
 

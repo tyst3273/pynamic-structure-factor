@@ -77,8 +77,8 @@ class c_multi_processing:
             _ = f'proc[{ii}]:'
             msg = msg+f'\n  {_:9} {_nQ}'
 
-        print('\n*** Q-point parallelism ***')
-        print(msg)
+        self.comm.printing.print('\n*** Q-point parallelism ***')
+        self.comm.printing.print(msg)
 
     # -----------------------------------------------------------------------------------------------
 

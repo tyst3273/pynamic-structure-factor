@@ -98,7 +98,7 @@ class c_Qpoints:
                     f' {self.Q_rlu[ii,2]: 10.5f}   ' 
             msg += f'{self.Q_cart[ii,0]: 10.5f} {self.Q_cart[ii,1]: 10.5f}' \
                     f'{self.Q_cart[ii,2]: 10.5f}'
-        print(msg)
+        self.comm.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -148,7 +148,7 @@ class c_Qpoints:
 
         self.Q_file = self.config.Q_file
         msg = f'\ngetting Q-points from text file:\n  \'{self.Q_file}\''
-        print(msg)
+        self.comm.printing.print(msg)
 
         try:
             _Q = np.loadtxt(self.Q_file,dtype=float)
@@ -167,7 +167,7 @@ class c_Qpoints:
         self.num_Q = self.Q_rlu.shape[0]
 
         msg = f'there were {self.num_Q:g} Q-points in the file'
-        print(msg)
+        self.comm.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -218,7 +218,7 @@ class c_Qpoints:
         """
 
         msg = '\ngenerating Q-points on mesh'
-        print(msg)
+        self.comm.printing.print(msg)
 
         self.Q_mesh_H = self.config.Q_mesh_H
         self.Q_mesh_K = self.config.Q_mesh_K
@@ -257,7 +257,7 @@ class c_Qpoints:
 
         msg = 'number of Q-points on full grid:\n'
         msg += f'  {self.num_Q:g}\n'
-        print(msg)
+        self.comm.printing.print(msg)
         
     # ----------------------------------------------------------------------------------------------
 

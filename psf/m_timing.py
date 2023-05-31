@@ -92,7 +92,7 @@ class _timer:
         
     # ----------------------------------------------------------------------------------------------
 
-    def print_timing(self):
+    def print_timing(self,printing):
 
         """
         print timing info if timer used locally
@@ -101,12 +101,12 @@ class _timer:
         if self.running: 
             msg = f'WARNING! the timer: \'{self.label}\' ' \
                           'is still running!'
-            print(msg)
+            printing.print(msg)
 
         msg = '\nlocal timer:\n'
         msg += '  (label)                    (calls)     (lap)     (total) \n'
         msg += self.str+'\n'
-        print(msg)
+        printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -115,12 +115,13 @@ class c_timers:
 
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self):
+    def __init__(self,printing):
 
         """
         create timers for whatever
         """
 
+        self.printing = printing
         self.timers = {}
 
     # ----------------------------------------------------------------------------------------------
@@ -176,7 +177,7 @@ class c_timers:
                           'was still running!\n'
                 self.timers[label].stop()                
             timing += self.timers[label].str+'\n'
-        print(timing)
+        self.printing.print(timing)
 
     # ----------------------------------------------------------------------------------------------
 

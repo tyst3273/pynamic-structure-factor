@@ -54,7 +54,7 @@ class c_structure_factors:
         self.sq_elastic = np.zeros(_num_Q,dtype=float)
         msg = '\n*** elastic intensity ***\ncalculating elastic intensity\n'
         msg += '  |<exp(iQ.r(t))>|**2 '
-        print(msg)
+        self.comm.printing.print(msg)
 
         # optional
         if self.calc_sqw:
@@ -68,7 +68,7 @@ class c_structure_factors:
             msg += f' {self.energy_step/_thz2meV: 8.6f} (tHz)\n'
             msg += f'energy_max:\n {self.energy_max: 8.4f} (meV)\n'
             msg += f' {self.energy_max/_thz2meV: 8.4f} (tHz)'
-            print(msg)
+            self.comm.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ class c_structure_factors:
             msg += f'only printing info for proc-0\n'
             msg += 'proc-0 treats >= the number of Q-points on other processes\n'
             msg += f'number of Q-points on proc-0: {self.comm.paral.max_num_Qpts_on_procs}\n'
-        print(msg)
+        self.comm.printing.print(msg)
 
         for ii, _block in enumerate(self.comm.traj.blocks):
         
@@ -118,14 +118,14 @@ class c_structure_factors:
 
             msg = '-------------------------------------------------------------\n\n'
             msg += f'{_:12} {_block}'
-            print(msg)
+            self.comm.printing.print(msg)
 
             # calculate for this block; internally parallelized
             self._calculate_on_block(_block)
 
             # end the local timer
             _block_timer.stop()
-            _block_timer.print_timing()
+            _block_timer.print_timing(self.comm.printing)
 
         # divide by number of blocks and number of atoms (to normalize vs system size)
         # and by number of steps to normalize vs traj. length
@@ -235,14 +235,14 @@ class c_structure_factors:
         # only print info for proc-0
         if proc == 0:
             msg = f'there are {_nQ} Q-points to do ...'
-            print(msg)
+            self.comm.printing.print(msg)
 
         # now loop over Q-points on this proc
         for ii in range(_nQ):
 
             if proc == 0:
                 msg = f'  now on Qpt[{ii}]'
-                print(msg,flush=True)
+                self.comm.printing.print(msg)
 
             # depends on Q for xrays, but calculated earlier (only looked up here)
             if _exp_type == 'xrays':
@@ -287,13 +287,13 @@ class c_structure_factors:
             _x = self.comm.xlengths.scattering_lengths
 
         msg = f'there are {_nQ} Q-points to do ...'
-        print(msg)
+        self.comm.printing.print(msg)
 
         # now loop over Q-points on this proc
         for ii in range(_nQ):
 
             msg = f'  now on Qpt[{ii}]'
-            print(msg,flush=True)
+            self.comm.printing.print(msg)
 
             _Q_ind = _Qpt_inds[ii]
 

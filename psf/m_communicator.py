@@ -32,7 +32,7 @@ class c_communicator:
 
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self,config,timers):
+    def __init__(self,config,timers,printing):
         
         """
         put other objects inside of this to conveniently pass them in/out of classes and methods
@@ -40,6 +40,7 @@ class c_communicator:
 
         self.config = config
         self.timers = timers
+        self.printing = printing
 
     # ----------------------------------------------------------------------------------------------
 

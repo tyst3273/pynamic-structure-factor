@@ -33,7 +33,7 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self,input_file=None):
+    def __init__(self,input_file,printing):
 
         """
         get cmd line args and check for input file. 
@@ -43,6 +43,8 @@ class c_config:
         kept in more appropriate places. nothing should be assigned here either. 
         it is "read-only"
         """
+
+        self.printing = printing
 
         # get cmd line args
         description = 'command line args for \'PSF.py\''
@@ -96,8 +98,8 @@ class c_config:
                 msg = f'the keyword \'{key}\' is unknown\n'
                 crash(msg)
 
-        print('\n*** input-args ***')
-        print('echoing input args to the screen!\n')
+        self.printing.print('\n*** input-args ***')
+        self.printing.print('echoing input args to the screen!\n')
 
         # now get the variables
         self._set_trajectory_format()
@@ -165,7 +167,7 @@ class c_config:
         if self.trajectory_stride < 1:
             crash(msg)
 
-        print(f'trajectory_stride:\n  {self.trajectory_stride}')
+        self.printing.print(f'trajectory_stride:\n  {self.trajectory_stride}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -187,7 +189,7 @@ class c_config:
         if self.trajectory_skip < 0:
             crash(msg)
 
-        print(f'trajectory_skip:\n  {self.trajectory_skip}')    
+        self.printing.print(f'trajectory_skip:\n  {self.trajectory_skip}')    
 
     # ----------------------------------------------------------------------------------------------
 
@@ -209,7 +211,7 @@ class c_config:
         if self.trajectory_trim < 0:
             crash(msg)
 
-        print(f'trajectory_trim:\n  {self.trajectory_trim}')
+        self.printing.print(f'trajectory_trim:\n  {self.trajectory_trim}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -231,7 +233,7 @@ class c_config:
         if self.num_trajectory_blocks < 1:
             crash(msg)
     
-        print(f'num_trajectory_blocks:\n  {self.num_trajectory_blocks}')
+        self.printing.print(f'num_trajectory_blocks:\n  {self.num_trajectory_blocks}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -266,7 +268,7 @@ class c_config:
         msg = 'trajectory_blocks:\n  '
         for ii in range(self.num_block_avg):
             msg += f'{self.trajectory_blocks[ii]:g} '
-        print(msg)
+        self.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -302,7 +304,7 @@ class c_config:
                       f' {self.Q_path_start[ii,2]:8.5f}  ==>  '
             msg = msg+f'{self.Q_path_end[ii,0]:8.5f} {self.Q_path_end[ii,1]:8.5f}' \
                       f' {self.Q_path_end[ii,2]:8.5f}    {self.Q_path_steps[ii]:3g}'
-        print(msg)
+        self.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -368,7 +370,7 @@ class c_config:
         # check if file exists
         check_file(self.Q_file)
 
-        print(f'Q_file:\n  {self.Q_file}')
+        self.printing.print(f'Q_file:\n  {self.Q_file}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -398,7 +400,7 @@ class c_config:
         else:
             msg = 'Q_mesh_K:\n  '
             msg += f'{self.Q_mesh_K[0]: 8.5f} {self.Q_mesh_K[1]: 8.5f} {self.Q_mesh_K[2]:3g}'
-        print(msg)
+        self.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -429,7 +431,7 @@ class c_config:
         else:
             msg = 'Q_mesh_L:\n  '
             msg += f'{self.Q_mesh_L[0]: 8.5f} {self.Q_mesh_L[1]: 8.5f} {self.Q_mesh_L[2]:3g}'
-        print(msg)
+        self.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -460,7 +462,7 @@ class c_config:
         else:
             msg = 'Q_mesh_H:\n  '
             msg += f'{self.Q_mesh_H[0]: 8.5f} {self.Q_mesh_H[1]: 8.5f} {self.Q_mesh_H[2]:3g}'
-        print(msg)
+        self.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -478,7 +480,7 @@ class c_config:
         if self.Qpoints_option not in ['file','mesh','path']:
             crash(msg)
 
-        print(f'Qpoints_option:\n  {self.Qpoints_option}')
+        self.printing.print(f'Qpoints_option:\n  {self.Qpoints_option}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -496,7 +498,7 @@ class c_config:
         if self.experiment_type not in ['neutrons','xrays']:
             crash(msg)
 
-        print(f'experiment_type:\n  {self.experiment_type}')
+        self.printing.print(f'experiment_type:\n  {self.experiment_type}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -514,7 +516,7 @@ class c_config:
         if self.md_num_atoms <= 0:
             crash(msg)
 
-        print(f'md_num_atoms:\n  {self.md_num_atoms}')
+        self.printing.print(f'md_num_atoms:\n  {self.md_num_atoms}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -532,7 +534,7 @@ class c_config:
         if self.md_num_steps <= 0:
             crash(msg)
 
-        print(f'md_num_steps:\n  {self.md_num_steps}')
+        self.printing.print(f'md_num_steps:\n  {self.md_num_steps}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -550,7 +552,7 @@ class c_config:
         if self.md_time_step <= 0.0:
             crash(msg)
 
-        print(f'md_time_step:\n  {self.md_time_step}')
+        self.printing.print(f'md_time_step:\n  {self.md_time_step}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -566,7 +568,7 @@ class c_config:
             return 
 
         self.output_prefix = str(self.output_prefix)
-        print(f'output_prefix:\n  {self.output_prefix}')
+        self.printing.print(f'output_prefix:\n  {self.output_prefix}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -584,7 +586,7 @@ class c_config:
         else:
             self.output_directory = os.path.abspath(self.output_directory)
 
-        print(f'output_directory:\n  {self.output_directory}')
+        self.printing.print(f'output_directory:\n  {self.output_directory}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -597,7 +599,7 @@ class c_config:
         self._get_attr('calc_sqw')
             
         self.calc_sqw = bool(self.calc_sqw)
-        print(f'calc_sqw:\n  {self.calc_sqw}')
+        self.printing.print(f'calc_sqw:\n  {self.calc_sqw}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -610,7 +612,7 @@ class c_config:
         self._get_attr('unwrap_trajectory')
 
         self.unwrap_trajectory = bool(self.unwrap_trajectory)
-        print(f'unwrap_trajectory:\n  {self.unwrap_trajectory}')
+        self.printing.print(f'unwrap_trajectory:\n  {self.unwrap_trajectory}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -628,7 +630,7 @@ class c_config:
         # check if file exists
         check_file(self.trajectory_file)
 
-        print(f'trajectory_file:\n  {self.trajectory_file}')
+        self.printing.print(f'trajectory_file:\n  {self.trajectory_file}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -644,7 +646,7 @@ class c_config:
         if self.trajectory_format not in ['lammps_hdf5','external','user_hdf5']:
             crash(msg)
 
-        print(f'trajectory_format:\n  {self.trajectory_format}')
+        self.printing.print(f'trajectory_format:\n  {self.trajectory_format}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -673,7 +675,7 @@ class c_config:
             msg += '\n'
             for jj in range(3):
                 msg += f'{self.lattice_vectors[ii,jj]: 10.6f} '
-        print(msg)
+        self.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
     
@@ -706,7 +708,7 @@ class c_config:
             msg += '\n'
             for jj in range(3):
                 msg += f'{self.box_vectors[ii,jj]: 10.6f} '
-        print(msg)
+        self.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -728,7 +730,7 @@ class c_config:
         for ii in range(len(self.atom_types)):
             msg += f'{self.atom_types[ii]} '
         msg += f'\nnum_types:\n  {self.num_types:g}'
-        print(msg)
+        self.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -751,7 +753,7 @@ class c_config:
 
         # echo to the info file
         msg = f'num_Qpoint_procs:\n  {self.num_Qpoint_procs:g}'
-        print(msg)
+        self.printing.print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
