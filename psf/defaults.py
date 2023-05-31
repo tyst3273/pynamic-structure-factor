@@ -41,7 +41,7 @@ output_prefix = 'psf'
 
 calc_sqw = True
 
-md_time_step = 16 
+md_time_step = 16
 
 md_num_steps = 6250
 

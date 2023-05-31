@@ -22,7 +22,7 @@ md_num_atoms = 6480
 lattice_vectors = [[4.593,0.000,0.000], # angstroms
                    [0.000,4.593,0.000],
                    [0.000,0.000,2.959]]
-atom_types = ['Ti','Ti','O','O','O','O']
+atom_types = ['Ti','O']
 
 # experiment info
 experiment_type = 'neutrons' # 'neutrons' or 'xrays'
