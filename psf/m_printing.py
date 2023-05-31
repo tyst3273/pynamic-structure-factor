@@ -27,7 +27,7 @@ class c_printing:
     def __init__(self,silent=False):
 
         """
-        class to handle all printing commands. if silent == True, nothing gets printed
+        class to handle all commands. if silent == True, nothing gets printed
         """
 
         self.silent = silent
@@ -47,7 +47,7 @@ class c_printing:
 
 # --------------------------------------------------------------------------------------------------
 
-def print_preamble(printing):
+def print_preamble():
 
     """
     self explanatory ...
@@ -61,11 +61,11 @@ def print_preamble(printing):
     preamble += '  Neurtron Scattering and Raman Spectroscopy Lab\n'
     preamble += '#######################################################################\n'
 
-    printing.print(preamble)
+    print(preamble)
 
 # --------------------------------------------------------------------------------------------------
 
-def print_goodbye(printing):
+def print_goodbye():
 
     """
     self explanatory ...
@@ -77,7 +77,7 @@ def print_goodbye(printing):
     goodbye += 'bye!\n'
     goodbye += '#######################################################################\n'
 
-    printing.print(goodbye)
+    print(goodbye)
 
 # --------------------------------------------------------------------------------------------------
 

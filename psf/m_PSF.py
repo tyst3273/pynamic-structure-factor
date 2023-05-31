@@ -37,10 +37,12 @@ class c_PSF:
         """
         
         # handles printing so has to be setup now and passed into stuff immediately
+        self.silent = silent
         self.printing = c_printing(silent)
 
         # prints author info etc.
-        print_preamble(self.printing)
+        if not self.silent:
+            print_preamble()
 
         # timers
         self.timers = m_timing.c_timers(self.printing)
@@ -89,11 +91,13 @@ class c_PSF:
         # write output files
         self.write_strufacs()
 
+            
         # print timing
         self.timers.print_timing()
 
-        # print 'goodbye' message
-        print_goodbye(self.printing)
+        if not self.silent:
+            # print 'goodbye' message
+            print_goodbye()
 
     # ----------------------------------------------------------------------------------------------
 
