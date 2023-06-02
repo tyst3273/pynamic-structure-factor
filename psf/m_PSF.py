@@ -95,8 +95,8 @@ class c_PSF:
         # print timing
         self.timers.print_timing()
 
+        # print 'goodbye' message
         if not self.silent:
-            # print 'goodbye' message
             print_goodbye()
 
     # ----------------------------------------------------------------------------------------------
