@@ -65,7 +65,7 @@ class c_lattice:
             msg += '\n  '
             for jj in range(3):
                 msg += f'{self.reciprocal_lattice_vectors[ii,jj]: 8.5f} '
-        self.comm.printing.print(msg)
+        print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -93,7 +93,7 @@ class c_lattice:
                 crash(msg)
             else:
                 msg = 'non-orthogonal lattice vectors detected. this is still under development!\n'
-                self.comm.printing.print('\n** warning **\n'+msg)
+                print('\n** warning **\n'+msg)
 
     # ----------------------------------------------------------------------------------------------
 

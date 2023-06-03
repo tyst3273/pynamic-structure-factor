@@ -24,31 +24,26 @@ import psf.m_communicator as m_communicator
 import psf.m_config as m_config
 import psf.m_timing as m_timing
 import psf.m_io as m_io
-from psf.m_printing import print_preamble, print_goodbye, c_printing
+
 
 class c_PSF:
 
     # ----------------------------------------------------------------------------------------------
     
-    def __init__(self,input_file=None,silent=False):
+    def __init__(self,input_file=None):
 
         """
         main class that holds 'macros' to do stuff
         """
         
-        # handles printing so has to be setup now and passed into stuff immediately
-        self.silent = silent
-        self.printing = c_printing(silent)
-
-        # prints author info etc.
-        if not self.silent:
-            print_preamble()
+        # print author info etc.
+        print_preamble()
 
         # timers
-        self.timers = m_timing.c_timers(self.printing)
+        self.timers = m_timing.c_timers()
 
         # options for the calculation
-        self.config = m_config.c_config(input_file,self.printing)
+        self.config = m_config.c_config(input_file)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -62,7 +57,7 @@ class c_PSF:
         self.config.set_config(**kwargs)
 
         # 'communicator' to conveniently pass objects and data around
-        self.comm = m_communicator.c_communicator(self.config,self.timers,self.printing)
+        self.comm = m_communicator.c_communicator(self.config,self.timers)
         self.comm.setup_calculation(pos,types)
 
     # ----------------------------------------------------------------------------------------------
@@ -90,14 +85,12 @@ class c_PSF:
 
         # write output files
         self.write_strufacs()
-
             
         # print timing
         self.timers.print_timing()
 
         # print 'goodbye' message
-        if not self.silent:
-            print_goodbye()
+        print_goodbye()
 
     # ----------------------------------------------------------------------------------------------
 

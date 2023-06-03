@@ -75,11 +75,11 @@ class c_writer:
 
         if not self.write_output_file:
             msg = f'\n*** io ***\nnot writing output file'
-            self.comm.printing.print(msg)
+            print(msg)
             return
 
         msg = f'\n*** io ***\nwriting data to\n  \'{self.output_file}\''
-        self.comm.printing.print(msg)
+        print(msg)
         
         # write header now; otherwise the other methods do if called independently
         self._write_header()

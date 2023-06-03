@@ -52,7 +52,7 @@ class c_trajectory:
         _duration = self.num_block_steps*_eff_step
         msg = f'effective timestep: {_eff_step} (ps)\n'
         msg += f'trajectory duration: {_duration:6.2f} (ps)'
-        self.comm.printing.print(msg)
+        print(msg)
 
         # initialize the positions; they are cartesian coords in whatever units are in the file
         self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
@@ -65,7 +65,7 @@ class c_trajectory:
         # if unwrapping, check wheter or not to get from file
         else:
             if self.config.box_vectors is None: # read from traj file
-                self.comm.printing.print('\ngetting box vectors from file')
+                print('\ngetting box vectors from file')
                 self.read_box = True
                 self.box_vectors = np.zeros((3,3),dtype=float)
             else: # use input arg
@@ -106,7 +106,7 @@ class c_trajectory:
             msg = '\n*** warning! ***\n'
             msg += 'number of_steps must be divisible by num_trajectory_blocks\n'
             msg += 'discarding the extra timesteps\n'
-            self.comm.printing.print(msg)
+            print(msg)
 
         self.blocks = self.config.trajectory_blocks
 
@@ -123,7 +123,7 @@ class c_trajectory:
 
         msg = f'\n*** blocks ***\nnum_block_avg: {self.num_block_avg}\n'
         msg += f'num_block_steps: {self.num_block_steps}'
-        self.comm.printing.print(msg)
+        print(msg)
 
     # ----------------------------------------------------------------------------------------------
 
@@ -251,7 +251,7 @@ class c_trajectory:
         self.timers.start_timer('unwrap_positions',units='s')
 
         msg = '\nunwrapping positions!\n'
-        self.comm.printing.print(msg)
+        print(msg)
 
         # get box lengths... assumes the simulation cell and underlying unitcell are orthorhombic
         lx = self.box_vectors[0,0]
