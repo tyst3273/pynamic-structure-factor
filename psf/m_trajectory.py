@@ -178,17 +178,13 @@ class c_trajectory:
         msg = 'external positions have wrong shape\n'
         _shape = self.external_pos.shape
         if len(_shape) == 2:
-            _num_atoms = _shape[0]
-            if _num_atoms != self.config.md_num_atoms:
-                crash(msg)
-            if _shape[1] != 3:
-                crash(msg)
-     
-            # put into time x atoms x 3 shape
             self.external_pos.shape = [1,_shape[0],_shape[1]]
-                
-        _nsteps = self.external_pos.shape[0]
-        if _nsteps != self.config.md_num_steps:
+
+        if self.external_pos.shape[0] != self.config.md_num_steps:
+            crash(msg)
+        if self.external_pos.shape[1] != self.config.md_num_atoms:
+            crash(msg)
+        if self.external_pos.shape[2] != 3:
             crash(msg)
 
     # ----------------------------------------------------------------------------------------------
