@@ -100,15 +100,17 @@ class c_scattering_lengths:
 
         self.form_factors = np.zeros((_num_atoms,_num_Q))
         
-          # get stuff for parallelization
+        # get stuff for parallelization
         _num_procs = self.comm.paral.num_Qpoint_procs
 
         # Queue for passing data between procs
         self.queue = mp.Queue()
 
+        # set up parallelism
         _procs = []
         for _proc in range(_num_procs):
             _procs.append(mp.Process(target=self._form_factors_on_proc,args=[_proc]))
+
         # start execution
         for _proc in _procs:
             _proc.start()
@@ -243,6 +245,10 @@ class c_scattering_lengths:
 
         """
         lookup neutron scattering lengths
+    
+        NOTE: do I actually need to discard the imaginary part? Since S(Q) ~ |b|^2, we will still
+        get real data ... it will just be more computational expensive to have b complex ...
+        if it comes up, I can fix it. 
         """
 
         eps = 0.0001

@@ -31,6 +31,9 @@ class c_trajectory:
         """
         class for handling MD trajectory I/O. reads different file types. it's modular
         but a little clumsy to add new parsers to.
+
+        really, new parsers should be their own classes that return the pos and types
+        arrays in the expected format. oh well. that can be implemented later!
         """
 
         # copy refs to stuff

@@ -23,7 +23,14 @@
 """
 perform a 'standard' calculation by reading config file (file path is read from 
 cmd-line or defaults inside of c_config), doing what is requested, then writing 
-the results and exiting
+the results and exiting.
+
+run it as e.g.:
+    python PSF.py
+
+or:
+    python PSF.py -i input_params.py
+
 """
 
 from psf.m_PSF import c_PSF
