@@ -96,40 +96,4 @@ class c_multi_processing:
 
     # -----------------------------------------------------------------------------------------------
 
-    def _distribute_round_robin_OLD(self,num_inds,num_procs):
-
-        """
-        distribute inds over procs round-robin style
-
-        UPDATE: found an automatic way to do with numpy
-        """
-        
-        # the indices on each process
-        _on_proc = []
-        for ii in range(num_procs):
-            _on_proc.append([])
-
-        # iterator for the procesors
-        _iter = itertools.cycle(range(num_procs))
-
-        # assign inds to each process round robin style
-        for ii in range(num_inds):
-            _on_proc[(next(_iter))].append(ii)
-
-        # number of kpts for each process to do
-        _num_per_proc = np.zeros(num_procs,dtype=int)
-
-        # count number of inds on each proc
-        for ii in range(num_procs):
-
-            _num = len(_on_proc[ii])
-            _num_per_proc[ii] = _num
-
-        return _on_proc, _num_per_proc
-
-    # -----------------------------------------------------------------------------------------------
-
-
-
-
 
