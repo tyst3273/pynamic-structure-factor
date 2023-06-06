@@ -52,11 +52,11 @@ class c_config:
 
         # get input file from cmd line
         if input_file is not None:
-            check_file(self.input_file)
-            self.input = m_import.import_module_from_path(self.input_file)
+            check_file(input_file)
+            self.input = m_import.import_module_from_path(input_file)
             print(f'reading input from {input_file}\n')
         else:
-            self.input_file = c_empty()
+            self.input = c_empty()
             print(f'using defaults for non-keyword args\n')
 
         # check that all keywords in input file are allowed
