@@ -26,14 +26,14 @@ import os
 # custom modules
 import psf.m_import as m_import
 from psf.m_error import check_file, crash
-
+from psf.m_empty import c_empty
 
 
 class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
-    def __init__(self,input_file):
+    def __init__(self,input_file=None):
 
         """
         get cmd line args and check for input file. 
@@ -44,36 +44,24 @@ class c_config:
         it is "read-only"
         """
 
-        # get cmd line args
-        description = 'command line args for \'PSF.py\''
-        cmd_parser = argparse.ArgumentParser(description=description)
-
-        # input file
-        help_msg = 'input file for \'PSF.py\'. it is a python file that is imported as a module'
-        cmd_parser.add_argument('-i','--input-file',default='input_params.py',help=help_msg)
-
-        # get cmd line args
-        cmd_args = cmd_parser.parse_args()
-
-        # get input file from cmd line
-        if input_file is None:
-            self.input_file = cmd_args.input_file
-        else:
-            self.input_file = input_file
-
-        # check if input file exists
-        check_file(self.input_file) 
-
         # get defaults which are the allowed keywords... probably shouldt be hard-coded
         self.defaults = m_import.import_module('psf.defaults')
-        allowed = vars(self.defaults).keys()
+        self.allowed = vars(self.defaults).keys()
 
-        # load input file
-        self.input = m_import.import_module_from_path(self.input_file)
+        print(f'\n*** input-args ***')
+
+        # get input file from cmd line
+        if input_file is not None:
+            check_file(self.input_file)
+            self.input = m_import.import_module_from_path(self.input_file)
+            print(f'reading input from {input_file}\n')
+        else:
+            self.input_file = c_empty()
+            print(f'using defaults for non-keyword args\n')
 
         # check that all keywords in input file are allowed
         for key in vars(self.input).keys():
-            if key not in allowed:
+            if key not in self.allowed:
                 msg = f'the keyword \'{key}\' is unknown\n'
                 crash(msg)
 
@@ -90,14 +78,10 @@ class c_config:
         self.kwargs = kwargs
 
         # check that all keywords args are allowed
-        allowed = vars(self.defaults).keys()
         for key in self.kwargs.keys():
-            if key not in allowed:
+            if key not in self.allowed:
                 msg = f'the keyword \'{key}\' is unknown\n'
                 crash(msg)
-
-        print('\n*** input-args ***')
-        print('echoing input args to the screen!\n')
 
         # now get the variables
         self._set_trajectory_format()

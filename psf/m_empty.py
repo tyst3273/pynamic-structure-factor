@@ -1,5 +1,3 @@
-#!/home/ty/anaconda3/bin/python3
-
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #   !                                                                           !
 #   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
@@ -20,44 +18,18 @@
 #   !                                                                           !
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-"""
-perform a 'standard' calculation by reading config file (file path is read from 
-cmd-line or defaults inside of c_config), doing what is requested, then writing 
-the results and exiting.
 
-run it as e.g.:
-    python PSF.py
+class c_empty:
+    
+    # ----------------------------------------------------------------------------------------------
 
-or:
-    python PSF.py -i input_params.py
+    def __init__(self):
 
-"""
+        """
+        an empty class. 
+        """
 
-# system modules
-import argparse
+        pass
 
-# custom modules
-from psf.m_PSF import c_PSF
-
-# --------------------------------------------------------------------------------------------------
-
-# get cmd line args
-description = 'command line args for \'PSF.py\''
-cmd_parser = argparse.ArgumentParser(description=description)
-
-# input file
-help_msg = 'input file for \'PSF.py\'. it is a python file that is imported as a module'
-cmd_parser.add_argument('-i','--input-file',default='input_params.py',help=help_msg)
-
-# get cmd line args
-cmd_args = cmd_parser.parse_args()
-input_file = cmd_args.input_file
-
-# --------------------------------------------------------------------------------------------------
-
-PSF = c_PSF()
-PSF.standard_run()
-
-# --------------------------------------------------------------------------------------------------
-
+    # ----------------------------------------------------------------------------------------------
 
