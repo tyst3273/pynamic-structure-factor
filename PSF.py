@@ -47,7 +47,7 @@ cmd_parser = argparse.ArgumentParser(description=description)
 
 # input file
 help_msg = 'input file for \'PSF.py\'. it is a python file that is imported as a module'
-cmd_parser.add_argument('-i','--input-file',default='input_params.py',help=help_msg)
+cmd_parser.add_argument('-i','--input-file',default='psf_input.py',help=help_msg)
 
 # get cmd line args
 cmd_args = cmd_parser.parse_args()
