@@ -28,6 +28,30 @@ import psf.m_import as m_import
 from psf.m_error import check_file, crash
 from psf.m_empty import c_empty
 
+# --------------------------------------------------------------------------------------------------
+
+def get_input_file():
+
+    """
+    get input file from command line args. default is None (dont use).
+    """
+
+    # get cmd line args
+    description = 'command line args for \'PSF.py\''
+    cmd_parser = argparse.ArgumentParser(description=description)
+
+    # input file
+    help_msg = 'input file for \'PSF.py\'. it is a python file that is imported as a module'
+    cmd_parser.add_argument('-i','--input-file',default='psf_input.py',help=help_msg)
+
+    # get cmd line args
+    cmd_args = cmd_parser.parse_args()
+    input_file = cmd_args.input_file
+
+    return input_file
+
+# --------------------------------------------------------------------------------------------------
+
 
 class c_config:
 

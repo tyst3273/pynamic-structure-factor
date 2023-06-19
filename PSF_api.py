@@ -26,8 +26,11 @@ perform calculation using 'API'. can pass args in manually
 
 # custom modules
 from psf.m_PSF import c_PSF
+from psf.m_config import get_input_file
 
 # --------------------------------------------------------------------------------------------------
+
+input_file = get_input_file()
 
 input_file = 'input_params.py'
 PSF = c_PSF(input_file)
