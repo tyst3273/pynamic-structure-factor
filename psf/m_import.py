@@ -56,11 +56,11 @@ def import_module_from_path(module_path):
     I hoped! removing it from sys.modules seems to work.
     """
 
-    if 'module' in sys.modules:
-        sys.modules.pop('module')
+    if 'psf_module' in sys.modules:
+        sys.modules.pop('psf_module')
 
     try:
-        module = importlib.machinery.SourceFileLoader('module',module_path)
+        module = importlib.machinery.SourceFileLoader('psf_module',module_path)
         module = module.load_module()
     except Exception as ex:
         crash(f'the file \'{module_path}\' is broken\n',ex)
