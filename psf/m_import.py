@@ -19,6 +19,7 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # system modules
+import sys
 import importlib
 import importlib.machinery as machinery
 
@@ -31,7 +32,8 @@ from psf.m_error import crash
 def import_module(module_name):
 
     """
-    import a module that is located in the source 'tree' 
+    import a module that is located in the source 'tree'. 
+    this doenst suffer from the issue below since these modules all have unique names!
     """
 
     try:
@@ -46,14 +48,22 @@ def import_module(module_name):
 def import_module_from_path(module_path):
 
     """
-    import a module with arbitrary path. hopefully this method will be robust...
+    import a module with arbitrary path, e.g. ./input_params.py 
+    hopefully this method will be robust...
+
+    UPDATE: apparently modules are global. loading a new module with the same name as an
+    old one just adds new data to the old one... it doesnt delete it and its attributes like
+    I hoped! removing it from sys.modules seems to work.
     """
+
+    if 'module' in sys.modules:
+        sys.modules.pop('module')
 
     try:
         module = importlib.machinery.SourceFileLoader('module',module_path)
         module = module.load_module()
-    except Exception as _ex:
-        crash(f'the file \'{module_path}\' is broken\n',_ex)
+    except Exception as ex:
+        crash(f'the file \'{module_path}\' is broken\n',ex)
 
     return module
 
