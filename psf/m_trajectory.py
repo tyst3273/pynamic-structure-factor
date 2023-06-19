@@ -36,6 +36,11 @@ class c_trajectory:
         arrays in the expected format. oh well. that can be implemented later!
         """
 
+        msg = '\n*** NOTE ***\n'
+        msg += 'consider using multiprocessing.shared_memory to place the trajectory into\n'
+        msg += 'shared memory that can later be accessed by forked processes!\n'
+        print(msg)
+
         # copy refs to stuff
         self.comm = comm
         self.config = config
