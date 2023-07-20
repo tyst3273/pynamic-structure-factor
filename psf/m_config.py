@@ -28,12 +28,13 @@ import psf.m_import as m_import
 from psf.m_error import check_file, crash
 from psf.m_empty import c_empty
 
+
 # --------------------------------------------------------------------------------------------------
 
-def get_input_file():
+def get_input_files():
 
     """
-    get input file from command line args. default is None (dont use).
+    get input file(s) from command line args. default is None (dont use).
     """
 
     # get cmd line args
@@ -41,14 +42,15 @@ def get_input_file():
     cmd_parser = argparse.ArgumentParser(description=description)
 
     # input file
-    help_msg = 'input file for \'PSF.py\'. it is a python file that is imported as a module'
-    cmd_parser.add_argument('-i','--input-file',default='psf_input.py',help=help_msg)
+    help_msg = 'input file for \'PSF.py\'. it is a python file that is imported as a module\n'
+    help_msg += 'to batch run input files, give multiple in the order you want to run them'
+    cmd_parser.add_argument('-i','--input-files',default=[None],help=help_msg,nargs='*')
 
     # get cmd line args
     cmd_args = cmd_parser.parse_args()
-    input_file = cmd_args.input_file
+    input_files = cmd_args.input_files
 
-    return input_file
+    return input_files
 
 # --------------------------------------------------------------------------------------------------
 

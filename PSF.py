@@ -31,21 +31,28 @@ run it as e.g.:
 or:
     python PSF.py -i input_params.py
 
-"""
+or: 
+    python PSF.py -i input_1.py input_2.py ... 
 
-# system modules
-import argparse
+"""
 
 # custom modules
 from psf.m_PSF import c_PSF
-from psf.m_config import get_input_file
+from psf.m_config import get_input_files
 
 # --------------------------------------------------------------------------------------------------
 
-input_file = get_input_file()
+# get file(s) from cmd line
+input_files = get_input_files()
 
-PSF = c_PSF(input_file)
-PSF.standard_run()
+# loop over files 
+for input_file in input_files:
+
+    # set up PSF API
+    PSF = c_PSF(input_file)
+
+    # do standard run from file
+    PSF.standard_run()
 
 # --------------------------------------------------------------------------------------------------
 
