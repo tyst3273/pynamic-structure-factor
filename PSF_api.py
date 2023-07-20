@@ -30,12 +30,12 @@ from psf.m_config import get_input_file
 
 # --------------------------------------------------------------------------------------------------
 
-input_file = get_input_file()
+# PSF = c_PSF() # can optionally not use input file (all defaults are used) . 
 
-input_file = 'input_params.py'
+# input_file = get_input_file()[0] # can get input file from command line 
+
+input_file = 'input_params.py' # can set input file explicitly
 PSF = c_PSF(input_file)
-
-#PSF = c_PSF() # can optionally not use input file. 
 
 PSF.setup_calculation()
 PSF.run()
