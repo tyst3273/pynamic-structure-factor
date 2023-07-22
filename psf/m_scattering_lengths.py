@@ -87,6 +87,8 @@ class c_scattering_lengths:
         f(|Q|) = c+sum_{i=(1,2,3,4)} ai*exp(-bi*(|Q|/4/pi)**2)
 
         NOTE: this is now parallelized for speed!
+        I should add a low memory option that calculates only per type and map the 
+        the types to atoms. the calc. will be slower but...
         """
 
         self.timers.start_timer('get_form_factors',units='s')
