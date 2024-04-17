@@ -6,6 +6,7 @@ it has been brought to my attention that the parallel part of my code only works
 the problem is with multiprocessing. i am looking for a solution to get it to run in 
 parallel on windows and mac ... please bear with me ... or switch to linux!
 you can still run in serial (just set num_Qpoint_procs = 1) on windows and mac. 
+-- UPDATE: I think 'multiprocess', which is a fork of multiprocessing, fixes this.
 
 ## description
 python code to calculate inelastic neutron and x-ray scattering dynamic structure factors, 
