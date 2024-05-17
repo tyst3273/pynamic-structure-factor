@@ -18,7 +18,7 @@ def set_num_threads():
     num_threads = get_num_threads()
     os.environ['OMP_NUM_THREADS'] = str(num_threads)
     os.environ['OPENBLAS_NUM_THREADS'] = str(num_threads)
-     
+
     try:
         
         # try to set num threads in mkl
