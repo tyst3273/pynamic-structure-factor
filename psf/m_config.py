@@ -44,7 +44,7 @@ def get_input_files():
     # input file
     help_msg = 'input file for \'PSF.py\'. it is a python file that is imported as a module\n'
     help_msg += 'to batch run input files, give multiple in the order you want to run them'
-    cmd_parser.add_argument('-i','--input-files',default=[None],help=help_msg,nargs='*')
+    cmd_parser.add_argument('-i','--input-files',default=[None],help=help_msg,nargs='+')
 
     # get cmd line args
     cmd_args = cmd_parser.parse_args()
