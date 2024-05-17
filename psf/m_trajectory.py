@@ -144,11 +144,13 @@ class c_trajectory:
         code assumes the order of the types of atoms doesnt change over time, so only calculates
         the scattering meta-data (e.g. xray form factors) at the first timestep
         """
-
+        
+        # --- add new file type parsers here! ---
         if self.trajectory_format == 'lammps_hdf5':
             self._read_types_lammps_hdf5()
         if self.trajectory_format == 'user_hdf5':
             self._read_types_user_hdf5()
+        # ---------------------------------------
 
         # do generic error checking
         _types = np.unique(self.types)
