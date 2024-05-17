@@ -24,9 +24,9 @@
 perform calculation using 'API'. can pass args in manually
 """
 
-# custom modules
+# c_PSF has to be imported FIRST since it sets threads before anything else is imported
 from psf.m_PSF import c_PSF
-from psf.m_config import get_input_files
+from psf.m_command_line import get_input_files
 
 # --------------------------------------------------------------------------------------------------
 

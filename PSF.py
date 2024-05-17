@@ -38,7 +38,7 @@ or:
 
 # custom modules
 from psf.m_PSF import c_PSF
-from psf.m_config import get_input_files
+from psf.m_command_line import get_input_files
 
 # --------------------------------------------------------------------------------------------------
 

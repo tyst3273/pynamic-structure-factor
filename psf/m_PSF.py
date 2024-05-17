@@ -20,6 +20,11 @@
 #   !                                                                           !
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+# need to set number of threads BEFORE anything else is imported
+from psf.m_threads import set_num_threads
+set_num_threads()
+
 import psf.m_communicator as m_communicator
 import psf.m_config as m_config
 import psf.m_timing as m_timing
