@@ -1,8 +1,10 @@
+#!/home/ty/anaconda3/bin/python
 
 import h5py, os, sys
 import numpy as np
 from itertools import islice
 from timeit import default_timer
+import argparse
 
 # --------------------------------------------------------------------------------------------------
 
@@ -40,6 +42,8 @@ class c_timer:
         elapsed_time *= self.scale
         msg = f'\ntiming:   {self.label} {elapsed_time:9.5f} [{self.units}]'
         print(msg)
+
+# --------------------------------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------------------------------
 
@@ -247,19 +251,45 @@ class c_compressor:
 
     # ----------------------------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------------------------------
+
+def parse_args():
+
+    """
+    get lammps and hdf5 file names from command line
+    """
+
+    # get cmd line args
+    description = 'command line args for \'compress.py\''
+    cmd_parser = argparse.ArgumentParser(description=description)
+
+    # input file
+    help_msg = 'lammps trajectory files to be merged into an hdf5 database. give one or\n'     \
+               'several. they should be consecutive (in time) and should have exactly\n'       \
+               'the same number of atoms in the same order. it doenst matter how many steps\n' \
+               'are in each however\nthey should have be written with a command like:\n'       \
+               '---- dump          pos all custom ${dump_freq} pos.dat id type xu yu zu\n'      \
+               '---- dump_modify   pos sort id'
+    cmd_parser.add_argument('-i','--input-files',default=['pos.dat'],help=help_msg,nargs='+')
+    
+    # output file
+    help_msg = 'the name of the output hdf5 file'
+    cmd_parser.add_argument('-o','--output-file',default='pos.hdf5',help=help_msg)
+
+    # get cmd line args
+    cmd_args = cmd_parser.parse_args()
+    input_files = cmd_args.input_files
+    output_file = cmd_args.output_file
+
+    return input_files, output_file
+
+# --------------------------------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    # can compress a single .dat file into hdf5 file
-    c_compressor('pos_1.dat','pos_1.hdf5')
-
-    # or can merge multiple. note that they should be consecutive (in time) and 
-    # should have exactly the same number of atoms in the same order. it doenst
-    # matter how many steps are in each however
-    lammps_traj_files = ['pos_1.dat','pos_2.dat']
-    hdf5_traj_file = 'pos_merged.hdf5'
+    lammps_traj_files, hdf5_traj_file = parse_args()
     c_compressor(lammps_traj_files,hdf5_traj_file)
 
 
