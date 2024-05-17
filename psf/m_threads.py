@@ -3,7 +3,7 @@
 import os
 
 # custom modules
-from elph.io.m_command_line import get_num_threads
+from psf.m_command_line import get_num_threads
 
 # --------------------------------------------------------------------------------------------------
 
