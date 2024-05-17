@@ -203,10 +203,14 @@ class c_structure_factors:
         take exp_iQr (rho(Q,t)) and calculate everything from it
         """
 
+        self.timers.start_timer('calc_strufacs',units='s')
+
         self.sq_elastic += np.abs(np.mean(exp_iQr,axis=1))**2
 
         if self.calc_sqw:
             self.sqw += np.abs(fft(exp_iQr,axis=1,norm='forward'))**2
+
+        self.timers.stop_timer('calc_strufacs')
 
     # ----------------------------------------------------------------------------------------------
 
