@@ -31,7 +31,7 @@ def print_preamble():
     preamble += 'author: Tyler C. Sterling\n'
     preamble += 'email: ty.sterling@colorado.edu\n'
     preamble += 'affil: Physics Dept., University of Colorado Boulder\n'
-    preamble += '  Neurtron Scattering and Raman Spectroscopy Lab\n'
+    preamble += '  Neutron Scattering and Raman Spectroscopy Lab\n'
     preamble += '#######################################################################\n'
 
     print(preamble)
