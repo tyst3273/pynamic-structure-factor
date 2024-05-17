@@ -265,9 +265,10 @@ class c_scattering_lengths:
             
             _x = _xlens.scattering_lengths[self.atom_types[ii]]
             if np.abs(np.imag(_x)) > eps:
-                msg += '\nWARNING! the neutron scattering lenght for type ' \
-                    f'\'{self.atom_types[ii]}\' has a large\nimaginary part! ' \
-                     'i will discard the imaginary part but the results\nmay not be sensible ...\n\n'
+                msg += 'WARNING! the neutron scattering lenght for type ' \
+                    f'\'{self.atom_types[ii]}\' has a large\nimaginary part: ' \
+                    f'Im(b)={np.imag(_x):.6f}! i will discard the imaginary part\n' \
+                    'but the results may not be sensible ...\n'
                 print(msg)
             _x = np.real(_x)
             self.neutron_scattering_lengths[ii] = _x
