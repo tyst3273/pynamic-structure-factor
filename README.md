@@ -1,5 +1,9 @@
 # pynamic-structure-factor
 
+## TO-DO:
+copy the methods from my 'elph' code to set the number of threads at runtime. usually, 
+we want only 1 thread (not the default in many cases!), since using all the cpus and 
+automatic threading will over utilizie the cpus
 
 ## BUG REPORT!!! 
 it has been brought to my attention that the parallel part of my code only works on linux. 
