@@ -15,27 +15,27 @@ If you use this code in any publications, please consider citing my github repos
 publication for which this code and method was developed: 
 
 repo:
-@misc{psf2023,
-  author = {Sterling, T. C.},
-  title = {pynamic-structure-factor},
-  year = {2023},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  url = {https://github.com/tyst3273/pynamic-structure-factor}}
+> @misc{psf2023,
+>  author = {Sterling, T. C.},
+>  title = {pynamic-structure-factor},
+>  year = {2023},
+>  publisher = {GitHub},
+>  journal = {GitHub repository},
+>  url = {https://github.com/tyst3273/pynamic-structure-factor}}
 
 paper:
-@article{weadock2023,
-    title = {The nature of dynamic local order in CH3NH3PbI3 and CH3NH3PbBr3},
-    journal = {Joule},
-    year = {2023},
-    issn = {2542-4351},
-    doi = {https://doi.org/10.1016/j.joule.2023.03.017},
-    url = {https://www.sciencedirect.com/science/article/pii/S2542435123001290},
-    author = {Nicholas J. Weadock and Tyler C. Sterling and Julian A. Vigil and 
-            Aryeh Gold-Parker and Ian C. Smith and Ballal Ahammed and Matthew J. Krogstad 
-            and Feng Ye and David Voneshen and Peter M. Gehring and Andrew M. Rappe and 
-            Hans-Georg Steinrück and Elif Ertekin and Hemamala I. Karunadasa and 
-            Dmitry Reznik and Michael F. Toney}}
+> @article{weadock2023,
+>  title = {The nature of dynamic local order in CH3NH3PbI3 and CH3NH3PbBr3},
+>  journal = {Joule},
+>  year = {2023},
+>  issn = {2542-4351},
+>  doi = {https://doi.org/10.1016/j.joule.2023.03.017},
+>  url = {https://www.sciencedirect.com/science/article/pii/S2542435123001290},
+>  author = {Nicholas J. Weadock and Tyler C. Sterling and Julian A. Vigil and 
+>           Aryeh Gold-Parker and Ian C. Smith and Ballal Ahammed and Matthew J. Krogstad 
+>           and Feng Ye and David Voneshen and Peter M. Gehring and Andrew M. Rappe and 
+>           Hans-Georg Steinrück and Elif Ertekin and Hemamala I. Karunadasa and 
+>           Dmitry Reznik and Michael F. Toney}}
 
 ## Updates (that aren't in the manual yet)
 - Using parallelism over **Q**-points with multiprocessing may clash with OMP parallelism on the backend (`numpy`/`scipy` are built against `openBLAS` or `MKL` which may be threaded.) Neither my code nor the backend check if the other is parallized, so if you request all procs and the backend uses all threads, your computer will be very over utilized and performance will be poor. You can set the number of threads with the enviroment variable `OMP_NUM_THREADS` or you can set it at run-time by passing a flag `-n NUMBER_OF_THREADS` when you run `PSF.py`. e.g. `python PSF.py -i input.py -n 1`. Note, I havent noticed any gain with hybrid parallelism in my implementation, so I usually request 1 thread and let multiprocessing handle everything with `num_Qpoint_procs`. I will update the manual when I have time! 
