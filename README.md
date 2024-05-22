@@ -21,7 +21,7 @@ repo:
 >  year = {2023},
 >  publisher = {GitHub},
 >  journal = {GitHub repository},
->  url = {https://github.com/tyst3273/pynamic-structure-factor}}
+>  url = {https://github.com/tyst3273/pynamic-structure-factor } }
 
 paper:
 > @article{weadock2023,
