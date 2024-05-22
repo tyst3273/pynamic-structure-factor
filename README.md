@@ -50,6 +50,8 @@ Note, if you want any of these features or any others, contact me (contact info 
 - Look into shared memory with multiprocessing. 
 - Consider a low-memory algorithm to calculate x-ray atomic form factors; the form factors f(Q) depend on |**Q**|, so I pre-calculate them outside of looping over trajectory data. The fastest way is to calculate an array with shape [num_atoms, num_Qpts], but this array is huge for big simulations and big **Q**-point grids (easily runs out of ram). Current plan: just calculate f(Q) for each atom type, then map to all atoms in the loop over **Q**-points. This will be a little slower, but will be memory efficient. 
 - Convert big arrays to C order in memory ... I stupidly used F order (impliclty) before knowing it made a difference. This may be a big speed up!
+- apply quantum correction to the distribution function. Check my notes on force constant from greens functions.
+- apply quantum correction to the stationary phase approximation (prove it is stationary phase approx first.) see Tuckermans book and my notes. 
 
 ## Bugs
 - it has been brought to my attention that the parallel part of my code only works on linux. the problem is with multiprocessing. i am looking for a solution to get it to run in parallel on windows and mac ... please bear with me ... or switch to linux! you can still run in serial (just set num_Qpoint_procs = 1) on windows and mac. UPDATE: I think 'multiprocess', which is a fork of multiprocessing, fixes this, but I
