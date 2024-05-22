@@ -21,7 +21,7 @@ repo:
 >  year = {2023},
 >  publisher = {GitHub},
 >  journal = {GitHub repository},
->  url = {https://github.com/tyst3273/pynamic-structure-factor } }
+>  url = {https://github.com/tyst3273/pynamic-structure-factor }}
 
 paper:
 > @article{weadock2023,
@@ -30,7 +30,7 @@ paper:
 >  year = {2023},
 >  issn = {2542-4351},
 >  doi = {https://doi.org/10.1016/j.joule.2023.03.017},
->  url = {https://www.sciencedirect.com/science/article/pii/S2542435123001290},
+>  url = {https://www.sciencedirect.com/science/article/pii/S2542435123001290 },
 >  author = {Nicholas J. Weadock and Tyler C. Sterling and Julian A. Vigil and 
 >           Aryeh Gold-Parker and Ian C. Smith and Ballal Ahammed and Matthew J. Krogstad 
 >           and Feng Ye and David Voneshen and Peter M. Gehring and Andrew M. Rappe and 
