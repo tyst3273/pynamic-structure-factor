@@ -213,7 +213,7 @@ class c_compressor:
                         if jj % 100 == 0:
                             print(f'now on step {jj}/{_num_steps}')
 
-                        # read this step
+                        # read this step (suposedly islice is fastest way to do it)
                         _lines = list(islice(_f,_num_read))
 
                         # lattice parameters
