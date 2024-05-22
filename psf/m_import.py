@@ -26,7 +26,6 @@ import importlib.machinery as machinery
 # custom modules
 from psf.m_error import crash
 
-
 # --------------------------------------------------------------------------------------------------
 
 def import_module(module_name):

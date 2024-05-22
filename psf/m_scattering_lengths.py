@@ -23,19 +23,17 @@ import multiprocessing as mp
 
 from psf.m_import import import_module
 
-class c_scattering_lengths:
+# --------------------------------------------------------------------------------------------------
 
-    """
-    holds neutron scattering lengths to look up based on atoms types and x-ray scattering form 
-    factor parameters to be looked up based on atom types and later used to calculate f(Q)
-    """
+class c_scattering_lengths:
 
     # ----------------------------------------------------------------------------------------------
 
     def __init__(self,config,comm,timers):
 
         """
-        scattering lengths for neutron/xray scattering
+        holds neutron scattering lengths to look up based on atoms types and x-ray scattering form
+        factor parameters to be looked up based on atom types and later used to calculate f(Q)
         """
 
         self.config = config

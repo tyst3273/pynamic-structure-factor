@@ -28,6 +28,7 @@ import psf.m_import as m_import
 from psf.m_error import check_file, crash
 from psf.m_empty import c_empty
 
+# --------------------------------------------------------------------------------------------------
 
 class c_config:
 

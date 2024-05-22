@@ -24,6 +24,7 @@ from timeit import default_timer
 # custom modules
 from psf.m_error import crash
 
+# --------------------------------------------------------------------------------------------------
 
 class _timer:
 

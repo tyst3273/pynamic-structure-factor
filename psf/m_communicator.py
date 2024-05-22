@@ -27,6 +27,7 @@ import psf.m_structure_factors as m_structure_factors
 import psf.m_parallel as m_parallel
 import psf.m_io as m_io
 
+# --------------------------------------------------------------------------------------------------
 
 class c_communicator:
 

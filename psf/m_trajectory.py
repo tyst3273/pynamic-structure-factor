@@ -21,6 +21,7 @@
 import numpy as np
 from psf.m_error import crash
 
+# --------------------------------------------------------------------------------------------------
 
 class c_trajectory:
     
