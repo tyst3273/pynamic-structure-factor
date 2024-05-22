@@ -1,5 +1,8 @@
 # pynamic-structure-factor
 
+### Most recent update:
+May 21, 2024
+
 ## Description
 Python code to calculate inelastic neutron and x-ray scattering dynamic structure factors, S(**Q**,*w*), from molecular dynamics trajectories using parallelism over **Q**-points.
 
