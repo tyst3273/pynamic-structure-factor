@@ -1,5 +1,27 @@
 #!/home/ty/anaconda3/bin/python
 
+"""
+Tool to read lammps text output and convert to format that can be read by my code 
+i.e. trajectory_format='user_hdf5'.
+
+I assume that the trajectory was written using the commands
+    dump          pos all custom ${dump_freq} pos.dat id type xu yu zu
+    dump_modify   pos sort id
+
+It is **essential** that you used the unwrapped positions (xu, yu, zu) and sort by id!
+
+This isn't parallelized (since parallel reads from the text file are apparently not faster).
+It simply reads one step at a time, writing each to the hdf5 file. It isn't fast, but it is 
+simple!
+
+If you have multiple contiguous text files you want to put in the same hdf5 file, you can do it!
+Simply pass all text files in the order you want them put into the hdf5 file. My code won't check
+that they are contiguous (or consecutive), so be careful! 
+
+Example usage:
+    python convert_lammps_to_hdf5.py -i pos_1.dat pos_2.dat -o pos.hdf5
+"""
+
 import h5py, os, sys
 import numpy as np
 from itertools import islice
@@ -62,15 +84,19 @@ class c_compressor:
         hdf5_traj_file is the output hdf5 file. if it exists, it is overwritten.
         """
 
+        # i.e. length of data block that isnt the positions
         self.header_length = 9
 
+        # output hdf5 file
         self.hdf5_traj_file = hdf5_traj_file
 
+        # enforce list of input files is list (even if single file)
         if not isinstance(lammps_traj_files,list):
             lammps_traj_files = [lammps_traj_files]
         self.lammps_traj_files = lammps_traj_files
         self.num_lammps_files = len(self.lammps_traj_files)
-
+        
+        # check that the lammps files exist
         for _f in self.lammps_traj_files:
             if not os.path.exists(_f):
                 print(f'\nthe file {_f} is missing!')
@@ -79,7 +105,10 @@ class c_compressor:
         print('\nlammps traj files:')
         print(self.lammps_traj_files)
 
+        # get number of steps in each file... takes a while to 'loop' over the whole file
         self._get_meta_data()
+
+        # now go and read the files/write to hdf5
         self._parse_text_files()
 
     # ----------------------------------------------------------------------------------------------
@@ -87,6 +116,9 @@ class c_compressor:
     def _convert_box_vecs(self,lat_params):
 
         """
+        converts from lammps restricted triclinic box to generic lattice vectors.
+        see https://docs.lammps.org/Howto_triclinic.html 
+
         xlo_bound xhi_bound xy
         ylo_bound yhi_bound xz
         zlo_bound zhi_bound yz
@@ -126,7 +158,8 @@ class c_compressor:
     def _process_types(self,types):
 
         """
-        we want types to be consecutive and start at 1, so we convert them here
+        my code expects the types to start at 1 and be contiguous. this converts them to 
+        contiguous and starting at 1
         """
 
         _unique, inverse = np.unique(types,return_inverse=True)
@@ -143,9 +176,13 @@ class c_compressor:
 
         _timer = c_timer('parse_text_files')
 
+        # number of steps in each block to read (header+pos)
         _num_read = self.header_length+self.num_atoms
+
+        # have types been written yet (only done at 1st step)
         _write_types = True
 
+        # id, type, xu, yu, zu
         _data = np.zeros((self.num_atoms,5),dtype=float)
         _lat_params = np.zeros((3,3),dtype=float)
 
@@ -164,10 +201,12 @@ class c_compressor:
                 print('\nnow reading file:',_lammps_file)
                 print('this may take a while ...')
 
+                # number of steps in this file
                 _num_steps = self.num_steps_per_file[ii]
 
+                # timer to read this file
                 _f_timer = c_timer(f'read[{ii}]')
-
+                
                 with open(_lammps_file,'r') as _f:
                     for jj in range(_num_steps):
 
@@ -214,31 +253,35 @@ class c_compressor:
 
         print('\ngetting meta_data from files ...')
 
+        # make sure all files have the same number of atoms
         _num_atom_arr = np.zeros(self.num_lammps_files,dtype=int)
+
         self.num_lines_per_file = np.zeros(self.num_lammps_files,dtype=int)
         self.num_steps_per_file = np.zeros(self.num_lammps_files,dtype=int)
         
         for ii, _lammps_file in enumerate(self.lammps_traj_files):
 
+            # get number of atoms in the file
             with open(_lammps_file,'r') as _f:
                 for jj in range(3):
                     _f.readline()
                 _num_atoms = int(_f.readline().strip())
-
             _num_atom_arr[ii] = _num_atoms
             
+            # now check total number of lines/number of steps in the file
             with open(_lammps_file, "rb") as _f:
                 _num_lines = sum(1 for _ in _f)
                 _num_steps = int(_num_lines/(self.header_length+_num_atoms))
 
             self.num_steps_per_file[ii] = _num_steps
             self.num_lines_per_file[ii] = _num_lines
-
+        
             print('\nfile name:',_lammps_file)
             print('num atoms:',_num_atoms)
             print('num lines:',_num_lines)
             print('num steps:',_num_steps)
 
+        # make sure all files have same number of atoms
         self.num_atoms = _num_atom_arr[0]
         if any(self.num_atoms-_num_atom_arr):
             print('\nnumber of atoms in all files must be the same!')
