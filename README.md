@@ -16,12 +16,12 @@ publication for which this code and method was developed:
 
 repo:
 > @misc{psf2023,
->  author = {Sterling, T. C.},
->  title = {pynamic-structure-factor},
->  year = {2023},
->  publisher = {GitHub},
->  journal = {GitHub repository},
->  url = {https://github.com/tyst3273/pynamic-structure-factor }}
+  author = {Sterling, T. C.},
+  title = {pynamic-structure-factor},
+  year = {2023},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  url = {https://github.com/tyst3273/pynamic-structure-factor }}
 
 paper:
 > @article{weadock2023,
