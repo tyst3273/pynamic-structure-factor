@@ -11,7 +11,7 @@ Please contact me at:
 if you have any questions, bug reports, requests for feauters/functionality, etc.
 
 ## Citing
-Uf you use this code in any publications, please consider citing my github repository and the following 
+If you use this code in any publications, please consider citing my github repository and the following 
 publication for which this code and method was developed: 
 
 repo:
