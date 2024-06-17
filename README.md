@@ -6,6 +6,8 @@ May 21, 2024
 ## Description
 Python code to calculate inelastic neutron and x-ray scattering dynamic structure factors, S(**Q**,*w*), from molecular dynamics trajectories using parallelism over **Q**-points.
 
+This code is pretty fast as written, but could be a lot faster if redone in `c`, `c++`, etc. I'm happy to help you rewrite it ;)
+
 Look at the manual (doc/manual.pdf) and the examples for how to use the code.
 
 ## Contact
@@ -45,7 +47,7 @@ paper:
 
 ## To-do:
 Note, if you want any of these features or any others, contact me (contact info above). I am busy, so will only implement these when I am bored/I need them... I may be motivated to do it sooner by someone asking me nicely!
-- Use symmetry to reduce the number of **Q**-points. This isn't necesarilly sensible for disorderd systems, but can be used to quilty create colorplots, volumetric plots, etc. Anyway, *mantid* symmetrizes the real experimental data this. Easiest way to implement on top of current code is to use *spglib* to find the symmetry operations, the map each **Q**-point in the full grid to the others. Only calculate one from each star(?). Alternatively, use *spglib* to generate an irreducible grid... note, though, this only covers the 1st BZ. I could probably just cut our 'chunks' of the 1st BZ and extend into higher BZ's, but I need to think carefully about this.
+- Use symmetry to reduce the number of **Q**-points. This isn't necesarilly sensible for disorderd systems, but can be used to quickly create colorplots, volumetric plots, etc. Anyway, *mantid* symmetrizes the real experimental data this. Easiest way to implement on top of current code is to use *spglib* to find the symmetry operations, the map each **Q**-point in the full grid to the others. Only calculate one from each star(?). Alternatively, use *spglib* to generate an irreducible grid... note, though, this only covers the 1st BZ. I could probably just cut our 'chunks' of the 1st BZ and extend into higher BZ's, but I need to think carefully about this.
 - Add *plugins* to read trajectories depending on the user specified format. Should take 'block inds' as arg and return types, positions, etc. 
 - Look into shared memory with multiprocessing. 
 - Consider a low-memory algorithm to calculate x-ray atomic form factors; the form factors f(Q) depend on |**Q**|, so I pre-calculate them outside of looping over trajectory data. The fastest way is to calculate an array with shape [num_atoms, num_Qpts], but this array is huge for big simulations and big **Q**-point grids (easily runs out of ram). Current plan: just calculate f(Q) for each atom type, then map to all atoms in the loop over **Q**-points. This will be a little slower, but will be memory efficient. 
