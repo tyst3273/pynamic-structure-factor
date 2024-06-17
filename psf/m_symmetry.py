@@ -34,6 +34,7 @@ class c_symmetry:
         except Exception as _ex:
             crash(f'spglib couldnt be imported!',_ex)
 
+        # fix me!
         _latvecs = self.comm.lattice.lattice_vectors
         _basis_pos = self.comm.atoms.atom_positions_reduced
         _basis_types = self.comm.atoms.atom_type_nums
