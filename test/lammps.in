@@ -1,0 +1,151 @@
+# --------------------------------------------------------------------------------------------------
+# cubic CH3NH3PbI3
+
+
+# --------------------------------------------------------------------------------------------------
+# define simulation domain
+# --------------------------------------------------------------------------------------------------
+
+units             real 
+dimension         3
+newton            on
+boundary          p p p
+atom_style        full 
+
+atom_modify       sort 100 0.0 map array 
+
+# --------------------------------------------------------------------------------------------------
+# define simulation paramters
+# --------------------------------------------------------------------------------------------------
+
+
+variable        t_therm     equal 600
+variable	t_sim       equal 350 
+
+variable        dt          equal 0.25 
+variable        dt_dump     equal 200   # how often to write pos to file: ~10 THz = ~41.3 meV
+
+
+variable        seed        equal 864215
+
+#variable        therm_run   equal 20000  # thermalize at high T, quench to room T
+#variable        sqw_run     equal 200000
+
+variable        therm_run   equal 2000  # thermalize at high T, quench to room T
+variable        sqw_run     equal 2000
+
+variable        trj_dump    equal 500
+variable        thermo_dump equal 500
+
+
+# --------------------------------------------------------------------------------------------------
+# define crystal
+# --------------------------------------------------------------------------------------------------
+
+read_data       MAPI_cubic.prim
+
+mass            1 12.0100
+mass            2 14.0100
+mass            3 1.0080
+mass            4 1.0080
+mass            5 207.2
+mass            6 126.90
+
+replicate       12 12 12
+
+
+# --------------------------------------------------------------------------------------------------
+# define potential
+# --------------------------------------------------------------------------------------------------
+
+bond_style      harmonic
+bond_coeff	1 677.4000 1.0910
+bond_coeff	2 738.0000 1.0330
+bond_coeff	3 350 1.53
+
+angle_style     harmonic
+angle_coeff	1 78.0000 110.7400
+angle_coeff	2 81.0000 108.1100
+angle_coeff	3 98.0000 107.9100
+angle_coeff	4 92.4000 110.1100
+
+dihedral_style  charmm
+dihedral_coeff  1 0.1556 3 0 0.500
+
+pair_style      hybrid lj/charmm/coul/long  6.0 10.0 buck/long/coul/long cut long 6.0 10.0
+pair_coeff      1 1 lj/charmm/coul/long 0.1094 3.39970 
+pair_coeff      1 2 lj/charmm/coul/long 0.1364 3.32480 
+pair_coeff      1 3 lj/charmm/coul/long 0.0414 2.67980 
+pair_coeff      1 4 lj/charmm/coul/long 0.0414 2.23440
+pair_coeff      1 5 buck/long/coul/long 32690390.937995 0.150947 0.000000 
+pair_coeff      1 6 buck/long/coul/long 112936.714213 0.342426 0.000000 
+pair_coeff      2 2 lj/charmm/coul/long 0.1700 3.25000 
+pair_coeff      2 3 lj/charmm/coul/long 0.0517 2.60500 
+pair_coeff      2 4 lj/charmm/coul/long 0.0517 2.15950 
+pair_coeff      2 5 buck/long/coul/long 32690390.937995 0.150947 0.000000 
+pair_coeff      2 6 buck/long/coul/long 112936.714213 0.342426 0.000000 
+pair_coeff      3 3 lj/charmm/coul/long 0.0157 1.96000 
+pair_coeff      3 4 lj/charmm/coul/long 0.0157 1.51450 
+pair_coeff      3 5 lj/charmm/coul/long 0.0140 2.70999 
+pair_coeff      3 6 lj/charmm/coul/long 0.0574 3.10000 
+pair_coeff      4 4 lj/charmm/coul/long 0.0157 1.06910 
+pair_coeff      4 5 lj/charmm/coul/long 0.0140 2.26454 
+pair_coeff      4 6 lj/charmm/coul/long 0.0574 2.75000 
+pair_coeff      5 5 buck/long/coul/long 70359906.629702 0.131258 0.000000
+pair_coeff      5 6 buck/long/coul/long 103496.133010 0.321737 0.000000 
+pair_coeff      6 6 buck/long/coul/long 22793.338582 0.482217 696.949542
+kspace_style    pppm/disp 1.0e-4
+
+
+# --------------------------------------------------------------------------------------------------
+# set some more params
+# --------------------------------------------------------------------------------------------------
+
+timestep        ${dt}
+reset_timestep  0
+
+thermo          ${thermo_dump}
+thermo_style    custom step etotal temp pe press pxx pyy pzz fmax lx ly lz
+
+dump            TRJ all custom ${trj_dump} sim.lammpstrj id type x y z
+dump_modify     TRJ sort id
+
+
+# --------------------------------------------------------------------------------------------------
+# thermalize at high T
+# --------------------------------------------------------------------------------------------------
+
+velocity        all create ${t_sim} ${seed} mom yes rot yes dist gaussian
+
+fix             THERM all npt temp ${t_therm} ${t_therm} $(100.0*dt) iso 0.0 0.0 $(1000.0*dt)
+run             ${therm_run}
+unfix           THERM
+
+
+# --------------------------------------------------------------------------------------------------
+# quench to ~ room T
+# --------------------------------------------------------------------------------------------------
+
+fix             QUENCH all npt temp ${t_therm} ${t_sim} $(100.0*dt) iso 0.0 0.0 $(1000.0*dt)
+run             ${therm_run}
+unfix           QUENCH
+
+# --------------------------------------------------------------------------------------------------
+# write positions for SQW calculation
+# --------------------------------------------------------------------------------------------------
+
+dump            POSITIONS all h5md ${dt_dump} pos.h5 position species
+dump_modify     POSITIONS sort id
+
+fix             SQW all nve
+run             ${sqw_run}
+unfix           SQW
+
+# --------------------------------------------------------------------------------------------------
+# finalize stuff
+# --------------------------------------------------------------------------------------------------
+
+undump          POSITIONS
+undump          TRJ
+
+
