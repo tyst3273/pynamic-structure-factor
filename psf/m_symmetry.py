@@ -35,9 +35,10 @@ class c_symmetry:
             crash(f'spglib couldnt be imported!',_ex)
 
         # fix me!
-        _latvecs = self.comm.lattice.lattice_vectors
-        _basis_pos = self.comm.atoms.atom_positions_reduced
-        _basis_types = self.comm.atoms.atom_type_nums
+        _latvecs = self.config.symm_lattice_vectors
+        _pos = self.config.symm_basis_pos
+        _nums = self.config.symm_basis_types
+        _magmoms = self.config.symm_magmoms
 
         cell = (_latvecs,_basis_pos,_basis_types)
 

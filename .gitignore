@@ -4,3 +4,4 @@ __pycache__
 *.hdf5
 *.lammpstrj
 *.swp
+*.dat
