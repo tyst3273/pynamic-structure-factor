@@ -124,10 +124,128 @@ class c_config:
             self._set_Q_path_start()
             self._set_Q_path_end()
             self._set_Q_path_steps()
+
+        self._set_use_symmetry()
+        if self.use_symmetry:
+            #self._set_symm_lattice_vectors()
+            self._set_symm_basis_pos()
+            self._set_symm_basis_types()
+            self._set_symm_magmoms()
             
         # --- add new variables parsers here ---
         # ...
         # ...
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_symm_magmoms(self):
+
+        """
+        get the attribute.
+        """
+
+        self._get_attr('symm_magmoms')
+
+        if self.symm_magmoms is None:
+            return
+
+        msg = '\'symm_magmoms\' seems wrong\n'
+        try:
+            self.symm_magmoms = np.array(self.symm_magmoms,dtype='float').squeeze()
+        except Exception as ex:
+            crash(msg,ex)
+
+        # non-collinear
+        if self.symm_magmoms.ndim == 2:        
+            _shape = self.symm_magmoms.shape
+            if _shape[1] != 3 or _shape[0] != self.num_symm_basis:
+                crash(msg)
+            
+            # echo to the info file
+            msg = 'symm_magmoms:'
+            for ii in range(self.num_symm_basis):
+                msg += '\n'
+                for jj in range(3):
+                    msg += f'{self.symm_magmoms[ii,jj]: 10.6f} '
+            print(msg)
+
+        # collinear
+        else:
+            if self.symm_magmoms.size != self.num_symm_basis:
+                crash()
+
+            # echo to the info file
+            msg = 'symm_magmoms:\n  '
+            for ii in range(len(self.symm_magmoms)):
+                msg += f'{self.symm_magmoms[ii]} '
+            print(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_symm_basis_types(self):
+
+        """
+        get the attribute.
+        """
+
+        self._get_attr('symm_basis_types')
+
+        msg = '\'symm_basis_types\' seems wrong\n'
+        try:
+            self.symm_basis_types = np.array(self.symm_basis_types,dtype='int').squeeze()
+        except Exception as ex:
+            crash(msg,ex)
+    
+        if len(self.symm_basis_types) != self.num_symm_basis or self.symm_basis_types.ndim != 1:
+            crash(msg)
+
+        # echo to the info file
+        msg = 'symm_basis_types:\n  '
+        for ii in range(len(self.symm_basis_types)):
+            msg += f'{self.symm_basis_types[ii]} '
+        print(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_symm_basis_pos(self):
+
+        """
+        get the attribute
+        """
+
+        self._get_attr('symm_basis_pos')
+
+        # check the shape
+        msg = '\'symm_basis_pos\' seems wrong\n'
+        try:
+            self.symm_basis_pos = np.atleast_2d(np.array(self.symm_basis_pos,dtype=float))
+        except Exception as ex:
+            crash(msg,ex)
+        if self.symm_basis_pos.shape[1] != 3:
+            crash(msg)
+
+        self.num_symm_basis = self.symm_basis_pos.shape[0]
+
+        # echo to the info file
+        msg = 'symm_basis_pos: (reduced)'
+        for ii in range(self.num_symm_basis):
+            msg += '\n'
+            for jj in range(3):
+                msg += f'{self.symm_basis_pos[ii,jj]: 10.6f} '
+        print(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_use_symmetry(self):
+
+        """
+        get the attribute
+        """
+
+        self._get_attr('use_symmetry')
+
+        self.use_symmetry = bool(self.use_symmetry)
+        print(f'use_symmetry:\n  {self.use_symmetry}')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -141,9 +259,9 @@ class c_config:
 
         try:
             self.trajectory_stride = int(self.trajectory_stride)
-        except:
+        except Exception as ex:
             msg = 'trajectory_stride must be an int'
-            crash(msg)
+            crash(msg,ex)
 
         msg = 'trajectory_stride must be >= 1'
         if self.trajectory_stride < 1:
@@ -163,9 +281,9 @@ class c_config:
 
         try:
             self.trajectory_skip = int(self.trajectory_skip)
-        except:
+        except Exception as ex:
             msg = 'trajectory_skip must be an int'
-            crash(msg)
+            crash(msg,ex)
 
         msg = 'trajectory_skip must be >= 0'
         if self.trajectory_skip < 0:
@@ -185,9 +303,9 @@ class c_config:
 
         try:
             self.trajectory_trim = int(self.trajectory_trim)
-        except:
+        except Exception as ex:
             msg = 'trajectory_trim must be an int'
-            crash(msg)
+            crash(msg,ex)
 
         msg = 'trajectory_trim must be >= 0'
         if self.trajectory_trim < 0:
@@ -207,9 +325,9 @@ class c_config:
 
         try:
             self.num_trajectory_blocks = int(self.num_trajectory_blocks)
-        except:
+        except Exception as ex:
             msg = 'num_trajectory_blocks must be an int'
-            crash(msg)
+            crash(msg,ex)
 
         msg = 'num_trajectory_blocks must be >= 1'
         if self.num_trajectory_blocks < 1:
@@ -233,8 +351,8 @@ class c_config:
             msg = 'trajectory_blocks must be a list of ints'
             try:
                 self.trajectory_blocks = np.array(self.trajectory_blocks,dtype=int)
-            except:
-                crash(msg)
+            except Exception as ex:
+                crash(msg,ex)
 
         if self.trajectory_blocks.ndim == 0:
             self.trajectory_blocks.shape = [1,]
@@ -265,8 +383,8 @@ class c_config:
         msg = 'Q_path_steps seems wrong\n'
         try:
             self.Q_path_steps = np.array(self.Q_path_steps,dtype=int)
-        except:
-            crash(msg)
+        except Exception as ex:
+            crash(msg,ex)
 
         if len(self.Q_path_steps.shape) != 1:
             crash(msg)
@@ -301,8 +419,8 @@ class c_config:
         msg = 'Q_path_end seems wrong\n'
         try:
             self.Q_path_end = np.array(self.Q_path_end,dtype=float)
-        except:
-            crash(msg)
+        except Exception as ex:
+            crash(msg,ex)
 
         if self.Q_path_end.size == 3:
             self.Q_path_end.shape = [1,3]
@@ -325,8 +443,8 @@ class c_config:
         msg = 'Q_path_start seems wrong\n'
         try:
             self.Q_path_start = np.array(self.Q_path_start,dtype=float)
-        except:
-            crash(msg)
+        except Exception as ex:
+            crash(msg,ex)
 
         if self.Q_path_start.size == 3:
             self.Q_path_start.shape = [1,3]
@@ -367,8 +485,8 @@ class c_config:
         msg = 'Q_mesh_K seems wrong\n'
         try:
             self.Q_mesh_K = np.array(self.Q_mesh_K,dtype=float)
-        except:
-            crash(msg)
+        except Exception as ex:
+            crash(msg,ex)
         if not self.Q_mesh_K.size in [1,3]:
             crash(msg)
         if self.Q_mesh_K.size == 3:
@@ -397,8 +515,8 @@ class c_config:
         msg = 'Q_mesh_L seems wrong\n'
         try:
             self.Q_mesh_L = np.array(self.Q_mesh_L,dtype=float)
-        except:
-            crash(msg)
+        except Exception as ex:
+            crash(msg,ex)
         if not self.Q_mesh_L.size in [1,3]:
             crash(msg)
         if self.Q_mesh_L.size == 3:
@@ -428,8 +546,8 @@ class c_config:
         msg = 'Q_mesh_H seems wrong\n'
         try:
             self.Q_mesh_H = np.array(self.Q_mesh_H,dtype=float)
-        except:
-            crash(msg)
+        except Exception as ex:
+            crash(msg,ex)
         if not self.Q_mesh_H.size in [1,3]:
             crash(msg)
         if self.Q_mesh_H.size == 3:
@@ -644,8 +762,8 @@ class c_config:
         msg = '\'lattice_vectors\' seems wrong\n'
         try:
             self.lattice_vectors = np.array(self.lattice_vectors,dtype=float)
-        except:
-            crash(msg)
+        except Exception as ex:
+            crash(msg,ex)
         if self.lattice_vectors.size != 9:
             crash(msg)
         else:
@@ -677,8 +795,8 @@ class c_config:
         msg = '\'box_vectors\' seems wrong\n'
         try:
             self.box_vectors = np.array(self.box_vectors,dtype=float)
-        except:
-            crash(msg)
+        except Exception as ex:
+            crash(msg,ex)
         if self.box_vectors.size != 9:
             crash(msg)
         else:
@@ -728,8 +846,8 @@ class c_config:
         msg = '\'num_Qpoint_procs\' must be an integer that is > 0\n'
         try:
             self.num_Qpoint_procs = int(self.num_Qpoint_procs)
-        except:
-            crash(msg)
+        except Exception as ex:
+            crash(msg,ex)
         if self.num_Qpoint_procs <= 0:
             crash(msg)
 

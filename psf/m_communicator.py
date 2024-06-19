@@ -26,6 +26,7 @@ import psf.m_trajectory as m_trajectory
 import psf.m_structure_factors as m_structure_factors
 import psf.m_parallel as m_parallel
 import psf.m_io as m_io
+import psf.m_symmetry as m_symmetry
 
 # --------------------------------------------------------------------------------------------------
 
@@ -52,6 +53,9 @@ class c_communicator:
 
         # lattice and reciprocal lattice vectors
         self.lattice = m_lattice.c_lattice(self.config,self)
+
+        # symmetry operations for the crystal (note, these come from symm_* args, not c_lattice)
+        self.symmetry = m_symmetry.c_symmetry(self.config,self,self.timers)
 
         # Q-points created using one of numerous methods specified in config
         self.Qpoints = m_Qpoints.c_Qpoints(self.config,self,self.timers)

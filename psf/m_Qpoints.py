@@ -47,6 +47,8 @@ class c_Qpoints:
         if self.Qpoints_option == 'mesh':
             self.use_mesh = True
 
+        self.use_symmetry = self.comm.symmetry.use_symmetry
+
     # ----------------------------------------------------------------------------------------------
 
     def generate_Qpoints(self):
@@ -80,6 +82,10 @@ class c_Qpoints:
         
         # also need Qpts in cartesian coords
         self.get_cartesian_Qpoints()
+
+        # now reduce the set using symmetry ...
+        if self.use_symmetry:
+            self.comm.symmetry.get_irreducible_set_of_Qpoints()
 
         # print the Q-points to user
         msg = f'\n*** Q-points ***\nnumber of Q-points: {self.num_Q:g}\n'

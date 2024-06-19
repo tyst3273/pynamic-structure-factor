@@ -253,8 +253,6 @@ class c_compressor:
 
                         _step += 1
 
-                    print(_db_box_vecs[...].mean(axis=0))
-
                 _f_timer.stop()
             _timer.stop()
                         
