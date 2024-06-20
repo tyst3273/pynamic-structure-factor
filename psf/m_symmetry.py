@@ -80,8 +80,7 @@ class c_symmetry:
         loop over the set of Qpoints and find the irreducible set that is mapped onto all others
         
         let S be a rotation.
-
-        since r' = S@r, k.r' = k.S@r = k@S.r, i.e. we look at kpts such that k' = k@S
+            since r' = S@r, k.r' = k.S@r = k@S.r, i.e. we look at kpts such that k' = k@S
         """
 
         _Qpts = self.comm.Qpoints
