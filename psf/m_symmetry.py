@@ -52,7 +52,7 @@ class c_symmetry:
         # internation symbol / number
         self.spacegroup = spglib.get_spacegroup((_latvecs,_pos,_nums),symprec=_symprec)
 
-        # call spglib depending on spin-pol
+        # call spglib depending on magnetism
         if _magmoms is None:
             cell = (_latvecs,_pos,_nums)
             symm = spglib.get_symmetry(cell=cell,symprec=_symprec)
