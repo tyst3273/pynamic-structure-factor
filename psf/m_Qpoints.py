@@ -59,7 +59,6 @@ class c_Qpoints:
         ALL METHODS MUST PRODUCE 
             Q_rlu_full: np.array with shape [num_Q_full]x[3] and
             num_Q_full: int == number of Q-points
-
         """
 
         print('\n*** Q-points ***')
@@ -128,7 +127,7 @@ class c_Qpoints:
         _start = self.config.Q_path_start
         _end = self.config.Q_path_end
         _steps = self.config.Q_path_steps
-        _num_paths = self.config.num_Q_full_paths 
+        _num_paths = self.config.num_Q_paths 
         
         self.num_Q_full = np.sum(_steps)
         self.Q_rlu_full = np.zeros((self.num_Q_full,3),dtype=float)

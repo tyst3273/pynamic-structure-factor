@@ -6,20 +6,18 @@ example input file
 # options for where to get data/preprocessing
 trajectory_format = 'user_hdf5' 
 trajectory_file = 'test.hdf5'
+output_prefix = 'mesh'
 
 unwrap_trajectory = False
 
-# options for splitting up trajectory
-num_trajectory_blocks = 4
-trajectory_blocks = None 
 
-# options for writing results
-output_directory = 'out' 
-output_prefix = 'psf'
+# options for splitting up trajectory
+num_trajectory_blocks = 5
+trajectory_blocks = None 
 
 # simulation options
 md_time_step = 24 # femtoseconds; time step IN FILE, not used in simulation
-md_num_steps = 1000
+md_num_steps = 2500
 md_num_atoms = 13824
 
 # unit cell/ crystal info
@@ -35,19 +33,18 @@ experiment_type = 'neutrons' # 'neutrons' or 'xrays'
 Qpoints_option = 'mesh' # mesh, mesh_file, write_mesh, text_file, or path
 
 # for 'Qpoints_option' == 'mesh' ; 
-#Q_mesh_H = [-1/2,1/2,10]
-#Q_mesh_K = [-1/2,1/2,10]
-#Q_mesh_L = 0 
-Q_mesh_H = [-4,4,97]
-Q_mesh_K = [-4,4,97]
-Q_mesh_L = 0
+Q_mesh_H = [-6,6,145]
+Q_mesh_K = [-6,6,145]
+Q_mesh_L = 2
 
 # 'Qpoints_option' == 'path'
-Q_path_start = [[0,0,0],
-                [1,0,2]]
-Q_path_end = [[1,0,2],
-              [3,0,2]]
-Q_path_steps = [20,20]
+Q_path_start = [[-1,1.25,0],
+                [1,1.25,0],
+                [1,-1.25,0]]
+Q_path_end = [[1,1.25,0],
+              [1,-1.25,0],
+              [-1,-1.25,0]]
+Q_path_steps = [24,18,24]
 
 # number of processes to split Q-point parallelization over
 num_Qpoint_procs = 24
@@ -62,8 +59,8 @@ symm_basis_pos = [[0.00, 0.00, 0.00],
                   [0.75, 0.75, 0.25],
                   [0.75, 0.25, 0.75],
                   [0.25, 0.75, 0.75]]
-symm_basis_types = [1,1,1,1,2,2,2,2]
-#symm_magmoms = [1,0,0,0,-1,0,0,0]
+symm_basis_types = [1,1,1,1,1,1,1,1]
+#symm_magmoms = [0,0,0,0,0,0,0,0]
 
 
 

@@ -1,5 +1,4 @@
 
-from psf.m_timing import _timer
 from psf.m_error import crash
 import numpy as np
 
@@ -42,8 +41,6 @@ class c_symmetry:
         except Exception as _ex:
             crash(f'spglib couldnt be imported!',_ex)
 
-        _version = spglib.spg_get_version()
-
         _symprec = self.symprec
 
         # need this stuff
@@ -54,6 +51,7 @@ class c_symmetry:
 
         # internation symbol / number
         self.spacegroup = spglib.get_spacegroup((_latvecs,_pos,_nums),symprec=_symprec)
+        _version = spglib.spg_get_version()
 
         # call spglib depending on magnetism
         if _magmoms is None:
@@ -76,6 +74,11 @@ class c_symmetry:
         msg += f'\nnumber of symmetry operations (w/ magnetism):\n  {self.num_sym_ops}'
         print(msg)
 
+        warn = '\n*** WARNING ***\n'
+        warn += 'using symmetry isnt fully tested yet and I cant gaurantee there\n'
+        warn += 'are no errors! please use caution and check results carefully!'
+        print(warn)
+
     # ----------------------------------------------------------------------------------------------
 
     def get_irreducible_set_of_Qpoints(self):
@@ -88,6 +91,10 @@ class c_symmetry:
 
         NOTE: this one is slower than the _get_irreducible... method below, but I am more confident
         that is correct
+
+        NOTE: if this proves too slow, I could parallelize it over sym-ops
+
+        NOTE: maybe I should only be using the symmomorphic ops? (i.e. no fractional tralslations)
         """
 
         self.timers.start_timer('get_irreducible_Q',units='s')
@@ -114,13 +121,13 @@ class c_symmetry:
         _map = -1*np.ones(_num_Q,dtype=int)
 
         for ii in range(_num_Q):
+
+            if ii % 1000 == 0:
+                print(f'  now on Qpt {ii}/{_num_Q}')
             
             # this Q is already mapped onto a previous one
             if _map[ii] >= 0:
                 continue 
-
-            if ii % 1000 == 0:
-                print(f'  now on Qpt {ii}/{_num_Q}')
 
             for jj in range(_num_sym):  
 
@@ -263,15 +270,19 @@ class c_symmetry:
 
         # elastic has no energy dimension
         if _ndim == 1:
-            sq_full = np.zeros((_num_Q_full,1),dtype=float)
+            sq_full = np.zeros((_num_Q_full),dtype=float)
+            for ii in range(_num_Q_full):
+                _ind = _irr_map[ii]
+                sq_full[ii] = sq[_ind]
+        
+        # inelastic does
         else:
             sq_full = np.zeros((_num_Q_full,sq.shape[1]),dtype=float)
+            for ii in range(_num_Q_full):
+               _ind = _irr_map[ii]
+               sq_full[ii,:] = sq[_ind,:]
 
-        for ii in range(_num_Q_full):
-            _ind = _irr_map[ii]
-            sq_full[ii,:] = sq[_ind]
-
-        return sq_full.squeeze()
+        return sq_full
 
     # ----------------------------------------------------------------------------------------------
 

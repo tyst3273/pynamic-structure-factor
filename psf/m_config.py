@@ -190,7 +190,7 @@ class c_config:
         self._get_attr('symm_basis_types')
 
         if self.symm_basis_types is None:
-            crash('please specify \'symm_basis_types\' to use symmetry')
+            self.symm_basis_types = np.ones(self.num_symm_basis,dtype=int)
 
         msg = '\'symm_basis_types\' seems wrong\n'
         try:
