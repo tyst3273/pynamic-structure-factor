@@ -35,11 +35,11 @@ experiment_type = 'neutrons' # 'neutrons' or 'xrays'
 Qpoints_option = 'mesh' # mesh, mesh_file, write_mesh, text_file, or path
 
 # for 'Qpoints_option' == 'mesh' ; 
-#Q_mesh_H = [-1,1,25]
-#Q_mesh_K = [-1,1,25]
-#Q_mesh_L = [-1,1,25]
-Q_mesh_H = [-8,8,193]
-Q_mesh_K = [-8,8,193]
+#Q_mesh_H = [-1/2,1/2,10]
+#Q_mesh_K = [-1/2,1/2,10]
+#Q_mesh_L = 0 
+Q_mesh_H = [-4,4,97]
+Q_mesh_K = [-4,4,97]
 Q_mesh_L = 0
 
 # 'Qpoints_option' == 'path'
@@ -50,7 +50,7 @@ Q_path_end = [[1,0,2],
 Q_path_steps = [20,20]
 
 # number of processes to split Q-point parallelization over
-num_Qpoint_procs = 16
+num_Qpoint_procs = 24
 
 # symmetry
 use_symmetry = True

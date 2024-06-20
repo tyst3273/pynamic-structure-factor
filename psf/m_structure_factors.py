@@ -129,6 +129,9 @@ class c_structure_factors:
             _block_timer.stop()
             _block_timer.print_timing()
 
+        msg = '-------------------------------------------------------------'
+        print(msg)
+
         # divide by number of blocks and number of atoms (to normalize vs system size)
         # and by number of steps to normalize vs traj. length
         _num_steps = self.comm.traj.num_block_steps
@@ -319,24 +322,29 @@ class c_structure_factors:
 
     # ---------------------------------------------------------------------------------------------- 
 
-    def put_on_mesh(self):
+    def unfold_structure_factors(self):
 
         """
-        convenience methods that put S(Q,w) on list of Q onto cartesian grid of Q-points
-
-        this calls methods from c_Qpoints
+        if reduced onto irreducible set, unfold onto full set. moreover, if on a mesh, unfold from 
+        [num_Q]x[3] to [num_H]x[num_K]x[num_L] mesh
         """
 
+        _calc_sqw = self.calc_sqw
         _use_mesh = self.comm.Qpoints.use_mesh
-        if not _use_mesh:
-            msg = 'a Qpoint-mesh was not requested, i.e. cannot be unfolded!\n' \
-                  'use \'Qpoints_option\' = \'mesh\' or \'write_mesh\' \n'
-            crash(msg)
+        _Qpts = self.comm.Qpoints
+        _symmetry = self.comm.symmetry
 
-        if self.calc_sqw:
-            self.sqw = self.comm.Qpoints.unfold_onto_Q_mesh(self.sqw)
+        # if using symmetry, put back onto full set
+        if _symmetry.use_symmetry:
+            if _calc_sqw:
+                self.sqw = _symmetry.unfold_onto_full_Q_set(self.sqw)
+            self.sq_elastic = _symmetry.unfold_onto_full_Q_set(self.sq_elastic)
 
-        self.sq_elastic = self.comm.Qpoints.unfold_onto_Q_mesh(self.sq_elastic)
+        # if on Cartesian mesh, unfold from [num_Q]x[3] array to [num_H]x[num_K]x[num_L] mesh
+        if _use_mesh:
+            if _calc_sqw:
+                self.sqw = _Qpts.unfold_onto_cartesian_mesh(self.sqw)
+            self.sq_elastic = _Qpts.unfold_onto_cartesian_mesh(self.sq_elastic)
 
     # ----------------------------------------------------------------------------------------------
 

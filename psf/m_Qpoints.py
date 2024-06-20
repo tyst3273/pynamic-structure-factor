@@ -57,10 +57,12 @@ class c_Qpoints:
         sets Qpoints depending on what was set in the file
 
         ALL METHODS MUST PRODUCE 
-            Q_rlu: np.array with shape [num_Q]x[3] and
-            num_Q: int == number of Q-points
+            Q_rlu_full: np.array with shape [num_Q_full]x[3] and
+            num_Q_full: int == number of Q-points
 
         """
+
+        print('\n*** Q-points ***')
 
         if self.Qpoints_option == 'file':
             """
@@ -83,22 +85,27 @@ class c_Qpoints:
         # also need Qpts in cartesian coords
         self.get_cartesian_Qpoints()
 
-        # !!! DEV !!!
         # now reduce the set using symmetry ...
         if self.use_symmetry:
             self.comm.symmetry.get_irreducible_set_of_Qpoints()
-        # !!! DEV !!!
+            self.Q_rlu = self.Q_rlu_full[self.irr_inds]
+            self.Q_cart = self.Q_cart_full[self.irr_inds]
+            self.num_Q = self.irr_inds.size
+        else:
+            self.Q_rlu = self.Q_rlu_full
+            self.Q_cart = self.Q_cart_full
+            self.num_Q = self.num_Q_full
 
         # print the Q-points to user
-        msg = f'\n*** Q-points ***\nnumber of Q-points: {self.num_Q:g}\n'
+        msg = f'\nnumber of Q-points: {self.num_Q:g}\n'
         if self.num_Q >= 50:
-            loop = 50
-            msg += 'only printing the first 50!\n'
+            _loop = 50
+            msg += 'only printing the first 50 Q-points!\n'
         else:
-            loop = self.num_Q
+            _loop = self.num_Q
 
         msg += '          ------------- (rlu) -------------   ------------ (cart) -----------' 
-        for ii in range(loop):
+        for ii in range(_loop):
             _ = f'\n Q[{ii:g}]:'
             msg += f'{_:10}'
             msg += f'{self.Q_rlu[ii,0]: 10.5f} {self.Q_rlu[ii,1]: 10.5f}' \
@@ -115,21 +122,24 @@ class c_Qpoints:
         generate Q-points along path(s) thru BZ
         """
 
+        msg = f'generating Q-points along paths'
+        print(msg)
+
         _start = self.config.Q_path_start
         _end = self.config.Q_path_end
         _steps = self.config.Q_path_steps
-        _num_paths = self.config.num_Q_paths 
+        _num_paths = self.config.num_Q_full_paths 
         
-        self.num_Q = np.sum(_steps)
-        self.Q_rlu = np.zeros((self.num_Q,3),dtype=float)
+        self.num_Q_full = np.sum(_steps)
+        self.Q_rlu_full = np.zeros((self.num_Q_full,3),dtype=float)
 
         _shift = 0
         for ii in range(_num_paths):
-            self.Q_rlu[_shift:_shift+_steps[ii],0] = np.linspace(_start[ii,0],
+            self.Q_rlu_full[_shift:_shift+_steps[ii],0] = np.linspace(_start[ii,0],
                                                     _end[ii,0],_steps[ii]+1)[:-1]
-            self.Q_rlu[_shift:_shift+_steps[ii],1] = np.linspace(_start[ii,1],
+            self.Q_rlu_full[_shift:_shift+_steps[ii],1] = np.linspace(_start[ii,1],
                                                     _end[ii,1],_steps[ii]+1)[:-1]
-            self.Q_rlu[_shift:_shift+_steps[ii],2] = np.linspace(_start[ii,2],
+            self.Q_rlu_full[_shift:_shift+_steps[ii],2] = np.linspace(_start[ii,2],
                                                     _end[ii,2],_steps[ii]+1)[:-1]
             _shift += _steps[ii]
 
@@ -141,9 +151,9 @@ class c_Qpoints:
         get Qpoints in cartesian coords
         """
 
-        self.Q_cart = self.comm.lattice.convert_coords(self.Q_rlu,
+        self.Q_cart_full = self.comm.lattice.convert_coords(self.Q_rlu_full,
                 self.comm.lattice.reciprocal_lattice_vectors)
-        self.Q_len = np.sqrt(np.sum(self.Q_cart**2,axis=1))
+        self.Q_len_full = np.sqrt(np.sum(self.Q_cart_full**2,axis=1))
 
     # ----------------------------------------------------------------------------------------------
 
@@ -154,26 +164,24 @@ class c_Qpoints:
         """
 
         self.Q_file = self.config.Q_file
-        msg = f'\ngetting Q-points from text file:\n  \'{self.Q_file}\''
+        msg = f'getting Q-points from text file:\n  \'{self.Q_file}\''
         print(msg)
 
         try:
             _Q = np.loadtxt(self.Q_file,dtype=float)
-        except:
+        except Exception as _ex:
             msg = 'reading Q-points text file failed!\n'
-            crash(msg)
+            crash(msg,_ex)
 
         msg = 'Q-points in text file should have shape [num_Q]x[3]\n'
-        if len(_Q.shape) == 1:
-            if _Q.size != 3:
-                crash(msg)
-            else:
-                _Q.shape = [1,3]
+        _Q = np.atleast_2d(_Q)
+        if _Q.shape[1] != 3:
+            crash(msg)
 
-        self.Q_rlu = _Q
-        self.num_Q = self.Q_rlu.shape[0]
+        self.Q_rlu_full = _Q
+        self.num_Q_full = self.Q_rlu_full.shape[0]
 
-        msg = f'there were {self.num_Q:g} Q-points in the file'
+        msg = f'there were {self.num_Q_full:g} Q-points in the file'
         print(msg)
 
     # ----------------------------------------------------------------------------------------------
@@ -202,19 +210,14 @@ class c_Qpoints:
         
         _eps = 1e-6
         
-        symmetric = False
-        
         if Q_mesh.size == 1:
             num_Q = 1
             Q_range = np.array([Q_mesh,Q_mesh])
-            symmetric = True
         else:
             num_Q = int(Q_mesh[2])
             Q_range = np.array([Q_mesh[0],Q_mesh[1]])
-            if np.abs(Q_range.mean()) < _eps:
-                symmetric = True
 
-        return num_Q, Q_range, symmetric
+        return num_Q, Q_range
 
     # ----------------------------------------------------------------------------------------------
 
@@ -224,7 +227,7 @@ class c_Qpoints:
         generate Q-points on mesh that is specified by user
         """
 
-        msg = '\ngenerating Q-points on mesh'
+        msg = 'generating Q-points on mesh'
         print(msg)
 
         self.Q_mesh_H = self.config.Q_mesh_H
@@ -232,10 +235,9 @@ class c_Qpoints:
         self.Q_mesh_L = self.config.Q_mesh_L
 
         # get number and range of Q on each axis
-        self.num_H, self.H_range, self.H_symmetric = self._Q_range(self.Q_mesh_H)
-        self.num_K, self.K_range, self.K_symmetric = self._Q_range(self.Q_mesh_K)
-        self.num_L, self.L_range, self.L_symmetric = self._Q_range(self.Q_mesh_L)
-        self.symmetric_mesh = bool(self.H_symmetric*self.K_symmetric*self.L_symmetric)
+        self.num_H, self.H_range = self._Q_range(self.Q_mesh_H)
+        self.num_K, self.K_range = self._Q_range(self.Q_mesh_K)
+        self.num_L, self.L_range = self._Q_range(self.Q_mesh_L)
 
         # for 'reshaping' the intensity grids
         self.mesh_shape = [self.num_H,self.num_K,self.num_L]
@@ -258,17 +260,13 @@ class c_Qpoints:
         _H, _K, _L = np.meshgrid(self.H,self.K,self.L,indexing='ij')
         _H = _H.flatten(); _K = _K.flatten(); _L = _L.flatten()
 
-        self.num_Q = _H.size
-        self.Q_rlu = np.zeros((self.num_Q,3),dtype=float)
-        self.Q_rlu[:,0] = _H; self.Q_rlu[:,1] = _K; self.Q_rlu[:,2] = _L
+        self.num_Q_full = _H.size
+        self.Q_rlu_full = np.zeros((self.num_Q_full,3),dtype=float)
+        self.Q_rlu_full[:,0] = _H; self.Q_rlu_full[:,1] = _K; self.Q_rlu_full[:,2] = _L
 
-        msg = 'number of Q-points on full grid:\n'
-        msg += f'  {self.num_Q:g}\n'
-        print(msg)
-        
     # ----------------------------------------------------------------------------------------------
 
-    def unfold_onto_Q_mesh(self,arr=None):
+    def unfold_onto_cartesian_mesh(self,arr=None):
 
         """
         put data onto Q-points 'mesh'

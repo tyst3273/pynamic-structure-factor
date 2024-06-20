@@ -127,7 +127,6 @@ class c_config:
 
         self._set_use_symmetry()
         if self.use_symmetry:
-            #self._set_symm_lattice_vectors()
             self._set_symm_basis_pos()
             self._set_symm_basis_types()
             self._set_symm_magmoms()
@@ -190,6 +189,9 @@ class c_config:
 
         self._get_attr('symm_basis_types')
 
+        if self.symm_basis_types is None:
+            crash('please specify \'symm_basis_types\' to use symmetry')
+
         msg = '\'symm_basis_types\' seems wrong\n'
         try:
             self.symm_basis_types = np.array(self.symm_basis_types,dtype='int').squeeze()
@@ -214,6 +216,9 @@ class c_config:
         """
 
         self._get_attr('symm_basis_pos')
+
+        if self.symm_basis_pos is None:
+            crash('please specify \'symm_basis_pos\' to use symmetry')
 
         # check the shape
         msg = '\'symm_basis_pos\' seems wrong\n'

@@ -124,9 +124,8 @@ class c_PSF:
         # this loops over all blocks, calculating errything
         self.comm.strufacs.calculate_structure_factors()
 
-        # if calculated on a mesh, unfold mesh onto full reciprocal space
-        if self.comm.Qpoints.use_mesh:
-            self.comm.strufacs.put_on_mesh()
+        # unfold sqw if reduced by symmetry / onto full 3D mesh
+        self.comm.strufacs.unfold_structure_factors()
 
         self.timers.stop_timer('PSF')
 

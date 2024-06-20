@@ -77,9 +77,6 @@ Q_path_steps = [21,21]
 
 num_Qpoint_procs = 1
 
-
-### 
-
 use_symmetry = False
 
 symm_basis_pos = None
@@ -87,8 +84,6 @@ symm_basis_pos = None
 symm_basis_types = None 
 
 symm_magmoms = None
-
-###
 
 
 
