@@ -14,7 +14,7 @@ Look at the manual (doc/manual.pdf) and the examples for how to use the code.
 ## Contact
 Please contact me at:
     ty.sterling@colorado.edu
-if you have any questions, bug reports, requests for feauters/functionality, etc.
+if you have any questions, bug reports, requests for features/functionality, etc.
 
 ## Citing
 If you use this code in any publications, please consider citing my github repository and the following 
