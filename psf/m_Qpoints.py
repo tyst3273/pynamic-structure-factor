@@ -81,7 +81,7 @@ class c_Qpoints:
             """
             self._get_Q_on_mesh()
         
-        # also need Qpts in cartesian coords
+        # also need Qpts in cartesian coords; this also calcutes |Q_cart|
         self.get_cartesian_Qpoints()
 
         # now reduce the set using symmetry ...
