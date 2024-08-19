@@ -89,10 +89,12 @@ class c_Qpoints:
             self.comm.symmetry.get_irreducible_set_of_Qpoints()
             self.Q_rlu = self.Q_rlu_full[self.irr_inds]
             self.Q_cart = self.Q_cart_full[self.irr_inds]
+            self.Q_len = self.Q_len_full[self.irr_inds]
             self.num_Q = self.irr_inds.size
         else:
             self.Q_rlu = self.Q_rlu_full
             self.Q_cart = self.Q_cart_full
+            self.Q_len = self.Q_len_full
             self.num_Q = self.num_Q_full
 
         # print the Q-points to user
