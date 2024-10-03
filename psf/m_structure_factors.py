@@ -20,7 +20,7 @@
 
 import numpy as np
 from scipy.fft import fft
-import multiprocessing as mp
+import multiprocess as mp
 
 from psf.m_timing import _timer
 from psf.m_error import crash

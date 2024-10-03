@@ -20,7 +20,7 @@
 
 # system modules
 import numpy as np
-import multiprocessing as mp
+import multiprocess as mp
 import itertools
 
 # custom modules

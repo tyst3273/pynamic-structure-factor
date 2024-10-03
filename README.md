@@ -59,8 +59,8 @@ Note, if you want any of these features or any others, contact me (contact info 
 - calculate incoherent neutron scattering. currently, what is calculated is all contributions using the coherent scattering length. i.e. summing over ij with no restriction in i=j
 
 ## Bugs
-- it has been brought to my attention that the parallel part of my code only works on linux. the problem is with `multiprocessing`. i am looking for a solution to get it to run in parallel on windows and mac ... please bear with me ... or switch to linux! you can still run in serial (just set `num_Qpoint_procs = 1`) on windows and mac. UPDATE: I think `multiprocess`, which is a fork of `multiprocessing`, fixes this, but I
-haven't investigated in detail.
+- ~~ it has been brought to my attention that the parallel part of my code only works on linux. the problem is with `multiprocessing`. i am looking for a solution to get it to run in parallel on windows and mac ... please bear with me ... or switch to linux! you can still run in serial (just set `num_Qpoint_procs = 1`) on windows and mac. UPDATE: I think `multiprocess`, which is a fork of `multiprocessing`, fixes this, but I haven't investigated in detail. ~~
+    - FIXED! multiprocess seems to have fixed it. try and let me know if it doesnt work for you! note,you now need to install multiprocess since its not built in.
 
 *Thanks, Tyler*
 

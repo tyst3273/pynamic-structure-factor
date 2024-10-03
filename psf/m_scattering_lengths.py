@@ -19,7 +19,7 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 import numpy as np
-import multiprocessing as mp
+import multiprocess as mp
 
 from psf.m_import import import_module
 
