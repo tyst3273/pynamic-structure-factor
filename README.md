@@ -3,6 +3,7 @@
 ### Most recent updates:
 - June 20, 2024: adding symmetry to reduce number of **Q**-points to irreducible set. *in-progress, not ready!*
 - May 21, 2024: add command line flag `-n` to set the number of threads. some other improvements.
+- Oct 1, 2024: i got a macbook and was able to test this code with multiprocess (vs multiprocessing, which wouldnt work). multiprocess works! parallelism is now supported on linux and mac (i havent tested windows, please email me if you use this code with windows!)
 
 ## Description
 Python code to calculate inelastic neutron and x-ray scattering dynamic structure factors, S(**Q**,*w*), from molecular dynamics trajectories using parallelism over **Q**-points.
@@ -56,7 +57,7 @@ Note, if you want any of these features or any others, contact me (contact info 
 - apply quantum correction to the distribution function. Check my notes on force constant from greens functions.
 - apply quantum correction to the stationary phase approximation (prove it is stationary phase approx first.) see Tuckermans book and my notes. 
 - currently, lattice vectors are constant during the simulation. it should be possible to read the lattice vectors from the file for each time step, but recalculating in cartesian coords will be slow...
-- calculate incoherent neutron scattering. currently, what is calculated is all contributions using the coherent scattering length. i.e. summing over ij with no restriction in i=j
+- calculate incoherent neutron scattering. currently, what is calculated is only the coherent part.
 
 ## Bugs
 - ~~ it has been brought to my attention that the parallel part of my code only works on linux. the problem is with `multiprocessing`. i am looking for a solution to get it to run in parallel on windows and mac ... please bear with me ... or switch to linux! you can still run in serial (just set `num_Qpoint_procs = 1`) on windows and mac. UPDATE: I think `multiprocess`, which is a fork of `multiprocessing`, fixes this, but I haven't investigated in detail. ~~
