@@ -85,6 +85,11 @@ symm_basis_types = None
 
 symm_magmoms = None
 
+calc_incoherent = True
+
+calc_coherent = True
+
+calc_sqw = True
 
 
 

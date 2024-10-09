@@ -90,6 +90,8 @@ class c_config:
 
         self._set_unwrap_trajectory()
         self._set_calc_sqw()
+        self._set_calc_coherent()
+        self._set_calc_incoherent()
 
         self._set_lattice_vectors()
 
@@ -692,6 +694,32 @@ class c_config:
             self.output_directory = os.path.abspath(self.output_directory)
 
         print(f'output_directory:\n  {self.output_directory}')
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_calc_coherent(self):
+        
+        """
+        get the attribute
+        """
+
+        self._get_attr('calc_coherent')
+            
+        self.calc_coherent = bool(self.calc_coherent)
+        print(f'calc_coherent:\n  {self.calc_coherent}')
+        
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_calc_incoherent(self):
+
+        """
+        get the attribute
+        """
+
+        self._get_attr('calc_incoherent')
+
+        self.calc_incoherent = bool(self.calc_incoherent)
+        print(f'calc_incoherent:\n  {self.calc_incoherent}')
 
     # ----------------------------------------------------------------------------------------------
 

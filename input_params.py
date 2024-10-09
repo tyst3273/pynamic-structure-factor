@@ -5,7 +5,7 @@ example input file
 
 # options for where to get data/preprocessing
 trajectory_format = 'lammps_hdf5' 
-trajectory_file = '/home/ty/research/projects/md_simulations/rutile/matsui_akaogi/sqw_xray/pos.h5'
+trajectory_file = 'pos.hdf5'
 
 unwrap_trajectory = True
 

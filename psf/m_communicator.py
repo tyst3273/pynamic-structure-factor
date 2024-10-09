@@ -23,6 +23,7 @@ import psf.m_Qpoints as m_Qpoints
 import psf.m_timing as m_timing
 import psf.m_scattering_lengths as m_scattering_lengths
 import psf.m_trajectory as m_trajectory
+#import psf.m_structure_factors_dev as m_structure_factors
 import psf.m_structure_factors as m_structure_factors
 import psf.m_parallel as m_parallel
 import psf.m_io as m_io
