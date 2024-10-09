@@ -12,11 +12,11 @@ unwrap_trajectory = False
 
 # options for splitting up trajectory
 num_trajectory_blocks = 20
-trajectory_blocks = [0,1] #None 
+trajectory_blocks = None 
 
 # simulation options
 md_time_step = 24 # femtoseconds; time step IN FILE, not used in simulation
-md_num_steps = 2500
+md_num_steps = 10922 #2500
 md_num_atoms = 13824
 calc_sqw = True
 calc_coherent = True
@@ -32,7 +32,7 @@ atom_types = ['Si']
 experiment_type = 'neutrons' # 'neutrons' or 'xrays'
 
 # options for how to generate Q-points for calculation
-Qpoints_option = 'mesh' # mesh, mesh_file, write_mesh, text_file, or path
+Qpoints_option = 'path' # mesh, mesh_file, write_mesh, text_file, or path
 
 # for 'Qpoints_option' == 'mesh' ; 
 Q_mesh_H = [3,4,13]
@@ -40,13 +40,11 @@ Q_mesh_K = [3,4,13]
 Q_mesh_L = 2
 
 # 'Qpoints_option' == 'path'
-Q_path_start = [[-1,1.25,0],
-                [1,1.25,0],
-                [1,-1.25,0]]
-Q_path_end = [[1,1.25,0],
-              [1,-1.25,0],
-              [-1,-1.25,0]]
-Q_path_steps = [24,18,24]
+Q_path_start = [[0,4,4],
+                [4,0,4]]
+Q_path_end = [[4,0,4],
+              [4,0,0]]
+Q_path_steps = [48,48]
 
 # number of processes to split Q-point parallelization over
 num_Qpoint_procs = 4
