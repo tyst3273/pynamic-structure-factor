@@ -265,18 +265,18 @@ class c_trajectory:
                 reps=[self.num_block_steps,1,1])
 
         # check whether to shift atoms in the x direction     
-        dr = -lx*(shift[:,:,0] > lx/2).astype(int)
-        dr = dr+lx*(shift[:,:,0] <= -lx/2).astype(int)
+        dr = -lx*(shift[:,:,0] > lx/2).astype(float)
+        dr = dr+lx*(shift[:,:,0] <= -lx/2).astype(float)
         shift[:,:,0] = np.copy(dr)
 
         # check whether to shift atoms in the y direction  
-        dr = -ly*(shift[:,:,1] > ly/2).astype(int)
-        dr = dr+ly*(shift[:,:,1] <= -ly/2).astype(int)
+        dr = -ly*(shift[:,:,1] > ly/2).astype(float)
+        dr = dr+ly*(shift[:,:,1] <= -ly/2).astype(float)
         shift[:,:,1] = np.copy(dr)
 
         # check whether to shift atoms in the z direction   
-        dr = -lz*(shift[:,:,2] > lz/2).astype(int)
-        dr = dr+lz*(shift[:,:,2] <= -lz/2).astype(int)
+        dr = -lz*(shift[:,:,2] > lz/2).astype(float)
+        dr = dr+lz*(shift[:,:,2] <= -lz/2).astype(float)
         shift[:,:,2] = np.copy(dr)
 
         # apply the shift    
