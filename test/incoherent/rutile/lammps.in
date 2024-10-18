@@ -1,0 +1,110 @@
+
+# --------------------------------------------------------------------------------------------------
+# rutile TiO2 WITHOUT electric field
+# NOTE: according to wikipedia, rutile melts at ~2200 K
+
+
+# --------------------------------------------------------------------------------------------------
+# define simulation domain
+# --------------------------------------------------------------------------------------------------
+
+units           metal
+dimension       3
+newton          on
+boundary        p p p 
+atom_style      charge
+
+comm_modify     cutoff 48
+neighbor        2.0 bin
+neigh_modify    every 100 delay 0 check yes
+
+# --------------------------------------------------------------------------------------------------
+# define simulation paramters
+# --------------------------------------------------------------------------------------------------
+
+variable        dt equal    0.001         # timestep
+variable        dt_dump     equal 16 
+
+variable	t_sim       equal 300       
+
+variable        therm_run equal 50000   # thermalize at T
+variable        sqw_run equal 64000 # 4000 steps written to file
+
+variable        trj_dump equal 500
+variable        thermo_dump equal 500
+
+# --------------------------------------------------------------------------------------------------
+# define crystal
+# -------------------------------------------------------------------------------------------------- 
+
+read_data       rutile.prim.pos
+replicate       10 10 12
+
+# --------------------------------------------------------------------------------------------------
+# define potential
+# --------------------------------------------------------------------------------------------------
+
+pair_style      buck/coul/long 12.0 # cutoff Buckingham at 10 A, use Ewald for Coulomb (not cut off)
+
+pair_coeff      1 1     31120.43 0.154  5.2469
+pair_coeff      1 2     16957.67 0.194 12.5926
+pair_coeff      2 2     11782.85 0.234 30.2222
+
+kspace_style    pppm 1.0e-5
+
+# --------------------------------------------------------------------------------------------------
+# set some more params
+# --------------------------------------------------------------------------------------------------
+
+timestep        ${dt}
+reset_timestep  0
+
+thermo          ${thermo_dump}
+thermo_style    custom step etotal temp pe press pxx pyy pzz fmax lx ly lz 
+
+dump            TRJ all custom ${trj_dump} sim.lammpstrj id type x y z
+dump_modify     TRJ sort id
+
+# --------------------------------------------------------------------------------------------------
+# NPT run, no field
+# --------------------------------------------------------------------------------------------------
+
+fix             THERM all npt temp ${t_sim} ${t_sim} $(100.0*dt) &
+                            x 0.0 0.0 $(1000.0*dt) y 0.0 0.0 $(1000.0*dt) z 0.0 0.0 $(1000.0*dt)
+run             ${therm_run}
+unfix           THERM
+
+#fix             NVE all nve
+#run             ${therm_run}
+#unfix           NVE
+
+# --------------------------------------------------------------------------------------------------
+# write positions for SQW calculation
+# --------------------------------------------------------------------------------------------------
+
+#dump            POSITIONS all h5md ${dt_dump} pos.h5 position species
+#dump_modify     POSITIONS sort id
+
+dump            POSITIONS all custom ${dt_dump} pos.dat id type xu yu zu
+dump_modify     POSITIONS sort id
+
+fix             SQW all npt temp ${t_sim} ${t_sim} $(100.0*dt) &
+                            x 0.0 0.0 $(1000.0*dt) y 0.0 0.0 $(1000.0*dt) z 0.0 0.0 $(1000.0*dt)
+run             ${sqw_run}
+unfix           SQW
+
+#fix             SQW all nve
+#run             ${sqw_run}
+#unfix           SQW
+
+# --------------------------------------------------------------------------------------------------
+# finalize stuff
+# --------------------------------------------------------------------------------------------------
+
+undump          POSITIONS
+undump          TRJ
+
+write_data      rutile.post_sqw.pos
+
+
+
