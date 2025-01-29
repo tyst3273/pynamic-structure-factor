@@ -822,7 +822,9 @@ class c_config:
 
         if self.box_vectors is None:
             msg = 'box_vectors:\n read from file\n'
-        return
+            print(msg)
+            
+            return  
 
         # check the shape
         msg = '\'box_vectors\' seems wrong\n'
