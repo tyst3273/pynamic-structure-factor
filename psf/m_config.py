@@ -775,7 +775,7 @@ class c_config:
 
         self._get_attr('trajectory_format')
 
-        msg = 'trajectory_format \'{self.trajectory_format}\' is unknown'
+        msg = f'trajectory_format \'{self.trajectory_format}\' is unknown'
         if self.trajectory_format not in ['lammps_hdf5','external','user_hdf5']:
             crash(msg)
 
