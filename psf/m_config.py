@@ -617,6 +617,10 @@ class c_config:
 
         self._get_attr('md_num_atoms')
 
+        if self.md_num_atoms is None:
+            msg = 'md_num_atoms is required'
+            crash(msg)
+
         self.md_num_atoms = int(self.md_num_atoms)
 
         msg = 'md_num_atoms must be > 0'
@@ -635,6 +639,10 @@ class c_config:
 
         self._get_attr('md_num_steps')
 
+        if self.md_num_steps is None:
+            msg = 'md_num_steps is required'
+            crash(msg)
+
         self.md_num_steps = int(self.md_num_steps)
 
         msg = 'md_num_steps must be > 0'
@@ -652,6 +660,10 @@ class c_config:
         """
 
         self._get_attr('md_time_step')
+
+        if self.md_time_step is None:
+            msg = 'md_time_step is required'
+            crash(msg)
             
         self.md_time_step = float(self.md_time_step)
 
@@ -790,6 +802,10 @@ class c_config:
         """
     
         self._get_attr('lattice_vectors')
+
+        if self.lattice_vectors is None:
+            msg = 'lattice_vectors is required'
+            crash(msg)
 
         # check the shape
         msg = '\'lattice_vectors\' seems wrong\n'

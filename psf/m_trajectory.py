@@ -148,13 +148,14 @@ class c_trajectory:
             self._read_types_user_hdf5()
         # ---------------------------------------
 
-        # do generic error checking
+        # convert types array into ascending integers starting at 0
         _types = np.unique(self.types)
-        if _types.max() >= self.comm.config.num_types or _types.min() < 0 \
-            or _types.size != self.comm.config.num_types:
+        if _types.size != self.comm.config.num_types:
             msg = 'types in trajectory file are incompatible with types in input file\n'
             crash(msg)
-
+        for ii, _t in enumerate(_types):
+            self.types[self.types == _t] = ii
+    
     # ----------------------------------------------------------------------------------------------
 
     def set_external_types(self,types):
@@ -297,10 +298,7 @@ class c_trajectory:
         try:
             import h5py
             with h5py.File(self.trajectory_file,'r') as in_db:
-
-                # it is assumed that the types are consecutive integers starting at 1
-                # so that 1 is subtracted to match the python index starting at 0 ...
-                self.types[:] = in_db['types'][:]-1
+                self.types[:] = in_db['types'][:]
 
             # error check
             if self.num_atoms != self.types.size:
@@ -328,10 +326,7 @@ class c_trajectory:
         try:
             import h5py
             with h5py.File(self.trajectory_file,'r') as in_db:
-
-                # it is assumed that the types are consecutive integers starting at 1
-                # so that 1 is subtracted to match the python index starting at 0 ...
-                self.types[:] = in_db['particles/all/species/value'][0,:]-1
+                self.types[:] = in_db['particles/all/species/value'][0,:] 
 
             # error check
             if self.num_atoms != self.types.size:

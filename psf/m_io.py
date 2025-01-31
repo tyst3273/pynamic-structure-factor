@@ -126,6 +126,9 @@ class c_writer:
                     db.create_dataset('Q_rlu',data=_Qpoints.Q_rlu)
                     db.create_dataset('Q_cart',data=_Qpoints.Q_cart)
 
+                    if hasattr(_Qpoints,'Q_path_steps'):
+                        db.create_dataset('Q_path_steps',data=_Qpoints.Q_path_steps)
+
         except Exception as _ex:
             crash(self.crash_msg,_ex)
 

@@ -130,6 +130,8 @@ class c_Qpoints:
         _end = self.config.Q_path_end
         _steps = self.config.Q_path_steps
         _num_paths = self.config.num_Q_paths 
+
+        self.Q_path_steps = _steps
         
         self.num_Q_full = np.sum(_steps)
         self.Q_rlu_full = np.zeros((self.num_Q_full,3),dtype=float)
