@@ -145,7 +145,7 @@ class c_Qpoints:
             self.Q_rlu_full[_shift:_shift+_steps[ii],2] = np.linspace(_start[ii,2],
                                                     _end[ii,2],_steps[ii]+1)[:-1]
             _shift += _steps[ii]
-            self.Q_path_verts[ii+1] = _shift
+            self.Q_path_verts[ii+1] = _shift-1
 
     # ----------------------------------------------------------------------------------------------
 
