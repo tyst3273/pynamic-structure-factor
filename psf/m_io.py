@@ -221,6 +221,9 @@ class c_reader:
                     self.mesh = False
                     self.Q_rlu = db['Q_rlu'][...]
                     self.Q_cart = db['Q_cart'][...]
+                
+                if 'Q_path_verts' in db.keys():
+                    self.Q_path_verts = db['Q_path_verts'][...]
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
