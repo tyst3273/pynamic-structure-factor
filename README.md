@@ -17,6 +17,9 @@ Please contact me at:
     ty.sterling@colorado.edu
 if you have any questions, bug reports, requests for features/functionality, etc.
 
+## Acknowledgments
+This work funded by the DOE Office of Basic Energy Sciences, Office of Science, under Contract No. DE-SC0006939.
+
 ## Citing
 If you use this code in any publications, please consider citing my github repository and the following 
 publication for which this code and method was developed: 
