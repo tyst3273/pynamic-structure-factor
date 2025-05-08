@@ -89,6 +89,10 @@ class c_symmetry:
         let W be a rotation.
             since r' = W@r, k.r' = k.W@r = k@W.r, i.e. we look at kpts such that k' = k@W
 
+        WRONG:
+            since r' = W@r, k^T.r' = k^T.W@r = k^T@W.r, then k^T' = k^T@W, i.e. k' = W^T@k
+            need to check if this matters!
+
         NOTE: this one is slower than the _get_irreducible... method below, but I am more confident
         that is correct
 
