@@ -18,7 +18,7 @@ Please contact me at:
 if you have any questions, bug reports, requests for features/functionality, etc.
 
 ## Acknowledgments
-This work funded by the DOE Office of Basic Energy Sciences, Office of Science, under Contract No. DE-SC0006939 and was done in Prof. Dmitry Reznik's lab at the University of Colorado Boulder.
+This work funded by the DOE Office of Basic Energy Sciences, Office of Science, under Contract No. DE-SC0024117 and was done in Prof. Dmitry Reznik's lab at the University of Colorado Boulder.
 
 ## Citing
 If you use this code in any publications, please consider citing my github repository and the following 
