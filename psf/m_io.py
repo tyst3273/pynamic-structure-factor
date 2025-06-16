@@ -171,7 +171,6 @@ class c_writer:
 
 
 
-
 # --------------------------------------------------------------------------------------------------
 
 
@@ -304,9 +303,103 @@ class c_reader:
     # ----------------------------------------------------------------------------------------------
 
 
+# --------------------------------------------------------------------------------------------------
 
+def merge_strufac_files(strufac_files,output_file):
 
+    """
+    take a list of strufac files and merge them all together, averaging over sqw and sq_elastic 
+    if present
+    """
 
+    if not isinstance(strufac_files,list):
+        msg = 'strufac_files should be a list of file names'
+        crash(msg)
+        return
 
+    for file in strufac_files:
+        check_file(file)
+
+    num_files = len(strufac_files)
+
+    has_sqw = False
+    init = True
+
+    msg = '\nmerging structure factor files:'
+    print(msg)
+
+    # read all of the files and average sq_elastic and sqw
+    for file in strufac_files:
+
+        msg = f'  {file}'
+        print(msg)    
+
+        with h5py.File(file,'r') as db:
+
+            # if reading the first file, initialize arrays
+            if init:
+
+                lattice_vectors = db['lattice_vectors'][...]
+                reciprocal_lattice_vectors = db['reciprocal_lattice_vectors'][...]
+                mesh = db['mesh'][...]
+
+                sq_elastic = db['sq_elastic'][...]
+
+                if 'sqw' in db.keys():
+                    has_sqw = True
+                    sqw = db['sqw'][...]
+                    energy = db['energy'][...]
+
+                if mesh == True:
+                    H = db['H'][...]
+                    K = db['K'][...]
+                    L = db['L'][...]
+                else:
+                    Q_rlu = db['Q_rlu'][...]
+                    Q_cart = db['Q_cart'][...]
+
+                if 'Q_path_verts' in db.keys():
+                    Q_path_verts = db['Q_path_verts'][...]
+
+                init = False
+
+            else:
+
+                sq_elastic += db['sq_elastic'][...]
+
+                if has_sqw:
+                    sqw += db['sqw'][...]
+
+    msg = f'\ninto file:\n  {output_file}\n'
+    print(msg)
+
+    # write the merged data to a new file  
+    with h5py.File(output_file,'w') as db:
+
+        db.create_dataset('lattice_vectors',data=lattice_vectors)
+        db.create_dataset('reciprocal_lattice_vectors',data=reciprocal_lattice_vectors)
+
+        if mesh:
+            db.create_dataset('mesh',data=True)
+            db.create_dataset('H',data=H)
+            db.create_dataset('K',data=K)
+            db.create_dataset('L',data=L)
+        else:
+            db.create_dataset('mesh',data=False)
+            db.create_dataset('Q_rlu',data=Q_rlu)
+            db.create_dataset('Q_cart',data=Q_cart)
+
+        if 'Q_path_verts' in locals():
+            db.create_dataset('Q_path_verts',data=Q_path_verts)
+
+        sq_elastic /= num_files
+        db.create_dataset('sq_elastic',data=sq_elastic)
+
+        if has_sqw:
+            sqw /= num_files
+            db.create_dataset('sqw',data=sqw)
+            db.create_dataset('energy',data=energy)
+
+# --------------------------------------------------------------------------------------------------
 
 
