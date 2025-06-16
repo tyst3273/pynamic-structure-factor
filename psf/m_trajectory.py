@@ -20,6 +20,8 @@
 
 import numpy as np
 from psf.m_error import crash
+from psf.m_timing import _timer
+
 
 # --------------------------------------------------------------------------------------------------
 
@@ -205,6 +207,10 @@ class c_trajectory:
         calculated in _get_block_inds() above.
         """
 
+        # start a local timer
+        _local_timer = _timer('read_trajectory',units='s')
+        _local_timer.start()
+
         # step indices to get from file for this block
         inds = self.block_inds[block_index,:]
 
@@ -234,6 +240,10 @@ class c_trajectory:
                         msg += f'{self.box_vectors[ii,jj]: 10.6f} '            
 
             self._unwrap_positions()
+
+        # end the local timer
+        _local_timer.stop()
+        _local_timer.print_timing()
 
     # ----------------------------------------------------------------------------------------------
     
