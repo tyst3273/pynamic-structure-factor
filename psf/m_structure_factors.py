@@ -259,14 +259,12 @@ class c_structure_factors:
                 _x = self.comm.xlengths.form_factors[:,_Q_ind]
 
             # vectorized Q.r dot product, sum over atoms gives space FT
-            print('a')
             _Q = _Qpts[ii,:].reshape(1,3)
             _x_tile = np.tile(_x.reshape(1,_num_atoms),reps=(_num_steps,1))
             _exp_iQr = np.tile(_Q,reps=(_num_steps,_num_atoms,1))
             _exp_iQr = np.sum(_exp_iQr*self.comm.traj.pos,axis=2)
             _exp_iQr = np.exp(1j*_exp_iQr)*_x_tile
             _exp_iQr = np.sum(_exp_iQr,axis=1)
-            print('b')
 
             exp_iQr[ii,:] = _exp_iQr
 
