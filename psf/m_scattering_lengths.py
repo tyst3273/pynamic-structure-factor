@@ -46,9 +46,9 @@ class c_scattering_lengths:
         self.experiment_type = self.config.experiment_type
         self.calc_incoherent = self.config.calc_incoherent
         self.calc_coherent = self.config.calc_coherent
-        # if not self.calc_coherent and not self.calc_incoherent:
-        #     msg = 'nothing to do! set one or both of calc_coherent=True and calc_incoherent=True'
-        #     crash(msg)
+        if not self.calc_coherent and not self.calc_incoherent:
+            msg = 'nothing to do! set one or both of calc_coherent=True and calc_incoherent=True'
+            crash(msg)
         if not self.calc_coherent and self.experiment_type == 'xrays':
             msg = 'nothing to do! set calc_coherent=True for xrays'
             crash(msg)
