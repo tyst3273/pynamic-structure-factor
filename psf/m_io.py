@@ -1,7 +1,6 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #   !                                                                           !
-#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
-#   ! University of Colorado Boulder                                            !
+#   ! Copyright 2025 by Tyler C. Sterling                                       !
 #   !                                                                           !
 #   ! This file is part of the pynamic-structure-factor (PSF) software.         !
 #   ! PSF is free software: you can redistribute it and/or modify it under      !
@@ -108,6 +107,15 @@ class c_writer:
         try:
             with h5py.File(self.output_file,'a') as db:
 
+                db.create_dataset('experiment_type',
+                                  data=self.config.experiment_type)
+                db.create_dataset('calc_coherent',
+                                  data=self.config.calc_coherent)
+                db.create_dataset('calc_incoherent',
+                                  data=self.config.calc_incoherent)
+                db.create_dataset('calc_sqw',
+                                  data=self.config.calc_sqw)
+
                 db.create_dataset('lattice_vectors',
                         data=self.comm.lattice.lattice_vectors)
 
@@ -144,7 +152,12 @@ class c_writer:
 
         try:
             with h5py.File(self.output_file,'a') as db:
-                db.create_dataset('sqw',data=self.comm.strufacs.sqw)
+
+                if self.config.calc_coherent:
+                    db.create_dataset('coh_sqw',data=self.comm.strufacs.coh_sqw)
+                if self.config.calc_incoherent:
+                    db.create_dataset('inc_sqw',data=self.comm.strufacs.inc_sqw)
+
                 db.create_dataset('energy',data=self.comm.strufacs.energy)
 
         except Exception as _ex:
@@ -162,7 +175,11 @@ class c_writer:
 
         try:
             with h5py.File(self.output_file,'a') as db:
-                db.create_dataset('sq_elastic',data=self.comm.strufacs.sq_elastic)
+
+                if self.config.calc_coherent:
+                    db.create_dataset('coh_sq_elastic',data=self.comm.strufacs.coh_sq_elastic)
+                if self.config.calc_incoherent:
+                    db.create_dataset('inc_sq_elastic',data=self.comm.strufacs.inc_sq_elastic)
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -208,6 +225,10 @@ class c_reader:
         try:
             with h5py.File(self.input_file,'r') as db:
 
+                self.calc_sqw = db['calc_sqw'][...]
+                self.calc_coherent = db['calc_coherent'][...]
+                self.calc_incoherent = db['calc_incoherent'][...]
+
                 self.lattice_vectors = db['lattice_vectors'][...]
                 self.reciprocal_lattice_vectors = db['reciprocal_lattice_vectors'][...]
 
@@ -239,7 +260,12 @@ class c_reader:
 
         try:
             with h5py.File(self.input_file,'r') as db:
-                self.sqw = db['sqw'][...]
+
+                if self.calc_coherent:
+                    self.coh_sqw = db['coh_sqw'][...]
+                if self.calc_incoherent:
+                    self.inc_sqw = db['inc_sqw'][...]
+
                 self.energy = db['energy'][...]
 
         except Exception as _ex:
@@ -257,7 +283,11 @@ class c_reader:
 
         try:
             with h5py.File(self.input_file,'r') as db:
-                self.sq_elastic = db['sq_elastic'][...]
+
+                if self.calc_coherent:
+                    self.coh_sq_elastic = db['coh_sq_elastic'][...]
+                if self.calc_incoherent:
+                    self.inc_sq_elastic = db['inc_sq_elastic'][...]
 
         except Exception as _ex:
             crash(self.crash_msg,_ex)
@@ -272,7 +302,7 @@ class c_reader:
 
         inds = np.flatnonzero(self.energy <= e_max)
         inds = np.intersect1d(np.flatnonzero(self.energy >= e_min),inds)
-        return inds
+        return inds.squeeze()
 
     # ----------------------------------------------------------------------------------------------
 
@@ -281,6 +311,10 @@ class c_reader:
         """
         integrate (sum) sqw over specified energy range
         """
+
+        msg = 'read_energy_integrated_sqw is deprecated. use get_energy_inds or do it from scratch'
+        print(msg)
+        return
 
         self._read_header()
 

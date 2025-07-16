@@ -1,7 +1,6 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #   !                                                                           !
-#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
-#   ! University of Colorado Boulder                                            !
+#   ! Copyright 2025 by Tyler C. Sterling                                       !
 #   !                                                                           !
 #   ! This file is part of the pynamic-structure-factor (PSF) software.         !
 #   ! PSF is free software: you can redistribute it and/or modify it under      !
@@ -22,6 +21,7 @@ import numpy as np
 import multiprocess as mp
 
 from psf.m_import import import_module
+from psf.m_error import crash
 
 # --------------------------------------------------------------------------------------------------
 
@@ -44,6 +44,18 @@ class c_scattering_lengths:
         self.atom_types = self.config.atom_types
 
         self.experiment_type = self.config.experiment_type
+        self.calc_incoherent = self.config.calc_incoherent
+        self.calc_coherent = self.config.calc_coherent
+        # if not self.calc_coherent and not self.calc_incoherent:
+        #     msg = 'nothing to do! set one or both of calc_coherent=True and calc_incoherent=True'
+        #     crash(msg)
+        if not self.calc_coherent and self.experiment_type == 'xrays':
+            msg = 'nothing to do! set calc_coherent=True for xrays'
+            crash(msg)
+        if self.calc_incoherent and self.experiment_type == 'xrays':
+            msg = '\nNOTE: no incoherent scattering for xrays! setting calc_incoherent = False'
+            self.calc_incoherent = False
+            print(msg)
 
         # read depending on exp type
         if self.experiment_type == 'neutrons':
@@ -194,13 +206,26 @@ class c_scattering_lengths:
 
         _num_atoms = self.comm.traj.num_atoms
         _types = self.comm.traj.types
-        _xlens = self.neutron_scattering_lengths
 
-        self.scattering_lengths = np.zeros(_num_atoms)
-        for ii in range(_num_atoms):
-                
-            _type = _types[ii] 
-            self.scattering_lengths[ii] = _xlens[_type]
+        # map coherent scattering lengths onto all atoms
+        if self.calc_coherent:
+
+            _xlens = self.coherent_scattering_lengths
+            self.coherent_scattering_lengths = np.zeros(_num_atoms)
+            for ii in range(_num_atoms):
+
+                _type = _types[ii]                 
+                self.coherent_scattering_lengths[ii] = _xlens[_type]
+
+        # map incoherent cross sections onto all atoms
+        if self.calc_incoherent:
+
+            _xsec = self.incoherent_scattering_cross_section
+            self.incoherent_scattering_cross_section = np.zeros(_num_atoms)
+            for ii in range(_num_atoms):
+
+                _type = _types[ii]                 
+                self.incoherent_scattering_cross_section[ii] = _xsec[_type]
 
     # ----------------------------------------------------------------------------------------------
 
@@ -252,27 +277,54 @@ class c_scattering_lengths:
         """
 
         eps = 0.0001
-        
-        self.neutron_scattering_lengths = np.zeros(self.num_types)
-
         _xlens = import_module('psf.scattering_data.neutron_scattering_lengths')
+        
+        # get coherent scattering lengths
+        if self.calc_coherent:
 
-        msg = '\n*** neutron scattering lengths ***\n'
-        msg += ' (type)  (b in fm)\n'
-        for ii in range(self.num_types):
-            
-            _x = _xlens.scattering_lengths[self.atom_types[ii]]
-            if np.abs(np.imag(_x)) > eps:
-                msg += 'WARNING! the neutron scattering length for type ' \
-                    f'\'{self.atom_types[ii]}\' has a large\nimaginary part: ' \
-                    f'Im(b)={np.imag(_x):.6f}! i will discard the imaginary part\n' \
-                    'but the results may not be sensible ...\n'
-            _x = np.real(_x)
-            self.neutron_scattering_lengths[ii] = _x
+            self.coherent_scattering_lengths = np.zeros(self.num_types)
 
-            msg += f'  {self.atom_types[ii]:4}  {_x:8.4f}\n'  
+            msg = '\n*** coherent scattering lengths ***\n'
+            msg += ' (type)  (b in fm)\n'
+            for ii in range(self.num_types):
+                
+                _x = _xlens.coherent_scattering_lengths[self.atom_types[ii]]
+                if np.abs(np.imag(_x)) > eps:
+                    msg += 'WARNING! the neutron scattering length for type ' \
+                        f'\'{self.atom_types[ii]}\' has a large\nimaginary part: ' \
+                        f'Im(b)={np.imag(_x):.6f}! i will discard the imaginary part\n' \
+                        'but the results may not be sensible ...\n'
+                _x = np.real(_x)
+                self.coherent_scattering_lengths[ii] = _x
 
-        print(msg)
+                msg += f'  {self.atom_types[ii]:4}  {_x:8.4f}\n'  
+
+            print(msg)
+
+        # get incoherent cross sections
+        if self.calc_incoherent:
+
+            # b**2
+            self.incoherent_scattering_cross_section = np.zeros(self.num_types)
+
+            msg = '\n*** incoherent scattering lengths ***\n'
+            msg += ' (type)  (b in fm)\n'
+            for ii in range(self.num_types):
+                
+                _x = _xlens.incoherent_scattering_lengths[self.atom_types[ii]]
+                if np.abs(np.imag(_x)) > eps:
+                    msg += 'WARNING! the neutron scattering length for type ' \
+                        f'\'{self.atom_types[ii]}\' has a large\nimaginary part: ' \
+                        f'Im(b)={np.imag(_x):.6f}! i will discard the imaginary part\n' \
+                        'but the results may not be sensible ...\n'
+                _x = np.real(_x)
+
+                # NOTE that it is squared
+                self.incoherent_scattering_cross_section[ii] = _x**2
+
+                msg += f'  {self.atom_types[ii]:4}  {_x:8.4f}\n'  
+
+            print(msg)
 
     # ----------------------------------------------------------------------------------------------
 

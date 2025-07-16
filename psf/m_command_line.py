@@ -1,8 +1,22 @@
 
-"""
-NOTE: set_num_threads must be called before anything is imported and it calls get_num_threads
-from here. so if any other imports have to be added here, get_num_threads must be moved.
-"""
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   !                                                                           !
+#   ! Copyright 2025 by Tyler C. Sterling                                       !
+#   !                                                                           !
+#   ! This file is part of the pynamic-structure-factor (PSF) software.         !
+#   ! PSF is free software: you can redistribute it and/or modify it under      !
+#   ! the terms of the GNU General Public License as published by the           !
+#   ! Free software Foundation, either version 3 of the License, or             !
+#   ! (at your option) any later version. PSF is distributed in the hope        !
+#   ! that it will be useful, but WITHOUT ANY WARRANTY; without even the        !
+#   ! implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  !
+#   ! See the GNU General Public License for more details.                      !
+#   !                                                                           !
+#   ! A copy of the GNU General Public License should be available              !
+#   ! alongside this source in a file named gpl-3.0.txt. If not see             !
+#   ! <http://www.gnu.org/licenses/>.                                           !
+#   !                                                                           !
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # system modules
 import argparse

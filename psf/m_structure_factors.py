@@ -1,7 +1,6 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #   !                                                                           !
-#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
-#   ! University of Colorado Boulder                                            !
+#   ! Copyright 2025 by Tyler C. Sterling                                       !
 #   !                                                                           !
 #   ! This file is part of the pynamic-structure-factor (PSF) software.         !
 #   ! PSF is free software: you can redistribute it and/or modify it under      !
@@ -26,6 +25,7 @@ from psf.m_timing import _timer
 from psf.m_error import crash
 
 
+_switch = 10 # how often to print Q timer
 _thz2meV = 4.13566553853599
 
 # --------------------------------------------------------------------------------------------------
@@ -46,30 +46,43 @@ class c_structure_factors:
         self.timers = timers
 
         self.calc_sqw = config.calc_sqw
+        self.calc_coherent = config.calc_coherent
+        self.calc_incoherent = config.calc_incoherent
 
         _num_Q = self.comm.Qpoints.num_Q
         _num_steps = self.comm.traj.num_block_steps
 
         self.exp_iQr = np.zeros((_num_Q,_num_steps),dtype=complex)
 
-        # always calculated
-        self.sq_elastic = np.zeros(_num_Q,dtype=float)
-        msg = '\n*** elastic intensity ***\ncalculating elastic intensity\n'
-        msg += '  |<exp(iQ.r(t))>|**2 '
+        # elastic part always calculated
+        msg = '\n*** elastic intensity ***'
+        if self.calc_coherent:
+            self.coh_sq_elastic = np.zeros(_num_Q,dtype=float)
+            msg += '\ncalculating coherent elastic intensity'    
+        if self.calc_incoherent:
+            self.inc_sq_elastic = np.zeros(_num_Q,dtype=float)
+            msg += '\ncalculating incoherent elastic intensity'
         print(msg)
 
         # optional
         if self.calc_sqw:
+
             self._setup_energies()
-            self.sqw = np.zeros((_num_Q,self.num_energy),dtype=float)
 
             msg = '\n*** dynamic structure factor ***\n'
-            msg += '  |FT[exp(iQ.r(t))]|**2 \n\n'
             msg += f'num_energy: {self.num_energy}\n'
             msg += f'energy_step:\n {self.energy_step: 8.6f} (meV)\n'
             msg += f' {self.energy_step/_thz2meV: 8.6f} (tHz)\n'
             msg += f'energy_max:\n {self.energy_max: 8.4f} (meV)\n'
-            msg += f' {self.energy_max/_thz2meV: 8.4f} (tHz)'
+            msg += f' {self.energy_max/_thz2meV: 8.4f} (tHz)\n'
+
+            if self.calc_coherent:
+                self.coh_sqw = np.zeros((_num_Q,self.num_energy),dtype=float)
+                msg += '\ncalculating coherent inelastic intensity'
+            if self.calc_incoherent:
+                self.inc_sqw = np.zeros((_num_Q,self.num_energy),dtype=float)
+                msg += '\ncalculating incoherent inelastic intensity'
+            
             print(msg)
 
     # ----------------------------------------------------------------------------------------------
@@ -101,13 +114,14 @@ class c_structure_factors:
         _num_blocks = self.comm.traj.num_block_avg
         msg = '\n*** structure factors ***\n'
         msg += f'calculating structure factors on {_num_blocks} blocks\n'
-        if self.comm.paral.num_Qpoint_procs == 1:
-            msg += 'doing calculation with 1 proc (serial)\n'
-        else:
+        if self.comm.paral.num_Qpoint_procs > 1:
             msg += f'using {self.comm.paral.num_Qpoint_procs} processes (parallel)\n'
             msg += f'only printing info for proc-0\n'
             msg += 'proc-0 treats >= the number of Q-points on other processes\n'
             msg += f'number of Q-points on proc-0: {self.comm.paral.max_num_Qpts_on_procs}\n'
+        else:
+            msg += f'using 1 processe (serial)\n'
+            msg += f'number of Q-points: {self.comm.Qpoints.num_Q}\n'
         print(msg)
 
         for ii, _block in enumerate(self.comm.traj.blocks):
@@ -132,15 +146,20 @@ class c_structure_factors:
         msg = '-------------------------------------------------------------'
         print(msg)
 
-        # divide by number of blocks and number of atoms (to normalize vs system size)
-        # and by number of steps to normalize vs traj. length
         _num_steps = self.comm.traj.num_block_steps
         _num_atoms = self.comm.traj.num_atoms
 
-        self.sq_elastic /= _num_blocks*_num_atoms*_num_steps
+        # average over blocks
+        if self.calc_coherent:
+            self.coh_sq_elastic /= _num_blocks * _num_steps * _num_atoms
+        if self.calc_incoherent:
+            self.inc_sq_elastic /= _num_blocks * _num_steps * _num_atoms
 
         if self.calc_sqw:
-            self.sqw /= _num_blocks*_num_atoms*_num_steps 
+            if self.calc_coherent:
+                self.coh_sqw /= _num_blocks * _num_steps * _num_atoms
+            if self.calc_incoherent:
+                self.inc_sqw /= _num_blocks * _num_steps * _num_atoms
 
         self.timers.stop_timer('calc_strufacs')
 
@@ -155,22 +174,20 @@ class c_structure_factors:
 
         self.timers.start_timer('calc_on_block',units='m')
 
-        # get stuff for parallelization
         _num_procs = self.comm.paral.num_Qpoint_procs
 
         # get the trajectory from the file
         self.comm.traj.read_trajectory_block(block)
-
-        # Queue for passing data between procs
-        self.queue = mp.Queue()
 
         # do serial calculation if only 1 proc
         if _num_procs == 1:
 
             self._serial_loop_on_Q()
 
-        # do parallel calculation 
         else:
+        
+            # Queue for passing data between procs
+            self.queue = mp.Queue()
 
             _procs = []
             for _proc in range(_num_procs):
@@ -183,9 +200,35 @@ class c_structure_factors:
             # get the results from queue
             for _proc in range(_num_procs):
 
-                proc, exp_iQr = self.queue.get()
+                self.timers.start_timer('get_from_queue',units='s')
+
+                _queue = self.queue.get()
+
+                proc = _queue.pop(0)
                 Q_inds = self.comm.paral.Qpts_on_proc[proc]
-                self.exp_iQr[Q_inds,:] = exp_iQr[...]
+
+                # same order as put into queue
+                if self.calc_coherent:
+                    _coh_sq_elastic = _queue.pop(0)
+                    self.coh_sq_elastic[Q_inds] += _coh_sq_elastic  
+                if self.calc_incoherent:
+                    _inc_sq_elastic = _queue.pop(0)
+                    self.inc_sq_elastic[Q_inds] += _inc_sq_elastic
+                if self.calc_sqw:
+                    if self.calc_coherent:
+                        _coh_sqw = _queue.pop(0)
+                        self.coh_sqw[Q_inds,:] += _coh_sqw
+                    if self.calc_incoherent:
+                        _inc_sqw = _queue.pop(0)
+                        self.inc_sqw[Q_inds,:] += _inc_sqw
+                
+                if proc == 0:
+                    _timers = _queue.pop(0)
+                    for _key in _timers.timers:
+                        if _key not in self.timers.timers:
+                            self.timers.timers[_key] = _timers.timers[_key]
+
+                self.timers.stop_timer('get_from_queue')
 
             # close queue, kill it
             self.queue.close()
@@ -196,26 +239,7 @@ class c_structure_factors:
                 _proc.join()
                 _proc.close()
 
-        self._calc_strufacs(self.exp_iQr)
-
         self.timers.stop_timer('calc_on_block')
-
-    # ----------------------------------------------------------------------------------------------
-
-    def _calc_strufacs(self,exp_iQr):
-
-        """
-        take exp_iQr (rho(Q,t)) and calculate everything from it
-        """
-
-        self.timers.start_timer('calc_strufacs',units='s')
-
-        self.sq_elastic += np.abs(np.mean(exp_iQr,axis=1))**2
-
-        if self.calc_sqw:
-            self.sqw += np.abs(fft(exp_iQr,axis=1,norm='forward'))**2
-
-        self.timers.stop_timer('calc_strufacs')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -230,53 +254,138 @@ class c_structure_factors:
         _num_steps = self.comm.traj.num_block_steps
         _num_atoms = self.comm.traj.num_atoms
 
+        _num_fft_procs = self.config.num_fft_procs
+
         # get the Q-points that this proc is supposed do
         _Qpt_inds = self.comm.paral.Qpts_on_proc[proc]
         _Qpts = self.comm.Qpoints.Q_cart[_Qpt_inds,:]
         _nQ = _Qpts.shape[0]
 
-        exp_iQr = np.zeros((_nQ,_num_steps),dtype=complex)
+        if self.calc_coherent:
+            coh_sq_elastic = np.zeros(_nQ,dtype=float)
+        if self.calc_incoherent:
+            inc_sq_elastic = np.zeros(_nQ,dtype=float)
+
+        if self.calc_sqw:
+            _num_energy = self.num_energy
+            if self.calc_coherent:
+                coh_sqw = np.zeros((_nQ,_num_energy),dtype=float)
+            if self.calc_incoherent:
+                inc_sqw = np.zeros((_nQ,_num_energy),dtype=float)
 
         # get this for neutrons once and for all
         if _exp_type == 'neutrons':
-            _x = self.comm.xlengths.scattering_lengths
+            if self.calc_coherent:
+                _b = self.comm.xlengths.coherent_scattering_lengths
+                _b_tile = np.tile(_b.reshape(1,_num_atoms),reps=(_num_steps,1)) 
+            if self.calc_incoherent:
+                _x = self.comm.xlengths.incoherent_scattering_cross_section
+                _x_tile = np.tile(_x.reshape(_num_atoms,1),reps=(1,_num_steps)) 
 
         # only print info for proc-0
         if proc == 0:
             msg = f'there are {_nQ} Q-points to do ...'
             print(msg)
 
+        # stuff for intermittent timing
+        if proc == 0:
+            _Q_timer = _timer('Q_timer',units='s')
+
         # now loop over Q-points on this proc
         for ii in range(_nQ):
 
             if proc == 0:
+                
                 msg = f'  now on Qpt[{ii}]'
                 print(msg)
 
-            # depends on Q for xrays, but calculated earlier (only looked up here)
+                # start a local timer
+                _Q_timer.start()
+
+            # depends on Q for xrays, but calculated earlier. only coherent scattering for xrays
             if _exp_type == 'xrays':
                 _Q_ind = _Qpt_inds[ii]
-                _x = self.comm.xlengths.form_factors[:,_Q_ind]
+                _b = self.comm.xlengths.form_factors[:,_Q_ind]
+                _b_tile = np.tile(_b.reshape(1,_num_atoms),reps=(_num_steps,1)) 
 
-            # vectorized Q.r dot product, sum over atoms gives space FT
+            self.timers.start_timer('reshape',units='s')
             _Q = _Qpts[ii,:].reshape(1,3)
-            _x_tile = np.tile(_x.reshape(1,_num_atoms),reps=(_num_steps,1))
-            _exp_iQr = np.tile(_Q,reps=(_num_steps,_num_atoms,1))
-            _exp_iQr = np.sum(_exp_iQr*self.comm.traj.pos,axis=2)
-            _exp_iQr = np.exp(1j*_exp_iQr)*_x_tile
-            _exp_iQr = np.sum(_exp_iQr,axis=1)
+            _exp_iQr = np.tile(_Q,reps=(_num_steps,_num_atoms,1)) 
+            _exp_iQr = np.sum(_exp_iQr*self.comm.traj.pos,axis=2) # Q.r
+            _exp_iQr = np.exp(1j*_exp_iQr)
+            self.timers.stop_timer('reshape')
 
-            exp_iQr[ii,:] = _exp_iQr
+            # calculate coherent scattering
+            if self.calc_coherent:
+
+                self.timers.start_timer('calc_coherent',units='s')
+
+                # sum over atoms => space FT
+                _F_Qt = np.sum(_b_tile*_exp_iQr,axis=1)            
+
+                # integrate over time
+                coh_sq_elastic[ii] = np.abs(np.mean(_F_Qt))**2
+
+                # do time FT
+                if self.calc_sqw:
+
+                    self.timers.start_timer('coherent_FFT',units='s')
+                    coh_sqw[ii,:] = np.abs(fft(_F_Qt,norm='forward'))**2
+                    self.timers.stop_timer('coherent_FFT')
+                
+                self.timers.stop_timer('calc_coherent')
+
+            # calculate incoherent scattering
+            if self.calc_incoherent:
+
+                self.timers.start_timer('calc_incoherent',units='s')
+
+                # we want time in the rows (C order)
+                _exp_iQr = _exp_iQr.T
+
+                # integrate over time and sum over atoms
+                inc_sq_elastic[ii] = np.sum(_x * np.abs(np.mean(_exp_iQr,axis=1))**2 )
+
+                # do time FT
+                if self.calc_sqw:
+
+                    self.timers.start_timer('incoherent_FFT',units='s')
+                    inc_sqw[ii,:] = np.sum( _x_tile * np.abs(fft(_exp_iQr,norm='forward',axis=1,
+                                                            workers=_num_fft_procs))**2, axis=0 )
+                    self.timers.stop_timer('incoherent_FFT')
+                    
+                self.timers.stop_timer('calc_incoherent')
+
+            if proc == 0:
+                
+                _Q_timer.stop()
+
+                if ii % _switch == 0 and ii != 0:    
+                    _Q_timer.print_timing()
 
         # put results in queue to be passed to main proc
-        self.queue.put([proc,exp_iQr])
-        
-    # ---------------------------------------------------------------------------------------------- 
+        _queue = [proc]
+        if self.calc_coherent:
+            _queue.append(coh_sq_elastic)
+        if self.calc_incoherent:
+            _queue.append(inc_sq_elastic)
+        if self.calc_sqw:
+            if self.calc_coherent:
+                _queue.append(coh_sqw)
+            if self.calc_incoherent:
+                _queue.append(inc_sqw)
+
+        if proc == 0:
+            _queue.append(self.timers)
+
+        self.queue.put(_queue)
     
+    # ----------------------------------------------------------------------------------------------
+
     def _serial_loop_on_Q(self):
 
         """
-        loops over all of the Q-points on a single proc, calcs rho(Q,t) 
+        loops over the Q-points assinged to the proc, calcs rho(Q,t), then puts data in queue
         """
 
         # convenience refs for below
@@ -284,41 +393,95 @@ class c_structure_factors:
         _num_steps = self.comm.traj.num_block_steps
         _num_atoms = self.comm.traj.num_atoms
 
-        # get the Q-points that this proc is supposed do
-        _Qpt_inds = self.comm.paral.Qpts_on_proc[0]
-        _Qpts = self.comm.Qpoints.Q_cart[_Qpt_inds,:]
-        _nQ = _Qpts.shape[0]
+        _num_fft_procs = self.config.num_fft_procs
 
-        #exp_iQr = np.zeros((_nQ,_num_steps),dtype=complex)
+        # get the Q-points that this proc is supposed do
+        _Qpts = self.comm.Qpoints.Q_cart
+        _nQ = _Qpts.shape[0]
 
         # get this for neutrons once and for all
         if _exp_type == 'neutrons':
-            _x = self.comm.xlengths.scattering_lengths
+            if self.calc_coherent:
+                _b = self.comm.xlengths.coherent_scattering_lengths
+                _b_tile = np.tile(_b.reshape(1,_num_atoms),reps=(_num_steps,1)) 
+            if self.calc_incoherent:
+                _x = self.comm.xlengths.incoherent_scattering_cross_section
+                _x_tile = np.tile(_x.reshape(_num_atoms,1),reps=(1,_num_steps)) 
 
         msg = f'there are {_nQ} Q-points to do ...'
         print(msg)
 
+        # stuff for intermittent timing
+        _Q_timer = _timer('Q_timer',units='s')
+
         # now loop over Q-points on this proc
         for ii in range(_nQ):
-
+            
             msg = f'  now on Qpt[{ii}]'
             print(msg)
 
-            _Q_ind = _Qpt_inds[ii]
+            # start a local timer
+            _Q_timer.start()
 
-            # depends on Q for xrays, but calculated earlier (only looked up here)
+            # depends on Q for xrays, but calculated earlier. only coherent scattering for xrays
             if _exp_type == 'xrays':
-                _x = self.comm.xlengths.form_factors[:,_Q_ind]
+                _b = self.comm.xlengths.form_factors[:,ii]
+                _b_tile = np.tile(_b.reshape(1,_num_atoms),reps=(_num_steps,1)) 
 
-            # vectorized Q.r dot product, sum over atoms gives space FT
+            self.timers.start_timer('reshape',units='s')
+
             _Q = _Qpts[ii,:].reshape(1,3)
-            _x_tile = np.tile(_x.reshape(1,_num_atoms),reps=(_num_steps,1))
-            _exp_iQr = np.tile(_Q,reps=(_num_steps,_num_atoms,1))
-            _exp_iQr = np.sum(_exp_iQr*self.comm.traj.pos,axis=2)
-            _exp_iQr = np.exp(1j*_exp_iQr)*_x_tile
-            _exp_iQr = np.sum(_exp_iQr,axis=1)
+            _exp_iQr = np.tile(_Q,reps=(_num_steps,_num_atoms,1)) 
+            _exp_iQr = np.sum(_exp_iQr*self.comm.traj.pos,axis=2) # Q.r
+            _exp_iQr = np.exp(1j*_exp_iQr)
 
-            self.exp_iQr[_Q_ind,:] = _exp_iQr
+            self.timers.stop_timer('reshape')
+
+            # calculate coherent scattering
+            if self.calc_coherent:
+
+                self.timers.start_timer('calc_coherent',units='s')
+
+                # sum over atoms => space FT
+                _F_Qt = np.sum(_b_tile*_exp_iQr,axis=1)            
+
+                # integrate over time
+                self.coh_sq_elastic[ii] += np.abs(np.mean(_F_Qt))**2
+
+                # do time FT
+                if self.calc_sqw:
+
+                    self.timers.start_timer('coherent_FFT',units='s')
+                    self.coh_sqw[ii,:] += np.abs(fft(_F_Qt,norm='forward'))**2
+                    self.timers.stop_timer('coherent_FFT')
+
+                self.timers.stop_timer('calc_coherent')
+
+            # calculate incoherent scattering
+            if self.calc_incoherent:
+
+                self.timers.start_timer('calc_incoherent',units='s')
+
+                # we want time in the rows (C order)
+                _exp_iQr = _exp_iQr.T
+
+                # integrate over time and sum over atoms
+                self.inc_sq_elastic[ii] += np.sum(_x * np.abs(np.mean(_exp_iQr,axis=1))**2 )
+
+                # do time FT
+                if self.calc_sqw:
+
+                    self.timers.start_timer('incoherent_FFT',units='s')
+                    self.inc_sqw[ii,:] += np.sum( _x_tile * np.abs(fft(_exp_iQr,norm='forward',
+                                                    axis=1,workers=_num_fft_procs))**2, axis=0 )
+                    self.timers.stop_timer('incoherent_FFT')
+
+                self.timers.stop_timer('calc_incoherent')
+            
+            _Q_timer.stop()
+
+            if ii % _switch == 0 and ii != 0:    
+                _Q_timer.print_timing()
 
     # ---------------------------------------------------------------------------------------------- 
 
@@ -330,21 +493,39 @@ class c_structure_factors:
         """
 
         _calc_sqw = self.calc_sqw
+        _calc_coh = self.calc_coherent
+        _calc_inc = self.calc_incoherent
         _use_mesh = self.comm.Qpoints.use_mesh
         _Qpts = self.comm.Qpoints
         _symmetry = self.comm.symmetry
 
         # if using symmetry, put back onto full set
         if _symmetry.use_symmetry:
+
+            if _calc_coh:
+                self.coh_sq_elastic = _symmetry.unfold_onto_full_Q_set(self.coh_sq_elastic)
+            if _calc_inc:
+                self.inc_sq_elastic = _symmetry.unfold_onto_full_Q_set(self.inc_sq_elastic)
+
             if _calc_sqw:
-                self.sqw = _symmetry.unfold_onto_full_Q_set(self.sqw)
-            self.sq_elastic = _symmetry.unfold_onto_full_Q_set(self.sq_elastic)
+                if _calc_coh:
+                    self.coh_sqw = _symmetry.unfold_onto_full_Q_set(self.coh_sqw)
+                if _calc_inc:
+                    self.inc_sqw = _symmetry.unfold_onto_full_Q_set(self.inc_sqw)
 
         # if on Cartesian mesh, unfold from [num_Q]x[3] array to [num_H]x[num_K]x[num_L] mesh
         if _use_mesh:
+
+            if _calc_coh:
+                self.coh_sq_elastic = _Qpts.unfold_onto_cartesian_mesh(self.coh_sq_elastic)
+            if _calc_inc:
+                self.inc_sq_elastic = _Qpts.unfold_onto_cartesian_mesh(self.inc_sq_elastic)
+
             if _calc_sqw:
-                self.sqw = _Qpts.unfold_onto_cartesian_mesh(self.sqw)
-            self.sq_elastic = _Qpts.unfold_onto_cartesian_mesh(self.sq_elastic)
+                if _calc_coh:
+                    self.coh_sqw = _Qpts.unfold_onto_cartesian_mesh(self.coh_sqw)
+                if _calc_inc:
+                    self.inc_sqw = _Qpts.unfold_onto_cartesian_mesh(self.inc_sqw)
 
     # ----------------------------------------------------------------------------------------------
 

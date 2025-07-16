@@ -1,7 +1,6 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #   !                                                                           !
-#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
-#   ! University of Colorado Boulder                                            !
+#   ! Copyright 2025 by Tyler C. Sterling                                       !
 #   !                                                                           !
 #   ! This file is part of the pynamic-structure-factor (PSF) software.         !
 #   ! PSF is free software: you can redistribute it and/or modify it under      !

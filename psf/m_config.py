@@ -1,7 +1,6 @@
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #   !                                                                           !
-#   ! Copyright 2021 by Tyler C. Sterling and Dmitry Reznik,                    !
-#   ! University of Colorado Boulder                                            !
+#   ! Copyright 2025 by Tyler C. Sterling                                       !
 #   !                                                                           !
 #   ! This file is part of the pynamic-structure-factor (PSF) software.         !
 #   ! PSF is free software: you can redistribute it and/or modify it under      !
@@ -110,6 +109,7 @@ class c_config:
         self._set_num_trajectory_blocks()
         self._set_trajectory_blocks()
         self._set_experiment_type() 
+        self._set_num_fft_procs()
         self._set_num_Qpoint_procs()
         self._set_Qpoints_option() 
 
@@ -904,6 +904,29 @@ class c_config:
 
         # echo to the info file
         msg = f'num_Qpoint_procs:\n  {self.num_Qpoint_procs:g}'
+        print(msg)
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _set_num_fft_procs(self):
+
+        """
+        get the attribute
+        """
+
+        self._get_attr('num_fft_procs')
+        
+        # check if allowed
+        msg = '\'num_fft_procs\' must be an integer that is > 0\n'
+        try:
+            self.num_fft_procs = int(self.num_fft_procs)
+        except Exception as ex:
+            crash(msg,ex)
+        if self.num_fft_procs <= 0:
+            crash(msg)
+
+        # echo to the info file
+        msg = f'num_fft_procs:\n  {self.num_fft_procs:g}'
         print(msg)
 
     # ----------------------------------------------------------------------------------------------

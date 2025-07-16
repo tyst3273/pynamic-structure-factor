@@ -208,14 +208,14 @@ class c_structure_factors:
         take exp_iQr (rho(Q,t)) and calculate everything from it
         """
 
-        self.timers.start_timer('calc_strufacs',units='s')
+        self.timers.start_timer('calc_FFT',units='ms')
 
         self.sq_elastic += np.abs(np.mean(exp_iQr,axis=1))**2
 
         if self.calc_sqw:
             self.sqw += np.abs(fft(exp_iQr,axis=1,norm='forward'))**2
 
-        self.timers.stop_timer('calc_strufacs')
+        self.timers.stop_timer('calc_FFT')
 
     # ----------------------------------------------------------------------------------------------
 
@@ -311,12 +311,14 @@ class c_structure_factors:
                 _x = self.comm.xlengths.form_factors[:,_Q_ind]
 
             # vectorized Q.r dot product, sum over atoms gives space FT
+            self.timers.start_timer('reshape',units='s')
             _Q = _Qpts[ii,:].reshape(1,3)
             _x_tile = np.tile(_x.reshape(1,_num_atoms),reps=(_num_steps,1))
             _exp_iQr = np.tile(_Q,reps=(_num_steps,_num_atoms,1))
             _exp_iQr = np.sum(_exp_iQr*self.comm.traj.pos,axis=2)
             _exp_iQr = np.exp(1j*_exp_iQr)*_x_tile
             _exp_iQr = np.sum(_exp_iQr,axis=1)
+            self.timers.stop_timer('reshape')
 
             self.exp_iQr[_Q_ind,:] = _exp_iQr
 

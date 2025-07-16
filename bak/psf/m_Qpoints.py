@@ -130,6 +130,8 @@ class c_Qpoints:
         _end = self.config.Q_path_end
         _steps = self.config.Q_path_steps
         _num_paths = self.config.num_Q_paths 
+
+        self.Q_path_verts = np.zeros(_num_paths+1,dtype=int)
         
         self.num_Q_full = np.sum(_steps)
         self.Q_rlu_full = np.zeros((self.num_Q_full,3),dtype=float)
@@ -143,6 +145,7 @@ class c_Qpoints:
             self.Q_rlu_full[_shift:_shift+_steps[ii],2] = np.linspace(_start[ii,2],
                                                     _end[ii,2],_steps[ii]+1)[:-1]
             _shift += _steps[ii]
+            self.Q_path_verts[ii+1] = _shift-1
 
     # ----------------------------------------------------------------------------------------------
 
