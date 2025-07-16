@@ -1,6 +1,7 @@
 # pynamic-structure-factor
 
 ### Most recent updates:
+- July 16, 2025: added incoherent scattering. -- not validated against any experiments yet, but it seems okay. still need to update examples and so on! ill do it when i get a chance.
 - June 20, 2024: adding symmetry to reduce number of **Q**-points to irreducible set. *in-progress, not ready!*
 - May 21, 2024: add command line flag `-n` to set the number of threads. some other improvements.
 - Oct 1, 2024: i got a macbook and was able to test this code with multiprocess (vs multiprocessing, which wouldnt work). multiprocess works! parallelism is now supported on linux and mac (i havent tested windows, please email me if you use this code with windows!)
@@ -62,7 +63,7 @@ Note, if you want any of these features or any others, contact me (contact info 
 - apply quantum correction to the distribution function. Check my notes on force constant from greens functions (private, contact me if interested)
 - apply quantum correction to the stationary phase approximation (prove it is stationary phase approx first.) see Tuckermans book and my notes (private, contact me if interested). 
 - currently, lattice vectors are constant during the simulation. it should be possible to read the lattice vectors from the file for each time step, but recalculating in cartesian coords will be slow...
-- calculate incoherent neutron scattering. currently, what is calculated is only the coherent part. -- now under development based on a request from a 'user'.
+- calculate incoherent neutron scattering. currently, what is calculated is only the coherent part. -- now under development based on a request from a 'user'. -- DONE, but not validated against any experiments or other calculations and i havent updated the examples.
 
 ## Bugs
 - it has been brought to my attention that the parallel part of my code only works on linux. the problem is with `multiprocessing`. i am looking for a solution to get it to run in parallel on windows and mac ... please bear with me ... or switch to linux! you can still run in serial (just set `num_Qpoint_procs = 1`) on windows and mac. UPDATE: I think `multiprocess`, which is a fork of `multiprocessing`, fixes this, but I haven't investigated in detail. 
