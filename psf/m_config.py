@@ -88,6 +88,7 @@ class c_config:
             self._set_trajectory_file()
 
         self._set_unwrap_trajectory()
+        self._set_use_reduced_coords()
         self._set_calc_sqw()
         self._set_calc_coherent()
         self._set_calc_incoherent()
@@ -761,6 +762,18 @@ class c_config:
 
     # ----------------------------------------------------------------------------------------------
 
+    def _set_use_reduced_coords(self):
+
+        """
+        get the attribute
+        """
+
+        self._get_attr('use_reduced_coords')
+
+        self.use_reduced_coords = bool(self.use_reduced_coords)
+        print(f'use_reduced_coords:\n  {self.use_reduced_coords}')
+
+    # ----------------------------------------------------------------------------------------------
     def _set_trajectory_file(self):
 
         """

@@ -49,6 +49,8 @@ class c_structure_factors:
         self.calc_coherent = config.calc_coherent
         self.calc_incoherent = config.calc_incoherent
 
+        self.use_reduced_coords = config.use_reduced_coords
+
         _num_Q = self.comm.Qpoints.num_Q
         _num_steps = self.comm.traj.num_block_steps
 
@@ -258,7 +260,10 @@ class c_structure_factors:
 
         # get the Q-points that this proc is supposed do
         _Qpt_inds = self.comm.paral.Qpts_on_proc[proc]
-        _Qpts = self.comm.Qpoints.Q_cart[_Qpt_inds,:]
+        if self.use_reduced_coords:
+            _Qpts = 2*np.pi*self.comm.Qpoints.Q_rlu[_Qpt_inds,:]
+        else:
+            _Qpts = self.comm.Qpoints.Q_cart[_Qpt_inds,:]
         _nQ = _Qpts.shape[0]
 
         if self.calc_coherent:
@@ -295,7 +300,7 @@ class c_structure_factors:
         for ii in range(_nQ):
 
             if proc == 0:
-                
+
                 msg = f'  now on Qpt[{ii}]'
                 print(msg)
 
@@ -396,7 +401,11 @@ class c_structure_factors:
         _num_fft_procs = self.config.num_fft_procs
 
         # get the Q-points that this proc is supposed do
-        _Qpts = self.comm.Qpoints.Q_cart
+        if self.use_reduced_coords:
+            _Qpts = 2*np.pi*self.comm.Qpoints.Q_rlu
+        else:
+            _Qpts = self.comm.Qpoints.Q_cart
+        
         _nQ = _Qpts.shape[0]
 
         # get this for neutrons once and for all

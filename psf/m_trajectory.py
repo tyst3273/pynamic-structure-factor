@@ -49,6 +49,7 @@ class c_trajectory:
         self.md_time_step = self.config.md_time_step    
         self.effective_time_step = self.config.trajectory_stride*self.md_time_step
         self.unwrap_trajectory = self.config.unwrap_trajectory
+        self.use_reduced_coords = self.config.use_reduced_coords
 
         # set up the 'blocks' of indices for calculating on
         self._get_block_inds()
@@ -61,6 +62,15 @@ class c_trajectory:
 
         # initialize the positions; they are cartesian coords in whatever units are in the file
         self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
+
+        # reduced coords are expected to be unwrapped already
+        if self.use_reduced_coords and self.unwrap_trajectory:
+            msg = 'unwrap_trajectory and use_reduced coords are incompatible'
+            crash(msg)
+
+        if self.use_reduced_coords and self.trajectory_format != 'user_hdf5':
+            msg ='use_reduced_coords only works with trajectory_format=\'user_hdf5\''
+            crash(msg)
 
         # determine whether or not to read box vectors from file; not need if not unwrapping
         if not self.unwrap_trajectory:
@@ -399,8 +409,11 @@ class c_trajectory:
         try:
             import h5py
             with h5py.File(self.trajectory_file,'r') as in_db:
-                # read positions
-                self.pos[:,:,:] = in_db['cartesian_pos'][inds,:,:]
+                
+                if self.use_reduced_coords:
+                    self.pos[:,:,:] = in_db['reduced_pos'][inds,:,:]    
+                else:
+                    self.pos[:,:,:] = in_db['cartesian_pos'][inds,:,:]
 
         except Exception as _ex:
             msg = f'the hdf5 file\n  \'{self.trajectory_file}\'\ncould not be read!\n'
