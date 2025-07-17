@@ -106,7 +106,7 @@ class _timer:
         msg = '\nlocal timer:\n'
         msg += '  (label)                    (calls)     (lap)     (total) \n'
         msg += self.str+'\n'
-        print(msg)
+        print(msg,flush=True)
 
     # ----------------------------------------------------------------------------------------------
 
