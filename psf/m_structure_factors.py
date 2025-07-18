@@ -54,8 +54,6 @@ class c_structure_factors:
         _num_Q = self.comm.Qpoints.num_Q
         _num_steps = self.comm.traj.num_block_steps
 
-        self.exp_iQr = np.zeros((_num_Q,_num_steps),dtype=complex)
-
         # elastic part always calculated
         msg = '\n*** elastic intensity ***'
         if self.calc_coherent:
