@@ -54,14 +54,13 @@ class c_trajectory:
         # set up the 'blocks' of indices for calculating on
         self._get_block_inds()
 
+        self.pos = np.zeros((self.num_block_steps,self.num_atoms,3),dtype=float)
+
         _eff_step = self.effective_time_step/1000 # ps
         _duration = self.num_block_steps*_eff_step
         msg = f'effective timestep: {_eff_step} (ps)\n'
         msg += f'trajectory duration: {_duration:6.2f} (ps)'
         print(msg)
-
-        # initialize the positions; they are cartesian coords in whatever units are in the file
-        self.pos = np.zeros((self.num_block_steps,self.num_atoms,3))
 
         # reduced coords are expected to be unwrapped already
         if self.use_reduced_coords and self.unwrap_trajectory:
@@ -222,6 +221,11 @@ class c_trajectory:
 
         # step indices to get from file for this block
         inds = self.block_inds[block_index,:]
+
+        # if masking atoms, have to reallocate this to be size of full trajectory
+        # then slice it down again. not ideal, but a convenient workaround ...
+        if self.comm.xlengths.mask_atoms:
+            self.pos = np.zeros((self.num_block_steps,self.num_atoms,3),dtype=float)
 
         # --- add new file type parsers here! ---
         if self.trajectory_format == 'lammps_hdf5':
