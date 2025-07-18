@@ -149,10 +149,7 @@ class c_structure_factors:
         print(msg)
 
         _num_steps = self.comm.traj.num_block_steps
-        if self.comm.xlengths.mask_atoms:
-            _num_atoms = self.comm.xlengths.num_atoms_to_keep
-        else:
-            _num_atoms = self.comm.traj.num_atoms
+        _num_atoms = self.comm.traj.num_atoms
 
         # average over blocks
         if self.calc_coherent:
