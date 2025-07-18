@@ -357,6 +357,8 @@ def merge_strufac_files(strufac_files,output_file):
     num_files = len(strufac_files)
 
     has_sqw = False
+    has_coherent = False
+    has_incoherent = False
     init = True
 
     msg = '\nmerging structure factor files:'
@@ -377,14 +379,23 @@ def merge_strufac_files(strufac_files,output_file):
                 reciprocal_lattice_vectors = db['reciprocal_lattice_vectors'][...]
                 mesh = db['mesh'][...]
 
-                sq_elastic = db['sq_elastic'][...]
+                calc_sqw = db['calc_sqw'][...]
+                calc_coherent = db['calc_coherent'][...]
+                calc_incoherent = db['calc_incoherent'][...]
 
-                if 'sqw' in db.keys():
-                    has_sqw = True
-                    sqw = db['sqw'][...]
+                if calc_sqw:
                     energy = db['energy'][...]
 
-                if mesh == True:
+                if calc_coherent:
+                    coh_sq_elastic = db['coh_sq_elastic'][...] 
+                    if calc_sqw:
+                        coh_sqw = db['coh_sqw'][...]
+                if calc_incoherent:
+                    inc_sq_elastic = db['inc_sq_elastic'][...]
+                    if calc_sqw:
+                        inc_sqw = db['inc_sqw'][...]
+
+                if mesh:
                     H = db['H'][...]
                     K = db['K'][...]
                     L = db['L'][...]
@@ -399,10 +410,14 @@ def merge_strufac_files(strufac_files,output_file):
 
             else:
 
-                sq_elastic += db['sq_elastic'][...]
-
-                if has_sqw:
-                    sqw += db['sqw'][...]
+                if calc_coherent:
+                    coh_sq_elastic += db['coh_sq_elastic'][...] 
+                    if calc_sqw:
+                        coh_sqw += db['coh_sqw'][...] 
+                if calc_incoherent:
+                    inc_sq_elastic += db['inc_sq_elastic'][...] 
+                    if calc_sqw:
+                        inc_sqw += db['inc_sqw'][...] 
 
     msg = f'\ninto file:\n  {output_file}\n'
     print(msg)
@@ -412,6 +427,10 @@ def merge_strufac_files(strufac_files,output_file):
 
         db.create_dataset('lattice_vectors',data=lattice_vectors)
         db.create_dataset('reciprocal_lattice_vectors',data=reciprocal_lattice_vectors)
+
+        db.create_dataset('calc_sqw',data=calc_sqw)
+        db.create_dataset('calc_coherent',data=calc_coherent)
+        db.create_dataset('calc_incoherent',data=calc_incoherent)
 
         if mesh:
             db.create_dataset('mesh',data=True)
@@ -426,12 +445,20 @@ def merge_strufac_files(strufac_files,output_file):
         if 'Q_path_verts' in locals():
             db.create_dataset('Q_path_verts',data=Q_path_verts)
 
-        sq_elastic /= num_files
-        db.create_dataset('sq_elastic',data=sq_elastic)
+        if calc_coherent:
+            coh_sq_elastic /= num_files
+            db.create_dataset('coh_sq_elastic',data=coh_sq_elastic)
+            if calc_sqw:
+                coh_sqw /= num_files
+                db.create_dataset('coh_sqw',data=coh_sqw)
+        if calc_incoherent:
+            inc_sq_elastic /= num_files
+            db.create_dataset('inc_sq_elastic',data=inc_sq_elastic)
+            if calc_sqw:
+                inc_sqw /= num_files
+                db.create_dataset('inc_sqw',data=inc_sqw)
 
-        if has_sqw:
-            sqw /= num_files
-            db.create_dataset('sqw',data=sqw)
+        if calc_sqw:
             db.create_dataset('energy',data=energy)
 
 # --------------------------------------------------------------------------------------------------

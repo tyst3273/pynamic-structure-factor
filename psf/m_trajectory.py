@@ -232,6 +232,10 @@ class c_trajectory:
             self._read_pos_external(inds)
         # ---------------------------------------
 
+        if self.comm.xlengths.mask_atoms:
+            _inds = self.comm.xlengths.inds_to_keep
+            self.pos = self.pos[:,_inds,:]
+
         # check if simulation box is orthorhombic; only matters if unwrapping
         if self.unwrap_trajectory:
 

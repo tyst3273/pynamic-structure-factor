@@ -66,6 +66,50 @@ class c_scattering_lengths:
         # now go an use data for stuff
         self._get_scattering_data()
 
+        # mask all atom types with scattering lenght==0, if any
+        if self.experiment_type == 'neutrons':
+            self._mask_atoms()
+        else:
+            self.mask_atoms = False
+
+    # ----------------------------------------------------------------------------------------------
+
+    def _mask_atoms(self):
+
+        """
+        get an array of indices of all atoms that arent none (i.e. 0 scattering length)
+        """
+
+        _none = []
+        _not_none = []
+        for ii in range(self.num_types):
+            if self.atom_types[ii] == 'none':
+                _none.append(ii)
+            else:
+                _not_none.append(ii)
+        
+        if len(_none) == 0:
+            self.mask_atoms = False
+            return
+        
+        self.mask_atoms = True
+        self.inds_to_keep = np.empty(0,dtype=int)
+        for _type in _not_none:
+            _inds = np.flatnonzero(self.comm.traj.types == _type)
+            self.inds_to_keep = np.append(self.inds_to_keep,_inds)
+
+        if self.calc_coherent:
+            self.coherent_scattering_lengths = self.coherent_scattering_lengths[self.inds_to_keep]
+        if self.calc_incoherent:
+            self.incoherent_scattering_cross_section = \
+                self.incoherent_scattering_cross_section[self.inds_to_keep]
+
+        self.num_atoms_to_keep = self.inds_to_keep.size
+
+        msg = '\n*** masking atoms ***'
+        msg += f'\nthere are only {self.num_atoms_to_keep} atoms that arent \'none\''
+        print(msg)
+
     # ----------------------------------------------------------------------------------------------
 
     def _get_scattering_data(self):
