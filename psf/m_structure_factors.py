@@ -249,6 +249,8 @@ class c_structure_factors:
         loops over the Q-points assinged to the proc, calcs rho(Q,t), then puts data in queue
         """
 
+        self.timers.start_timer('loop_on_Q',units='m')
+
         # convenience refs for below
         _exp_type = self.comm.xlengths.experiment_type
         _num_steps = self.comm.traj.num_block_steps
@@ -385,6 +387,8 @@ class c_structure_factors:
         if proc == 0:
             _queue.append(self.timers)
 
+        self.timers.stop_timer('loop_on_Q')
+
         self.queue.put(_queue)
     
     # ----------------------------------------------------------------------------------------------
@@ -394,6 +398,8 @@ class c_structure_factors:
         """
         loops over the Q-points assinged to the proc, calcs rho(Q,t), then puts data in queue
         """
+
+        self.timers.start_timer('loop_on_Q',units='m')
 
         # convenience refs for below
         _exp_type = self.comm.xlengths.experiment_type
@@ -497,6 +503,8 @@ class c_structure_factors:
 
             if ii % _switch == 0 and ii != 0:    
                 _Q_timer.print_timing()
+
+        self.timers.stop_timer('loop_on_Q')
 
     # ---------------------------------------------------------------------------------------------- 
 
