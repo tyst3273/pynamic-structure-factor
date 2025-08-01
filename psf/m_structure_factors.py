@@ -52,7 +52,6 @@ class c_structure_factors:
         self.use_reduced_coords = config.use_reduced_coords
 
         _num_Q = self.comm.Qpoints.num_Q
-        _num_steps = self.comm.traj.num_block_steps
 
         # elastic part always calculated
         msg = '\n*** elastic intensity ***'
