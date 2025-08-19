@@ -312,7 +312,8 @@ class c_reader:
         integrate (sum) sqw over specified energy range
         """
 
-        msg = 'read_energy_integrated_sqw is deprecated. use get_energy_inds or do it from scratch'
+        msg = 'read_energy_integrated_sqw is deprecated.\n'
+        msg += 'use get_energy_inds and/or do it from scratch'
         print(msg)
         return
 
